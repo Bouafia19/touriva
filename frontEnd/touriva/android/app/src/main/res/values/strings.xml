@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Touriva</string>
+    <string name="title_activity_main">Touriva</string>
+    <string name="package_name">com.touriva.app</string>
+    <string name="custom_url_scheme">com.touriva.app</string>
+</resources>

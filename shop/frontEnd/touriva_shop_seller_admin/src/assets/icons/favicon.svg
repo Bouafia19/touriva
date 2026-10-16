@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="48.0" fill="url(#emeraldGrad)" />
+  <!-- Stylized Compass / Mountain symbol -->
+  <g transform="scale(1.92)">
+    <path d="M50 18 L76 76 L50 60 L24 76 Z" fill="#ffffff" opacity="0.95" />
+    <path d="M50 18 L50 60 L76 76 Z" fill="#e2e8f0" opacity="0.35" />
+    <polygon points="50,42 54,50 62,50 56,55 58,63 50,58 42,63 44,55 38,50 46,50" fill="url(#amberGrad)" />
+    <circle cx="50" cy="52" r="4" fill="#ffffff" />
+  </g>
+</svg>

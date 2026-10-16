@@ -1,33 +1,32 @@
-import { generateTripAI } from '../services/aiTripGenerator.js'
-import Trip from '../models/Trip.js'
+const { generateTripAI } = require('../services/aiTripGenerator')
+const Trip = require('../models/Trip')
 
-export const createTripWithAI = async (req, res) => {
+const createTripWithAI = async (req, res) => {
   try {
-    const { city, days, budget, preferences, creator, destination, hotels, restaurants, sites } = req.body
-
-    
+    const { city, days, budget, preferences, creator, hotels, restaurants, sites } = req.body
 
     const aiTrip = await generateTripAI({
       city,
       days,
       budget,
-      preferences,
-      creator,
-      // destination,
-      hotels,
-      restaurants,
-      sites
+      preferences: preferences || [],
+      hotels: hotels || [],
+      restaurants: restaurants || [],
+      sites: sites || []
     })
-    console.log('AI Trip Generated:', aiTrip)
+
     const trip = await Trip.create({
       ...aiTrip,
-      creator,
-      // destination
+      creator
     })
 
     res.status(201).json(trip)
   } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'AI trip generation failed' })
+    console.error('AI trip error:', error)
+    res.status(500).json({ message: 'AI trip generation failed', error: error.message })
   }
+}
+
+module.exports = {
+  createTripWithAI
 }

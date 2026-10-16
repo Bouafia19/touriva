@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- Emblem Badge -->
+  <g transform="translate(20, 16)" filter="url(#subtleShadow)">
+    <rect x="0" y="0" width="88" height="88" rx="22" fill="url(#emeraldGrad)" />
+    <!-- Stylized Compass / Mountain / Touriva T symbol -->
+    <path d="M44 16 L66 68 L44 54 L22 68 Z" fill="#ffffff" opacity="0.95" />
+    <path d="M44 16 L44 54 L66 68 Z" fill="#e2e8f0" opacity="0.4" />
+    <!-- Golden Accent Compass Needle / Star -->
+    <polygon points="44,38 48,46 56,46 50,51 52,59 44,54 36,59 38,51 32,46 40,46" fill="url(#amberGrad)" />
+    <circle cx="44" cy="48" r="4" fill="#ffffff" />
+  </g>
+  
+  <!-- Touriva Typography -->
+  <g transform="translate(125, 62)">
+    <text font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="44" font-weight="800" fill="#0f172a" letter-spacing="-1">
+      Touri<tspan fill="#0f766e">va</tspan>
+    </text>
+    <text y="24" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#64748b" letter-spacing="2.5">
+      DISCOVER MORE • TRAVEL BETTER
+    </text>
+  </g>
+</svg>

@@ -2,6 +2,9 @@ require('dotenv').config()
 const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
+const helmet = require('helmet')
+const morgan = require('morgan')
+const rateLimit = require('express-rate-limit')
 
 require("./cronJobs.js")
 
@@ -35,13 +38,58 @@ const activityRouters = require('./routes/activities')
 // express app
 const app = express()
 
-// middleware
-app.use(cors())
+// Security headers
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}))
 
-app.use(express.json({limit: '50mb'}))
+// Request logging in development/production
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('dev'))
+}
 
+// CORS configuration
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['*']
 
-// routes
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Blocked by CORS policy'))
+    }
+  },
+  credentials: true
+}))
+
+// Body parser
+app.use(express.json({ limit: '50mb' }))
+app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+
+// Rate limiting for public APIs
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // generous max requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' }
+})
+app.use('/api/', apiLimiter)
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'Touriva Tourism API',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  })
+})
+
+// Core API routes
 app.use('/api/users', userRouters)
 app.use('/api/categories', categoryRouters)
 app.use('/api/publications', publicationRouters)
@@ -69,16 +117,36 @@ app.use('/api/tripSubscriptions', tripSubscriptionRouters)
 app.use('/api/aiTrips', aiTripRouters)
 app.use('/api/activities', activityRouters)
 
-// connect to db
-mongoose.set('strictQuery', true);
-mongoose.connect(process.env.MONGO_URI)
+// 404 handler
+app.use((req, res, next) => {
+  res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl })
+})
+
+// Centralized error handling middleware
+app.use((err, req, res, next) => {
+  console.error('API Error:', err.message || err)
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
+  })
+})
+
+const PORT = process.env.PORT || 4000
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/touriva'
+
+// connect to db only when not required by test runner
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.set('strictQuery', true)
+  mongoose.connect(MONGO_URI)
     .then(() => {
-        console.log('connected to database')
-        // listen to port
-        app.listen(process.env.PORT, () => {
-            console.log('listening for requests on port', process.env.PORT)
-        })
+      console.log('Connected to Touriva database:', MONGO_URI)
+      app.listen(PORT, () => {
+        console.log(`Touriva API listening on port ${PORT}`)
+      })
     })
     .catch((err) => {
-        console.log(err)
-    }) 
+      console.error('Touriva database connection failure:', err)
+    })
+}
+
+module.exports = app

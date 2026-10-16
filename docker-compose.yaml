@@ -1,57 +1,66 @@
 services:
   mongo_db:
-    container_name: djawal_db
-    image: mongo:latest
+    container_name: touriva_db
+    image: mongo:7.0
     restart: always
     volumes:
-      - mongo_db:/data/db
+      - touriva_mongo_db:/data/db
+    ports:
+      - "27018:27017"
 
   api:
     build: ./backend
+    container_name: touriva_api
     environment:
       PORT: 4000
-      MONGO_URI: mongodb://mongo_db:27017/djawal
-      SECRET: eurlnextchallenge2021khaledbouafia1992
-      ACCOUNT_SID: AC40353c4257fb49a9b5e0ec2fb4dd616d
-      AUTH_TOKEN: 34809470bff806f2e4f3f3991be02ea4
-      SERVICE_ID: VA356ce183c82b283137ee24ee714bc608
-      OLLAMA_API_KEY: 5d8b16d317b04d8c86177b709d342c3c.9Km7dDKW_9JulnsX6f7kHSkU
-      MAIL_USER: khaledsetif1900@gmail.com
-      MAIL_PASS: cmrx rzhn xxtl srdf
+      MONGO_URI: mongodb://mongo_db:27017/touriva
+      SECRET: ${SECRET:-touriva_production_secure_secret_token_2026}
+      ACCOUNT_SID: ${ACCOUNT_SID:-}
+      AUTH_TOKEN: ${AUTH_TOKEN:-}
+      SERVICE_ID: ${SERVICE_ID:-}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
+      NODE_ENV: production
+      CORS_ORIGINS: "*"
     depends_on:
       - mongo_db
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    # deploy:
-    #   replicas: 10
     restart: unless-stopped
+    ports:
+      - "4000:4000"
 
   admin_panel:
-    build: ./frontEnd/djawal_adminPanel
-    container_name: djawal_admin_panel
+    build: ./frontEnd/touriva_adminPanel
+    container_name: touriva_admin_panel
     depends_on:
       - api
     restart: unless-stopped
+    ports:
+      - "2021:80"
 
   web_client:
-    build: ./frontEnd/djawal
-    container_name: djawal_web
+    build: ./frontEnd/touriva
+    container_name: touriva_web
     depends_on:
       - api
     restart: unless-stopped
+    ports:
+      - "2020:80"
 
   nginx:
-    # image: nginx:latest
     build: ./nginx
+    container_name: touriva_nginx
     volumes:
-      - ./nginx/djawal.conf:/etc/nginx/nginx.conf
+      - ./nginx/touriva.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api
       - admin_panel
       - web_client
     ports:
-      - 80:80
-      - 443:443
+      - "8080:80"
     restart: unless-stopped
+
 volumes:
-  mongo_db: {}
+  touriva_mongo_db: {}

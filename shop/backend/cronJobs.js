@@ -13,10 +13,12 @@ async function updateExpiredPublications() {
   return result.modifiedCount;
 }
 
-// ✅ Schedule job at midnight Algeria time
-cron.schedule("0 0 * * *", updateExpiredPublications, {
-  timezone: "Africa/Algiers",
-});
+// ✅ Schedule job at midnight Algeria time (disabled during automated test runs)
+if (process.env.NODE_ENV !== "test") {
+  cron.schedule("0 0 * * *", updateExpiredPublications, {
+    timezone: "Africa/Algiers",
+  });
+}
 
 // Export function for manual use
 module.exports = updateExpiredPublications;

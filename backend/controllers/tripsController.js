@@ -1,29 +1,31 @@
-import Trip from '../models/Trip.js'
+const Trip = require('../models/Trip')
 
 // GET all trips
-export const getTrips = async (req, res) => {
+const getTrips = async (req, res) => {
   try {
-    const trips = await Trip.find().sort({ createdAt: -1 }).populate("creator").populate("destination")
-    .populate({
+    const trips = await Trip.find().sort({ createdAt: -1 })
+      .populate({
         path: 'creator',
         model: 'User',
         select: '_id firstName lastName companyName phone typeAccount'
-    })
-    .populate({
+      })
+      .populate({
         path: 'destination',
         model: 'Wilaya',
         select: '_id name'
-    })
+      })
     res.json(trips)
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch trips' })
+    res.status(500).json({ message: 'Failed to fetch trips', error: error.message })
   }
 }
 
 // GET trip by ID
-export const getTripById = async (req, res) => {
+const getTripById = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.id)
+      .populate('creator', '_id firstName lastName companyName phone typeAccount')
+      .populate('destination', '_id name')
     if (!trip) {
       return res.status(404).json({ message: 'Trip not found' })
     }
@@ -34,16 +36,16 @@ export const getTripById = async (req, res) => {
 }
 
 // CREATE trip
-export const createTrip = async (req, res) => {
+const createTrip = async (req, res) => {
   try {
     const trip = await Trip.create(req.body)
     res.status(201).json(trip)
   } catch (error) {
-    res.status(400).json({ message: 'Trip creation failed', error })
+    res.status(400).json({ message: 'Trip creation failed', error: error.message })
   }
 }
 
-export const updateTrip = async (req, res) => {
+const updateTrip = async (req, res) => {
   try {
     const { id } = req.params
 
@@ -64,17 +66,17 @@ export const updateTrip = async (req, res) => {
   }
 }
 
-export const getTripsByUser = async (req, res) => {
+const getTripsByUser = async (req, res) => {
   try {
     const { userId } = req.params
 
-    const trips = await Trip.find({ creator: userId }).populate("creator")
-    .populate({
-      path: 'creator',
-      model: 'User',
-      select: '_id firstName lastName companyName phone typeAccount'
-    })
-    .sort({ createdAt: -1 })
+    const trips = await Trip.find({ creator: userId })
+      .populate({
+        path: 'creator',
+        model: 'User',
+        select: '_id firstName lastName companyName phone typeAccount'
+      })
+      .sort({ createdAt: -1 })
 
     res.status(200).json(trips)
   } catch (error) {
@@ -83,7 +85,7 @@ export const getTripsByUser = async (req, res) => {
   }
 }
 
-export const deleteTrip = async (req, res) => {
+const deleteTrip = async (req, res) => {
   try {
     const { id } = req.params
 
@@ -98,4 +100,13 @@ export const deleteTrip = async (req, res) => {
     console.error('Delete trip error:', error)
     res.status(500).json({ message: 'Failed to delete trip' })
   }
+}
+
+module.exports = {
+  getTrips,
+  getTripById,
+  createTrip,
+  updateTrip,
+  getTripsByUser,
+  deleteTrip
 }

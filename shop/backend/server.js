@@ -37,6 +37,11 @@ app.use(cors({ origin: '*' }))
 app.use(express.json({limit: '50mb'}))
 
 
+// health check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', service: 'touriva-shop-backend', timestamp: new Date().toISOString() })
+})
+
 // routes
 app.use('/api/users', userRouters)
 app.use('/api/categories', categoryRouters)
@@ -65,12 +70,16 @@ app.use('/api/orders', orderRouters)
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
-        console.log('connected to database')
-        // listen to port
-        app.listen(process.env.PORT, () => {
-            console.log('listening for requests on port', process.env.PORT)
-        })
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('connected to database')
+            // listen to port
+            app.listen(process.env.PORT, () => {
+                console.log('listening for requests on port', process.env.PORT)
+            })
+        }
     })
     .catch((err) => {
-        console.log(err)
-    }) 
+        console.error('Database connection error:', err)
+    })
+
+module.exports = app 
