@@ -1,0 +1,52 @@
+services:
+  mongo_db:
+    container_name: djawal_db
+    image: mongo:latest
+    restart: always
+    volumes:
+      - mongo_db:/data/db
+
+  api:
+    build: ./backend
+    environment:
+      PORT: 4000
+      MONGO_URI: mongodb://mongo_db:27017/djawal_shop
+      SECRET: eurlnextchallenge2021khaledbouafia1992
+      ACCOUNT_SID: AC40353c4257fb49a9b5e0ec2fb4dd616d
+      AUTH_TOKEN: 34809470bff806f2e4f3f3991be02ea4
+      SERVICE_ID: VA356ce183c82b283137ee24ee714bc608
+    depends_on:
+      - mongo_db
+    # deploy:
+    #   replicas: 10
+    restart: unless-stopped
+
+  admin_panel:
+    build: ./frontEnd/djawal_adminPanel
+    container_name: djawal_admin_panel
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  web_client:
+    build: ./frontEnd/djawal
+    container_name: djawal_web
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  nginx:
+    # image: nginx:latest
+    build: ./nginx
+    volumes:
+      - ./nginx/djawal.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+      - admin_panel
+      - web_client
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped
+volumes:
+  mongo_db: {}
