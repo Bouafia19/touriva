@@ -63,8 +63,38 @@ const vuetify = createVuetify({
     },
 })
 
-const apiBase = import.meta.env.VITE_SHOP_API_BASE_URL || 'http://localhost:5000/'
+let rawApiBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_SHOP_API_BASE_URL || 'https://touriva-api.onrender.com'
+if (rawApiBase && !rawApiBase.startsWith('http://') && !rawApiBase.startsWith('https://')) {
+    rawApiBase = `https://${rawApiBase}`
+}
+const apiBase = rawApiBase
 axios.defaults.baseURL = apiBase.endsWith('/') ? apiBase : `${apiBase}/`
+
+// Attach valid Bearer token to authenticated requests automatically if available
+axios.interceptors.request.use(
+    config => {
+        if (config.headers && config.headers.Authorization) {
+            const authHeader = String(config.headers.Authorization)
+            if (authHeader.includes('undefined') || authHeader.includes('null') || authHeader.trim() === 'Bearer') {
+                delete config.headers.Authorization
+            }
+        }
+        if (!config.headers.Authorization) {
+            try {
+                const stored = localStorage.getItem('userInfo')
+                if (stored) {
+                    const parsed = JSON.parse(stored)
+                    const token = parsed?.token
+                    if (token && typeof token === 'string' && token !== 'undefined' && token !== 'null' && token.trim() !== '') {
+                        config.headers.Authorization = `Bearer ${token}`
+                    }
+                }
+            } catch (e) {}
+        }
+        return config
+    },
+    error => Promise.reject(error)
+)
 
 const app = createApp(App)
 const pinia = createPinia()

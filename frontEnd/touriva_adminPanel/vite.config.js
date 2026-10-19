@@ -17,9 +17,9 @@ export default defineConfig({
   server: {
     port: 2025,
   },
-  base: '/admin/', 
+  base: process.env.VITE_BASE_PATH || '/', 
   build: {
-    outDir: 'dist/admin/',
+    outDir: process.env.VITE_OUT_DIR || 'dist',
     rollupOptions: {
       output: {
         manualChunks(id) {

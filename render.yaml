@@ -19,7 +19,7 @@ services:
       - key: MONGO_URI
         sync: false
 
-  # Touriva Main Tourism Discovery Web App
+  # 1. Touriva Main Tourism Discovery Web App
   - type: web
     name: touriva-web
     runtime: static
@@ -32,7 +32,70 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: touriva-api
-          property: host
+        value: https://touriva-api.onrender.com
+
+  # 2. Touriva Main Administration Panel
+  - type: web
+    name: touriva-admin
+    runtime: static
+    rootDir: frontEnd/touriva_adminPanel
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://touriva-api.onrender.com
+
+  # 3. Touriva Artisan & Merchandise Shop Storefront
+  - type: web
+    name: touriva-shop-web
+    runtime: static
+    rootDir: shop/frontEnd/touriva_shop_web
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://touriva-api.onrender.com
+      - key: VITE_SHOP_API_BASE_URL
+        value: https://touriva-api.onrender.com
+
+  # 4. Touriva Shop Central Administration Portal
+  - type: web
+    name: touriva-shop-admin
+    runtime: static
+    rootDir: shop/frontEnd/touriva_shop_admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://touriva-api.onrender.com
+      - key: VITE_SHOP_API_BASE_URL
+        value: https://touriva-api.onrender.com
+
+  # 5. Touriva Shop Merchant & Seller Portal
+  - type: web
+    name: touriva-shop-seller-admin
+    runtime: static
+    rootDir: shop/frontEnd/touriva_shop_seller_admin
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://touriva-api.onrender.com
+      - key: VITE_SHOP_API_BASE_URL
+        value: https://touriva-api.onrender.com

@@ -34,6 +34,9 @@ const restaurantRouters = require('./routes/restaurants')
 const tripSubscriptionRouters = require('./routes/tripSubscriptions')
 const aiTripRouters = require('./routes/aiTrip')
 const activityRouters = require('./routes/activities')
+const productRouters = require('./routes/products')
+const categoriesProductsRouters = require('./routes/categoriesProducts')
+const orderRouters = require('./routes/orders')
 
 // express app
 const app = express()
@@ -116,6 +119,9 @@ app.use('/api/restaurants', restaurantRouters)
 app.use('/api/tripSubscriptions', tripSubscriptionRouters)
 app.use('/api/aiTrips', aiTripRouters)
 app.use('/api/activities', activityRouters)
+app.use('/api/products', productRouters)
+app.use('/api/catprod', categoriesProductsRouters)
+app.use('/api/orders', orderRouters)
 
 // 404 handler
 app.use((req, res, next) => {
