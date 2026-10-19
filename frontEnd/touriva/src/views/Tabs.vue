@@ -73,12 +73,14 @@
       router.go()
     }
 
-    onMounted(() => {
-      users.loadUser().then((res) => {
+    onMounted(async () => {
+      await users.loadUser().then((res) => {
         locale.value = users.getUser?.language || 'fr'
         loading.value = res
       })
-      users.fetchUser() 
+      if (users.getUser) {
+        users.fetchUser()
+      }
       if (Capacitor.isNativePlatform()) {
         
       }else{

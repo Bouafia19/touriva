@@ -292,6 +292,7 @@
 
       onMounted(() => {
         getLSUserInfo().then(async (ls) => {
+        if (!ls || !ls.user) return
         user.value = ls.user
         console.log('created', announcement.value)
         

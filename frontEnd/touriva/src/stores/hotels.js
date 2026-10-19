@@ -99,15 +99,12 @@ export const useHotelsStore = defineStore('hotels', {
         async addHotels(params){
             const auth = useAuthStore()
             const ls = await auth.getLSUserInfo()
-
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
             try {
-                const response = await axios.post('api/hotels', params, {
-                    headers: {
-                        'Authorization': `Bearer ${ls?.token}`
-                    }
-                })
+                const response = await axios.post('api/hotels', params)
+                return response.data
             } catch (error) {
-                throw new Error(`${error.response.data.error}`)
+                throw new Error(`${error.response?.data?.error || error.message}`)
             }
         },
 

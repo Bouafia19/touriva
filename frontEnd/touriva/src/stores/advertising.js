@@ -122,79 +122,57 @@ export const useAdvertisingStore = defineStore('advertising', {
 
         // add advertising
         async addAdvertising(params){
-            return new Promise(async (resolve, reject) => {
-                
-                const auth = useAuthStore()
-                auth.getLSUserInfo().then(async (ls) => {
-                    params.ownerId = ls.user._id
-                    try {
-                        const response = await axios.post('api/advertising', params, {
-                            headers: {
-                                'Authorization': `Bearer ${ls.token}`
-                            },
-                        });
-                        if(response.status === 200){
-                            resolve(response.data)
-                        }
-                    } catch (error) {
-                        reject()
-                        throw new Error(`${error}`)
-                    }
-                })
-            })
+            const auth = useAuthStore()
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token || !ls.user?._id) throw new Error('Unauthenticated')
+            params.ownerId = ls.user._id
+            try {
+                const response = await axios.post('api/advertising', params);
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
 
         // edit advertising
         async editAdvertising(params){
-            return new Promise(async (resolve, reject) => {
-                
-                const auth = useAuthStore()
-                auth.getLSUserInfo().then(async (ls) => {
-                    try {
-                        const response = await axios.patch(`api/advertising/${params._id}`, params, {
-                            headers: {
-                                'Authorization': `Bearer ${ls.token}`
-                            },
-                        })
-                        if(response.status === 200){
-                            resolve(response.data)
-                        }
-                    } catch (error) {
-                        reject()
-                        throw new Error(`${error.response.data.error}`)
-                    }
-                })
-            })
+            const auth = useAuthStore()
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
+            try {
+                const response = await axios.patch(`api/advertising/${params._id}`, params)
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
 
         // delete advertising
         async deleteAdvertising(id){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                const response = await axios.delete(`api/advertising/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${ls.token}`
-                    },
-                })
-            })
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
+            try {
+                const response = await axios.delete(`api/advertising/${id}`)
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
 
         async fetchAdvertisingByUserId(){
-            return new Promise(async (resolve, reject) => {
-                const auth = useAuthStore()
-                auth.getLSUserInfo().then(async (ls) => {
-                    const response = await axios.get(`api/advertising/getAdvertisingByOwnerId/${ls.user._id}`,{
-                        headers: {
-                            'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
-                    if(response.status === 200){
-                        
-                        this.advertising = response.data
-                        resolve(response.data)
-                    }
-                })
-            })
+            const auth = useAuthStore()
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token || !ls.user?._id) return []
+            try {
+                const response = await axios.get(`api/advertising/getAdvertisingByOwnerId/${ls.user._id}`)
+                if(response.status === 200){
+                    this.advertising = response.data
+                    return response.data
+                }
+            } catch (error) {
+                console.error(error)
+            }
         },
 
         async setLSAdvertising(data){

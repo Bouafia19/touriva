@@ -75,75 +75,59 @@ const signupUserWeb = async (req, res) => {
 // GET a single user by phone number
 const verifyUser = async (req, res) => {
     const { phonenumber, role } = req.body
-
-    let phoneWith0
-    if(phonenumber.length === 14){
-        phoneWith0 = phonenumber.slice(0, 4) + phonenumber.slice(5)
-    }else if (phonenumber.length === 13){
-        phoneWith0 = phonenumber.slice(0, 4) + '0' + phonenumber.slice(4)
+    if (!phonenumber) {
+        return res.status(400).json({ error: 'Phone number required' })
     }
-   
-    const user = await User.findOne({ phone: phonenumber, role: role })
-    const user0 = await User.findOne({ phone: phoneWith0, role: role })
-
-    if(!user && !user0){
-        return res.status(404).json({error: 'no such user'})
-    }else if(user){
-        res.status(200).json(user)
-    }else if(user0){
-        res.status(200).json(user0)
+    const user = await User.loginPhoneWeb(phonenumber, role)
+    if (!user) {
+        return res.status(404).json({ error: 'no such user' })
     }
+    res.status(200).json(user)
 }
-
-
 
 // login user
 const loginUser = async (req, res) => {
-    const { role } = req.body
+    const { role, email, phone, password } = req.body
     try {
-        if(role != 'administrator'){
-            const { phone, password } = req.body
-            const item = await User.loginPhone(phone, password, role)
-            // create token
-            const token = createToken(item._id)
-            
-            
-                let user = {
-                    _id: item._id,
-                    email: item.email,
-                    firstName: item.firstName,
-                    lastName: item.lastName,
-                    language: item.language,
-                    phone: item.phone,
-                    role: item.role,
-                    complete: item.complete,
-                    status: item.status,
-                    fileStatus: item.fileStatus,
-                    companyName: item.companyName,
-                    typeAccount: item.typeAccount,
-                    guideType: item.guideType,
-                    hasLicense: item.hasLicense,
-                    associationTypeActivity: item.associationTypeActivity,
-                    expirationOfSubscription: item.expirationOfSubscription,
-                    sectorActivity: item.sectorActivity
-                    // categoryId: item.categoryId,
-                    
-                }
-               
-                res.status(200).json({ user, token})
-          
-            
-        }else{
-            const { email, password } = req.body
-            const user = await User.loginEmail(email, password, role)
-            // create token
-            const token = createToken(user._id)
-            const rules = defineRulesFor(user)
-            res.status(200).json({ rules, user, token})
+        let item
+        if (email && !phone) {
+            item = await User.loginEmail(email, password, role)
+        } else {
+            item = await User.loginPhone(phone, password, role)
+        }
+
+        // create token
+        const token = createToken(item._id)
+
+        let user = {
+            _id: item._id,
+            email: item.email,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            language: item.language,
+            phone: item.phone,
+            role: item.role,
+            complete: item.complete,
+            status: item.status,
+            fileStatus: item.fileStatus,
+            companyName: item.companyName,
+            typeAccount: item.typeAccount,
+            guideType: item.guideType,
+            hasLicense: item.hasLicense,
+            associationTypeActivity: item.associationTypeActivity,
+            expirationOfSubscription: item.expirationOfSubscription,
+            sectorActivity: item.sectorActivity
+        }
+
+        if (item.role === 'administrator') {
+            const rules = defineRulesFor(item)
+            res.status(200).json({ rules, user, token })
+        } else {
+            res.status(200).json({ user, token })
         }
 
     } catch (error) {
-        res.status(400).json({error: error.message})
+        res.status(400).json({ error: error.message })
     }
 }
 

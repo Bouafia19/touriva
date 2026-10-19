@@ -16,73 +16,67 @@ export const useBillingsStore = defineStore('billings', {
         //billings component
         async fetchBillings(){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                const response = await axios.get('api/billings', {
-                    headers: {
-                        'Authorization': `Bearer ${ls.token}`
-                    }
-                })
-
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) return
+            try {
+                const response = await axios.get('api/billings')
                 this.billings = response.data
-            })
+            } catch (error) {
+                console.error(error)
+            }
         },
 
         // add billings
         async addBillings(params){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                try {
-                    const response = await axios.post('api/billings', params, {
-                        headers: {
-                            'Authorization': `Bearer ${ls.token}`
-                        },
-                    });
-                } catch (error) {
-                    throw new Error(`${error.response.data.error}`)
-                }
-            })
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
+            try {
+                const response = await axios.post('api/billings', params);
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
 
         // edit billings
         async editBillings(params){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                try {
-                    const response = await axios.patch(`api/billings/${params._id}`, params, {
-                        headers: {
-                            'Authorization': `Bearer ${ls.token}`
-                        },
-                    })
-                } catch (error) {
-                    throw new Error(`${error.response.data.error}`)
-                }
-            })
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
+            try {
+                const response = await axios.patch(`api/billings/${params._id}`, params)
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
 
         // delete billings
         async deleteBillings(id){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                const response = await axios.delete(`api/billings/${id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${ls.token}`
-                    },
-                })
-            })
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
+            try {
+                const response = await axios.delete(`api/billings/${id}`)
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
 
         async fetchBillingsByUserId(){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                const response = await axios.get(`api/billings/getBillingsByUserId/${ls.user._id}`,{
-                    headers: {
-                        'Authorization': `Bearer ${ls.token}`
-                    }
-                })
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token || !ls.user?._id) return
+            try {
+                const response = await axios.get(`api/billings/getBillingsByUserId/${ls.user._id}`)
                 if(response.status === 200){
                     this.billings = response.data
                 }
-            })
+            } catch (error) {
+                console.error(error)
+            }
         }
     }
 })

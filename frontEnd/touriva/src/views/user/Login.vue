@@ -115,8 +115,10 @@ const { t } = useI18n()
 const { handleSubmit } = useForm({
   validationSchema: {
     phone(value) {
-      if (/^[0-9-]{9,10}$/.test(value)) return true
-      return t('phoneNumberValidation') || 'Valid 9 or 10-digit phone number required'
+      if (!value) return t('phoneNumberValidation') || 'Valid 9 or 10-digit phone number required'
+      const cleaned = String(value).replace(/[\s\-\(\)\.]/g, '')
+      if (/^(\+213|00213|0)?[567]\d{8}$/.test(cleaned) || /^[0-9]{9,10}$/.test(cleaned)) return true
+      return t('phoneNumberValidation') || 'Valid 9 or 10-digit phone number required (e.g. 0550 12 34 56)'
     }
   }
 })
@@ -132,25 +134,46 @@ const loading = ref(false)
 
 const logIn = async () => {
   try {
-    let phoneNum = '+213' + phoneNumber.value
+    loading.value = true
+    err.value = ''
+
+    // Clean and normalize phone input (remove spaces, hyphens)
+    let raw = (phoneNumber.value || '').replace(/[\s\-\(\)\.]/g, '')
+    if (raw.startsWith('+213')) {
+      raw = raw.slice(4)
+    } else if (raw.startsWith('00213')) {
+      raw = raw.slice(5)
+    }
+    if (raw.startsWith('0')) {
+      raw = raw.slice(1)
+    }
+    const phoneNum = `+213${raw}`
+
     await auth.account_sign_in({  
       phone: phoneNum,
-      password: password.value,
-      role: 'partner'
+      password: password.value
     })
   } catch (error) {
-    err.value = error.message
+    const errorMsg = error.message || ''
+    if (errorMsg === 'ip') {
+      err.value = t('ip') || 'Phone number not registered'
+    } else if (errorMsg === 'ipass') {
+      err.value = t('ipass') || 'Incorrect password'
+    } else if (errorMsg === 'All field must be filled') {
+      err.value = t('allFieldsRequired') || 'All fields must be filled'
+    } else {
+      err.value = errorMsg
+    }
     setTimeout(() => {
       err.value = ''
-      clear()
     }, 5000)
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 const submit = handleSubmit(() => {
   phoneNumber.value = phone.value.value
-  loading.value = true
   logIn()
 })
 

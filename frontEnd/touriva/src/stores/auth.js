@@ -30,24 +30,30 @@ export const useAuthStore = defineStore('auth', {
 
     actions: {
         async setLSUserInfo(data){
-
-            // delete data.user.grayCard;
-            // delete data.user.commercialRegister;
-            // delete data.user.transportCard;
-            // delete data.user.trafficPermit;
-            // delete data.user.id;
-           
             await Preferences.set({
                 key: 'userInfo',
                 value: JSON.stringify(data),
             })
+            try {
+                localStorage.setItem('userInfo', JSON.stringify(data))
+            } catch (e) {}
         },
         async getLSUserInfo(){
-            const { value } = await Preferences.get({ key: 'userInfo' })
-            return JSON.parse(value)
+            try {
+                const { value } = await Preferences.get({ key: 'userInfo' })
+                if (value) return JSON.parse(value)
+            } catch (e) {}
+            try {
+                const stored = localStorage.getItem('userInfo')
+                if (stored) return JSON.parse(stored)
+            } catch (e) {}
+            return null
         },
         async removeLSUserInfo(){
             await Preferences.remove({ key: 'userInfo' })
+            try {
+                localStorage.removeItem('userInfo')
+            } catch (e) {}
         },
         // verify phone
         async account_verify_phone (params) {
@@ -88,32 +94,26 @@ export const useAuthStore = defineStore('auth', {
         
         // login to user account 
         async account_sign_in (params) {
-            console.log('params', params)
+            this.loading = true
+            this.error = null
             try {
-                const response = await axios.post("api/users/login", params, {
-                        headers: {
-                            // 'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
-                    console.log('response', response)
-                if(response){
-                    this.user = response.data
+                const response = await axios.post("api/users/login", params)
+                if (response && response.data && response.data.token) {
+                    this.user = response.data.user
+                    this.token = response.data.token
                     this.auth_login = true
-                    // localStorage.setItem('userInfo', JSON.stringify(response.data))
-                    this.setLSUserInfo(response.data).then(() => {
-                    //     dispatch('getLSUserInfo').then((ls) => {
-                            // if(ls.user.complete === false){
-                            //     router.push('/documents')
-                            // }else{
-                                this.router.push('/tabs')
-                            // }
-                    //     })
-                    })
-                }else{
-                    throw new Error('could not complete login')
+                    await this.setLSUserInfo(response.data)
+                    this.router.push('/tabs')
+                    return response.data
+                } else {
+                    throw new Error('Invalid response from server')
                 }
             } catch (error) {
-                throw new Error(`${error}`)
+                const apiError = error.response?.data?.error || error.message || 'Login failed'
+                this.error = apiError
+                throw new Error(apiError)
+            } finally {
+                this.loading = false
             }
         },
     
@@ -199,9 +199,11 @@ export const useAuthStore = defineStore('auth', {
         },
     
         // log out user
-        account_sign_out () {
-            this.removeLSUserInfo()
+        async account_sign_out () {
+            await this.removeLSUserInfo()
             this.auth_login = false
+            this.token = null
+            this.user = undefined
             this.router.replace('/').then(() => {
                 window.location.reload()
             })

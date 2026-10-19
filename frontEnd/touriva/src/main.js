@@ -71,11 +71,51 @@ if (rawApiBase && !rawApiBase.startsWith('http://') && !rawApiBase.startsWith('h
 const apiBase = rawApiBase
 axios.defaults.baseURL = apiBase.endsWith('/') ? apiBase : `${apiBase}/`
 
+// Attach valid Bearer token to authenticated requests automatically if available
+axios.interceptors.request.use(
+    config => {
+        // If an Authorization header is already set, verify it is not malformed
+        if (config.headers && config.headers.Authorization) {
+            const authHeader = String(config.headers.Authorization)
+            if (authHeader.includes('undefined') || authHeader.includes('null') || authHeader.trim() === 'Bearer') {
+                delete config.headers.Authorization
+            }
+        }
+        // If no Authorization header is set, try retrieving token from localStorage
+        if (!config.headers.Authorization) {
+            try {
+                const stored = localStorage.getItem('userInfo')
+                if (stored) {
+                    const parsed = JSON.parse(stored)
+                    const token = parsed?.token
+                    if (token && typeof token === 'string' && token !== 'undefined' && token !== 'null' && token.trim() !== '') {
+                        config.headers.Authorization = `Bearer ${token}`
+                    }
+                }
+            } catch (e) {
+                // Ignore parsing errors
+            }
+        }
+        return config
+    },
+    error => Promise.reject(error)
+)
+
 // Automatic fallback between host LAN IP and localhost (for adb reverse over USB)
+// and centralized handling of 401 Unauthorized responses
 axios.interceptors.response.use(
     response => response,
     async error => {
         const config = error.config
+        if (error.response && error.response.status === 401) {
+            const url = config?.url || ''
+            // Only clear credentials if 401 occurred on a protected route, not on login attempt
+            if (!url.includes('login') && !url.includes('signup')) {
+                try {
+                    localStorage.removeItem('userInfo')
+                } catch (e) {}
+            }
+        }
         if (!config || config.__isRetry) return Promise.reject(error)
         if (error.code === 'ERR_NETWORK' || !error.response) {
             config.__isRetry = true

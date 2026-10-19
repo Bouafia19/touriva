@@ -23,13 +23,9 @@ export const useWilayasStore = defineStore('wilayas', {
         async addWilayas(params){
             const auth = useAuthStore()
             const ls = await auth.getLSUserInfo()
-            const token = ls?.token || ''
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
             try {
-                await axios.post('api/wilayas', params, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                });
+                await axios.post('api/wilayas', params);
             } catch (error) {
                 throw new Error(`${error.response?.data?.error || error.message}`)
             }
@@ -39,13 +35,9 @@ export const useWilayasStore = defineStore('wilayas', {
         async editWilayas(params){
             const auth = useAuthStore()
             const ls = await auth.getLSUserInfo()
-            const token = ls?.token || ''
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
             try {
-                await axios.patch(`api/wilayas/${params._id}`, params, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                })
+                await axios.patch(`api/wilayas/${params._id}`, params)
             } catch (error) {
                 throw new Error(`${error.response?.data?.error || error.message}`)
             }
@@ -55,25 +47,17 @@ export const useWilayasStore = defineStore('wilayas', {
         async deleteWilayas(id){
             const auth = useAuthStore()
             const ls = await auth.getLSUserInfo()
-            const token = ls?.token || ''
-            await axios.delete(`api/wilayas/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-            })
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
+            await axios.delete(`api/wilayas/${id}`)
         },
 
         // add wilayas
         async addMultWilayas(params){
             const auth = useAuthStore()
             const ls = await auth.getLSUserInfo()
-            const token = ls?.token || ''
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
             try {
-                await axios.post('api/wilayas/multi', params, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                });
+                await axios.post('api/wilayas/multi', params);
             } catch (error) {
                 throw new Error(`${error.response?.data?.error || error.message}`)
             }

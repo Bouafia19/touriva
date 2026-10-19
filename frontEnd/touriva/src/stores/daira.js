@@ -14,47 +14,38 @@ export const useDairasStore = defineStore('dairas', {
     actions: {
         //dairas component
         async fetchDairas(){
-            const response = await axios.get('api/dairas', {
-            })
-            this.dairas = response.data.filter(e => e.name != "")
+            const response = await axios.get('api/dairas')
+            this.dairas = (response.data || []).filter(e => e.name != "")
         },
 
         // add dairas
         async addDairas(params){
-            const user = JSON.parse(localStorage.getItem('userInfo'))
             try {
-                const response = await axios.post('api/dairas', params, {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    },
-                });
+                const response = await axios.post('api/dairas', params);
+                return response.data
             } catch (error) {
-                throw new Error(`${error.response.data.error}`)
+                throw new Error(`${error.response?.data?.error || error.message}`)
             }
         },
 
         // edit dairas
         async editDairas(params){
-            const user = JSON.parse(localStorage.getItem('userInfo'))
             try {
-                const response = await axios.patch(`api/dairas/${params._id}`, params, {
-                    headers: {
-                        'Authorization': `Bearer ${user.token}`
-                    },
-                })
+                const response = await axios.patch(`api/dairas/${params._id}`, params)
+                return response.data
             } catch (error) {
-                throw new Error(`${error.response.data.error}`)
+                throw new Error(`${error.response?.data?.error || error.message}`)
             }
         },
 
         // delete dairas
         async deleteDairas(id){
-            const user = JSON.parse(localStorage.getItem('userInfo'))
-            const response = await axios.delete(`api/dairas/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                },
-            })
+            try {
+                const response = await axios.delete(`api/dairas/${id}`)
+                return response.data
+            } catch (error) {
+                throw new Error(`${error.response?.data?.error || error.message}`)
+            }
         },
     }
 })

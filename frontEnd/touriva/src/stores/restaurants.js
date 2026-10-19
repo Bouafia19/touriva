@@ -98,14 +98,12 @@ export const useRestaurantsStore = defineStore('restaurants', {
         async addRestaurants(params){
             const auth = useAuthStore()
             const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) throw new Error('Unauthenticated')
             try {
-                const response = await axios.post('api/restaurants', params, {
-                    headers: {
-                        'Authorization': `Bearer ${ls?.token}`
-                    }
-                })
+                const response = await axios.post('api/restaurants', params)
+                return response.data
             } catch (error) {
-                throw new Error(`${error.response.data.error}`)
+                throw new Error(`${error.response?.data?.error || error.message}`)
             }
         },
 

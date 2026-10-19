@@ -16,20 +16,13 @@ export const useNotificationsStore = defineStore('notifications', {
         //notifications component
         async subscribeToNotifications(params){
             const auth = useAuthStore()
-            auth.getLSUserInfo().then(async (ls) => {
-                try {
-                    const response = await axios.post('/api/notifications/subscribe',params, {
-                        headers: {
-                            'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
-                    if(response.status === 200){
-                        
-                    }
-                } catch (error) {
-                    throw new Error(`${error}`)
-                }
-            })
+            const ls = await auth.getLSUserInfo()
+            if (!ls || !ls.token) return
+            try {
+                await axios.post('/api/notifications/subscribe', params)
+            } catch (error) {
+                console.error(error)
+            }
         }
     }
 })

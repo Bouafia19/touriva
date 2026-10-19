@@ -255,61 +255,93 @@ UserSchema.statics.signup = async function(
   return user
 }
 
+// Helper to generate phone number variants for Algerian formats
+const normalizePhoneVariants = (rawPhone) => {
+  if (!rawPhone || typeof rawPhone !== 'string') return []
+  const cleaned = rawPhone.replace(/[\s\-\(\)\.]/g, '')
+  const variants = new Set([rawPhone, cleaned])
+
+  let digits = cleaned
+  if (digits.startsWith('+213')) {
+    digits = digits.slice(4)
+  } else if (digits.startsWith('00213')) {
+    digits = digits.slice(5)
+  }
+  if (digits.startsWith('0')) {
+    digits = digits.slice(1)
+  }
+
+  if (/^[567]\d{8}$/.test(digits) || /^\d{8,10}$/.test(digits)) {
+    variants.add(`+213${digits}`)
+    variants.add(`+2130${digits}`)
+    variants.add(`00213${digits}`)
+    variants.add(`0${digits}`)
+    variants.add(digits)
+  }
+  return Array.from(variants)
+}
+
 // static loginPhone method
 UserSchema.statics.loginPhone = async function( phone, password, role) {
   if(!phone || !password){
     throw Error('All field must be filled')
   }
 
-  let phoneWith0
-  if(phone.length === 14){
-    phoneWith0 = phone.slice(0, 4) + phone.slice(5)
-  }else if (phone.length === 13){
-    phoneWith0 = phone.slice(0, 4) + '0' + phone.slice(4)
-  }
-  console.log('phoneWith0:', phoneWith0)
-  console.log('phone:', phone)
+  const phoneVariants = normalizePhoneVariants(phone)
   let user = null
-  let user0 = null
-  if(role === 'client'){
-    user = await this.findOne({ phone: phone, role: 'client', activated: true })
-    user0 = await this.findOne({ phone: phoneWith0, role: 'client', activated: true })
-   
-  }else if(role === 'partner'){
-    user = await this.findOne({ phone: phone, role: 'partner', activated: true })
-    user0 = await this.findOne({ phone: phoneWith0, role: 'partner', activated: true })
+
+  // 1. If role is explicitly provided, check that role first
+  if (role) {
+    user = await this.findOne({
+      phone: { $in: phoneVariants },
+      role: role,
+      $or: [{ activated: true }, { activated: { $exists: false } }]
+    }).populate("authorizationIds")
   }
-  console.log('user:', user)
-  console.log('user0:', user0)
-  
-  if(!user && !user0){
+
+  // 2. If not found under the specified role (or role omitted), check across all active accounts
+  if (!user) {
+    user = await this.findOne({
+      phone: { $in: phoneVariants },
+      $or: [{ activated: true }, { activated: { $exists: false } }]
+    }).populate("authorizationIds")
+  }
+
+  if(!user){
     throw Error('ip')
   }
-  if(user){
-    const match = await bcrypt.compare(password, user.password)
-    if(!match){
-      throw Error('ipass')
-    }else{
-      return user
-    }
-    
-  }else if(user0){
-    const match0 = await bcrypt.compare(password, user0.password)
-    if(!match0){
-      throw Error('ipass')
-    }else{
-      return user0
-    }
-    
+
+  const match = await bcrypt.compare(password, user.password)
+  if(!match){
+    throw Error('ipass')
   }
+
+  return user
 }
 
 // static loginEmail method
-UserSchema.statics.loginEmail = async function( email, password ) {
+UserSchema.statics.loginEmail = async function( email, password, role ) {
   if(!email || !password){
     throw Error('All field must be filled')
   }
-  const user = await this.findOne({ email, role: 'administrator' }).populate("authorizationIds")
+  const cleanEmail = email.toLowerCase().trim()
+  let user = null
+
+  if (role) {
+    user = await this.findOne({
+      email: cleanEmail,
+      role: role,
+      $or: [{ activated: true }, { activated: { $exists: false } }]
+    }).populate("authorizationIds")
+  }
+
+  if (!user) {
+    user = await this.findOne({
+      email: cleanEmail,
+      $or: [{ activated: true }, { activated: { $exists: false } }]
+    }).populate("authorizationIds")
+  }
+
   if(!user){
     throw Error('ie')
   }
@@ -327,22 +359,16 @@ UserSchema.statics.loginPhoneWeb = async function( phone, role ) {
     throw Error('Phone field must be filled')
   }
 
-  let phoneWith0
-  if(phone.length === 14){
-    phoneWith0 = phone.slice(0, 4) + phone.slice(5)
-  }else if (phone.length === 13){
-    phoneWith0 = phone.slice(0, 4) + '0' + phone.slice(4)
+  const phoneVariants = normalizePhoneVariants(phone)
+  let user = null
+  if (role) {
+    user = await this.findOne({ phone: { $in: phoneVariants }, role })
   }
-  let user
-  let user0
-  user = await this.findOne({ phone, role: role })
-  user0 = await this.findOne({ phoneWith0, role: role })
+  if (!user) {
+    user = await this.findOne({ phone: { $in: phoneVariants } })
+  }
 
-  if(user){
-    return user
-  }else if(user0){
-    return user0
-  }
+  return user
 }
 
 // static signup web method

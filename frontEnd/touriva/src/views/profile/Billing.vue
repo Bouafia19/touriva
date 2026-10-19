@@ -380,11 +380,11 @@
 
         const initialize = () => {
             auth.getLSUserInfo().then((ls) => {
+                if (!ls || !ls.user) return
                 user.value = ls.user
                 id.value = ls.user._id
                 billings.fetchBillingsByUserId()
                 publications.fetchAnnouncementsByOwner()
-                
             })
             fetchPlans()
         }
