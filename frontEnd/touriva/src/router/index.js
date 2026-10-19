@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { Capacitor } from '@capacitor/core'
 import { useAuthStore } from '@/stores/auth'
 import Home from '../views/Home.vue'
 import Categories from '@/views/category/Categories.vue'
@@ -13,22 +14,23 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/tabs'
-    },
-    {
-      path: '/home',
-      name: 'Home',
-      component: Home
-    },
-    {
-      path: '/tabs',
       component: () => import('@/layouts/MainLayout.vue'),
       children: [
         {
           path: '',
+          name: 'Home',
+          component: Home,
+          meta: { title: 'home' }
+        },
+        {
+          path: '/home',
+          redirect: '/'
+        },
+        {
+          path: '/tabs',
           name: 'Tabs',
           component: () => import('@/views/Tabs.vue'),
-          meta: { requiresAuth: true, title: 'home' }
+          meta: { title: 'home' }
         },
         {
           path: '/updateProfile',

@@ -36,7 +36,7 @@
               <v-col >
                 <h2 
                   
-                  style="color: #00366f; margin: auto; text-align: center; text-decoration: underline;"
+                  style="color: #102D27; margin: auto; text-align: center; text-decoration: underline;"
                 >
                   {{ $t('Office') }}
                 </h2>
@@ -79,7 +79,7 @@
           ></v-divider>
 
           <v-col>
-            <h2 style="color: #00366f; margin: auto; text-align: center; text-decoration: underline;">{{ $t('Services') }}</h2>
+            <h2 style="color: #102D27; margin: auto; text-align: center; text-decoration: underline;">{{ $t('Services') }}</h2>
             <v-list>
               <v-list-item
                 v-for="item in services"
@@ -143,7 +143,7 @@
 <style scoped>
   .rounded-card {
     border-radius:30px;
-    color: #00366f;
+    color: #102D27;
     margin: 50px auto;
   }
 </style> -->

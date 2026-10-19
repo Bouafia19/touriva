@@ -97,9 +97,9 @@
 
 <style scoped>
     :v-deep(.v-file-input .v-icon) {
-        color: #00366f !important;
+        color: #102D27 !important;
     }
     .v-card__actions {
-        background-color: #00366f;
+        background-color: #102D27;
     }
 </style>

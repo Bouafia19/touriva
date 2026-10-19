@@ -110,7 +110,7 @@
         let phone = route.params.phonenumber
         try {
           await auth.account_verify_code({  phonenumber: phone,
-                                            code: this.otp 
+                                            code: otp.value 
                                         })
         } catch (error) {
           err.value = error.message

@@ -1,207 +1,196 @@
 <template>
-  <div>
-    <v-container
-      fluid
-    >
-      <v-row 
-        class="d-flex justify-center align-center"
-        style="height: 90vh;"
-        
+  <div class="auth-page bg-warm-ivory min-vh-100 d-flex align-center justify-center py-12 px-4">
+    <v-card class="editorial-card auth-card pa-8 pa-md-10" width="100%" max-width="480" elevation="0">
+      <!-- Brand Header -->
+      <div class="text-center mb-8">
+        <v-img
+          src="/logo.svg"
+          alt="Touriva"
+          width="170"
+          height="45"
+          contain
+          class="mx-auto mb-3"
+        />
+        <div class="editorial-tag text-sand mb-1">JOIN THE TOURIVA COMMUNITY</div>
+        <h2 class="text-h5 font-serif font-weight-bold text-forest">
+          Create Your Touriva Account
+        </h2>
+        <p class="text-caption text-secondary-editorial mt-1">
+          Explore destinations, reserve guided tours, and book verified stays.
+        </p>
+      </div>
+
+      <!-- Error Alert -->
+      <v-alert
+        v-if="err && err !== 'paiu'"
+        type="error"
+        variant="tonal"
+        density="comfortable"
+        class="mb-6 rounded-lg"
       >
-        <v-col
-          cols="12"
-          sm="6"
-          md="4"
-        >
-          <div class="text-center ma-2 mb-6">
-            <h5>{{ $t('signUpParagraph') }}</h5>
+        {{ $t(err) || err }}
+      </v-alert>
+
+      <!-- Signup Form -->
+      <form @submit.prevent="submit">
+        <div class="mb-4">
+          <div class="text-caption font-weight-bold text-forest mb-1">
+            {{ $t('phoneNumber') || 'Phone Number' }} *
           </div>
+          <v-text-field
+            v-model="phone.value.value"
+            placeholder="0550 12 34 56"
+            prefix="+213"
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            color="#173F35"
+            prepend-inner-icon="mdi-phone-outline"
+            :error-messages="phone.errorMessage.value"
+            hide-details="auto"
+          />
+        </div>
 
-          <div class="text-center ma-2">
-            
-              <form @submit.prevent="submit">
-                
-                  <v-text-field
-                    v-model="phone.value.value"
-                    type="number"
-                    :label="$t('phoneNumber')"
-                    required
-                    outlined
-                    append-icon="mdi-backspace-outline"
-                    @click:append="clear"
-                    :error-messages="phone.errorMessage.value"
-                    prefix="+213"
-                  ></v-text-field>
-               
+        <div class="mb-4">
+          <v-checkbox v-model="checkbox" density="compact" color="#173F35" hide-details>
+            <template #label>
+              <span class="text-caption text-secondary-editorial">
+                {{ $t('termsConditionsParagraph') || 'I agree to the' }}
+                <router-link to="/terms&conditions" class="text-emerald font-weight-bold text-decoration-none">
+                  {{ $t('termsConditions') || 'Terms & Conditions' }}
+                </router-link>
+              </span>
+            </template>
+          </v-checkbox>
+        </div>
 
-                <v-dialog v-model="dialogConfirme" max-width="500px">
-                  <v-card color="next" dark>
-                    <v-card-title class="text-h5">{{ phone }}</v-card-title>
-                    <v-card-text>
-                      Êtes-vous sûr que c'est bien votre numéro
-                    </v-card-text>
-                    <v-card-actions>
-    
-                      <v-spacer></v-spacer>
-                      <v-btn color="error" text @click="closeDialog">Cancel</v-btn>
-                      <v-btn color="success" text @click="confirmDialog">ok</v-btn>
-                      <v-spacer></v-spacer>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
+        <div class="mt-6 mb-4">
+          <v-btn
+            type="submit"
+            block
+            color="#173F35"
+            size="large"
+            rounded="pill"
+            class="btn-editorial-primary font-weight-bold"
+            :loading="loading"
+          >
+            {{ $t('next') || 'Continue Registration' }}
+          </v-btn>
+        </div>
+      </form>
 
-                <div class="text-center ma-2" v-if="err != 'paiu'">
-                  <v-alert
-                    dense
-                    rounded
-                    type="error"
-                    v-if="err"
-                  >
-                    {{ $t(err) }}
-                  </v-alert>
-                </div>
-                <v-dialog v-model="dialog" max-width="500px">
-                  <v-card color="next" dark>
-                    <v-card-title class="text-h5">{{ $t(err) }}</v-card-title>
-                    <v-card-text>
-                      le numéro de téléphone lequel vous essayer de vous inscrire existe déjà
-                      veuillez appuyer sur le button connexion pour vous connecter à votre compte ou annuler
-                      
-                    </v-card-text>
-                    <v-card-actions>
-    
-                      <v-spacer></v-spacer>
-                      <v-btn color="error" text @click="close">Cancel</v-btn>
-                      <v-btn color="success" text @click="confirm">{{ $t('Login') }}</v-btn>
-                      <v-spacer></v-spacer>
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
+      <!-- Account Already Exists Dialog -->
+      <v-dialog v-model="dialog" max-width="460">
+        <v-card class="editorial-card pa-6">
+          <v-card-title class="text-h6 font-weight-bold text-forest px-0">
+            Account Already Exists
+          </v-card-title>
+          <v-card-text class="px-0 text-secondary-editorial text-body-2">
+            An account with this phone number is already registered on Touriva. Would you like to sign in instead?
+          </v-card-text>
+          <v-card-actions class="px-0 pt-4 d-flex ga-2">
+            <v-btn variant="outlined" rounded="pill" class="flex-grow-1" @click="close">
+              Cancel
+            </v-btn>
+            <v-btn color="#173F35" class="btn-editorial-primary flex-grow-1 font-weight-bold" rounded="pill" @click="confirm">
+              {{ $t('Login') || 'Sign In' }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
-                <div class="text-center ma-2">
-                  <v-btn
-                    type="submit"
-                    color="next"
-                    block
-                    rounded
-                    dark
-                    :loading="loading"
-                  >
-                    {{ $t('next') }}
-                  </v-btn>
-                </div>
-              </form>
-            
-          </div>
+      <v-divider class="my-6 border-subtle"></v-divider>
 
-          <div class="text-center ma-2 mt-6">
-            <v-checkbox v-model="checkbox">
-              <template v-slot:label>
-                <h5 class="text-center">{{ $t('termsConditionsParagraph') }}
-                  <router-link to="/terms&conditions">{{ $t('termsConditions') }}</router-link>
-                </h5>
-              </template>
-            </v-checkbox>
-          </div>
-          
-        </v-col>
-      </v-row>
-    </v-container>
+      <!-- Login Prompt -->
+      <div class="text-center text-caption text-secondary-editorial">
+        Already registered on Touriva?
+        <router-link to="/login" class="text-emerald font-weight-bold text-decoration-none ml-1">
+          {{ $t('Login') || 'Sign In' }}
+        </router-link>
+      </div>
+    </v-card>
   </div>
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-  import { useAuthStore } from '@/stores/auth'
-  import { useRouter } from 'vue-router'
-  import { useField, useForm } from 'vee-validate'
-  import { useI18n } from 'vue-i18n'
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+import { useField, useForm } from 'vee-validate'
+import { useI18n } from 'vue-i18n'
 
-  const { t, locale } = useI18n()
+const { t } = useI18n()
 
-  const { handleSubmit, handleReset } = useForm({
-    validationSchema: {
-      phone (value) {
-        if (/^[0-9-]{9,10}$/.test(value)) return true
+const { handleSubmit } = useForm({
+  validationSchema: {
+    phone(value) {
+      if (/^[0-9-]{9,10}$/.test(value)) return true
+      return t('phoneNumberValidation') || 'Valid 9 or 10-digit phone number required'
+    }
+  }
+})
 
-        return t('phoneNumberValidation')
-      }
-    },
-  })
+const phone = useField('phone')
+const auth = useAuthStore()
+const router = useRouter()
 
-  const phone = useField('phone')
+const phoneNumber = ref('')
+const err = ref('')
+const dialog = ref(false)
+const loading = ref(false)
+const checkbox = ref(false)
 
-  const auth = useAuthStore()
-  const router = useRouter()
-  
-  let phoneNumber = ref(''),
-      err = ref(''),
-      progress = ref(0),
-      dialog = ref(false),
-      dialogConfirme = ref(false),
-      loading = ref(false),
-      checkbox = ref(false)
-    
+const verifyPhone = async () => {
+  try {
+    phoneNumber.value = '+213' + phoneNumber.value
+    await auth.account_verify_phone({  
+      phonenumber: phoneNumber.value,
+      channel: 'sms',
+      role: 'partner' 
+    })
+  } catch (error) {
+    err.value = error.response?.data?.error || error.message
+    if (err.value === 'paiu') {
+      dialog.value = true
+    }
+  }
+  loading.value = false
+}
 
-    
-      const verifyPhone = async () => {
-        try {
-          phoneNumber.value = '+213' + phoneNumber.value
-          await auth.account_verify_phone({  
-            phonenumber: phoneNumber.value,
-            channel: 'sms',
-            role: 'partner' 
-          })
-        } catch (error) {
-          err.value = error.response.data.error
-          if(err.value === 'paiu'){
-            dialog.value = true
-          }
-          console.log('error phone number', error.response.data.error)
-        }
-        loading.value = false
-      }
+const submit = handleSubmit(() => {
+  if (checkbox.value === true) {
+    loading.value = true
+    phoneNumber.value = phone.value.value
+    verifyPhone()
+  } else {
+    err.value = 'Please agree to the Terms & Conditions to proceed'
+    setTimeout(() => {
+      err.value = ''
+    }, 5000)
+  }
+})
 
-      const submit = handleSubmit(values => {
-        if(checkbox.value == true){
-          loading.value = true
-          phoneNumber.value = phone.value.value
-          // phone.value = '+213' + phoneNumber.value
-          verifyPhone()
-          // this.dialogConfirme = true
-        }else{
-          err.value = 'must agree to terms'
-          setTimeout(() => {
-            err.value = ''
-          }, "5000")
-        }
-      })
+const close = () => {
+  dialog.value = false
+}
 
-      const clear = () =>{
-        phoneNumber.value = ''
-      }
-
-      const close = () => {
-        dialog.value = false
-      }
-
-      const confirm = () => {
-        router.push('/login')
-        dialog.value = false
-      }
-
-      const closeDialog = () => {
-        dialogConfirme.value = false
-      }
-
-      const confirmDialog = () => {
-        verifyPhone()
-        dialogConfirme.value = false
-      }
+const confirm = () => {
+  router.push('/login')
+  dialog.value = false
+}
 </script>
 
 <style scoped>
-  :deep(.mdi-backspace-outline::before) {
-    color: #DC143C !important;
-  }
+.auth-page {
+  background-color: #FAF8F2;
+}
+
+.auth-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E7E8E1 !important;
+}
+
+.border-subtle {
+  border-color: #E7E8E1 !important;
+}
 </style>

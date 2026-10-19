@@ -1,257 +1,187 @@
 <template>
-    <div>
-        <v-container fluid >
-            <!-- <v-row>
-                <v-col>
-                    <div class="d-flex justify-end">
-                        <v-switch
-                            v-model="users.user.status"
-                            inset
-                            :label="users.user.status ? $t('availabe') : $t('notAvailable')"
-                            color="success"
-                        ></v-switch>
-                    </div>
-                </v-col>
-            </v-row> -->
-            <v-row
-                class="d-flex justify-center"
-                style="height: 90vh;"
-            >
-                <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
-                >
-                    
-                
-                <form @submit.prevent="submit" v-if="users.user">
-                    
-                    <div class="d-flex flex-column justify-space-between align-center mb-2">
-                        <v-avatar 
-                            size="200"
-                            rounded="lg"
-                        >
-                            <v-img 
-                                :src="photo"
-                                contain
-                                width="100px"
-                                style="float: right; border: 1px solid;"
-                                alt="Profile Image"
-                                eager
-                            >  
-                                <use-camera v-on:cameraUpload="uploadImage($event)" pageTitle="ProfileUpdate"/>
-                            </v-img> 
-                        </v-avatar>
-                    </div>
-        
-                    <div class="d-flex justify-center mt-4">
-                       
-                            <v-select
-                                v-model="$i18n.locale"
-                                :items="locals"
-                                bg-color="#00366F"
-                                flat
-                                :label="$t('cl')"
-                                max-width="200"
-                                cover
-                            >
-                                <template v-slot:item="{ props, item }">
-                                    <v-list-item v-bind="props" :title="$t(item.raw.title)"></v-list-item>
-                                </template>
-                                <template v-slot:selection="{ item }">
-                                    <span>
-                                    {{ $t(item.title) }}
-                                    </span>
-                                </template>
-                            </v-select>
-                      
-                    </div>
-                   
-                   
-                        <v-text-field
-                            v-model="users.user.firstName"
-                            
-                            :label="$t('firstName')"
-                            required
-                            outlined
-                            dense
-                            
-                        ></v-text-field>
-                    
-                        <v-text-field
-                            v-model="users.user.lastName"
-                            
-                            :label="$t('lastName')"
-                            required
-                            outlined
-                            dense
-                            
-                        ></v-text-field>
-                   
-                        <v-text-field
-                        v-model="users.user.email"
-                        
-                        :label="$t('email')"
-                        required
-                        outlined
-                        dense
-                        
-                        ></v-text-field>
-                    
-                    <!-- <validation-provider
-                        v-slot="{ errors }"
-                        name="password"
-                        rules="required|confirmed:password"  
-                    >
-                        <v-text-field
-                        v-model="password"
-                        :error-messages="errors"
-                        :label="$t('password')"
-                        required
-                        outlined
-                        dense
-                        type="password"
-                        ></v-text-field>
-                    </validation-provider>
-
-                    <validation-provider
-                        v-slot="{ errors }"
-                        name="passwordConfirmation"
-                        rules="required"
-                        vid="password"
-                    >
-                        <v-text-field
-                            v-model="passwordConfirmation"
-                            :error-messages="errors"
-                            :label="$t('passwordConfirmation')"
-                            required
-                            outlined
-                            dense
-                            type="password"
-                        >
-                        </v-text-field>
-                    </validation-provider> -->
-
-                    <div class="ma-2">
-                        <v-alert
-                            dense
-                            outlined
-                            type="error"
-                            v-if="err"
-                        >
-                            {{ $t(err) }}
-                        </v-alert>
-                    </div>
-
-                    <div class="ma-2">
-                        <v-alert
-                            dense
-                            outlined
-                            type="success"
-                            v-if="info"
-                        >
-                            {{ $t(info) }}
-                        </v-alert>
-                    </div>
-
-                    <div class="text-center">
-                        <v-btn
-                            type="submit"
-                            block
-                            color="next"
-                            dark
-                            :loading="loading"
-                        >
-                            {{ $t('update') }}
-                        </v-btn>
-                    </div>
-                
-                </form>
-          
-                </v-col>
-            </v-row>
-        </v-container>
-       
+  <v-container class="py-8 max-w-700">
+    <div class="mb-6">
+      <span class="editorial-tag text-sand-dark d-block mb-1">ACCOUNT MANAGEMENT</span>
+      <h1 class="editorial-heading text-h4 font-weight-bold text-forest">
+        {{ $t('ProfileUpdate') || 'Update Profile' }}
+      </h1>
+      <p class="text-body-2 text-secondary-editorial mt-1">
+        Manage your contact details, language preferences, and personal information.
+      </p>
     </div>
+
+    <v-card class="editorial-card pa-6 pa-sm-8" v-if="users.user">
+      <form @submit.prevent="submit">
+        <!-- Avatar and Camera -->
+        <div class="d-flex flex-column align-center mb-6">
+          <v-avatar size="120" color="sandLight" class="border-sand mb-3">
+            <v-img
+              :src="photo || avatarFallback"
+              cover
+              alt="Profile Image"
+            >
+              <use-camera @cameraUpload="uploadImage($event)" pageTitle="ProfileUpdate" />
+            </v-img>
+          </v-avatar>
+          <span class="text-caption text-secondary-editorial">Tap avatar to change photo</span>
+        </div>
+
+        <!-- Language Preference -->
+        <div class="mb-4">
+          <label class="editorial-tag text-sand-dark d-block mb-1">{{ $t('cl') || 'Language' }}</label>
+          <v-select
+            v-model="$i18n.locale"
+            :items="locals"
+            variant="outlined"
+            density="comfortable"
+            color="forestGreen"
+            rounded="lg"
+            hide-details
+          >
+            <template #item="{ props, item }">
+              <v-list-item v-bind="props" :title="$t(item.raw.title)" />
+            </template>
+            <template #selection="{ item }">
+              <span>{{ $t(item.title) }}</span>
+            </template>
+          </v-select>
+        </div>
+
+        <!-- Form fields -->
+        <div class="mb-4">
+          <label class="editorial-tag text-sand-dark d-block mb-1">{{ $t('firstName') }}</label>
+          <v-text-field
+            v-model="users.user.firstName"
+            variant="outlined"
+            density="comfortable"
+            color="forestGreen"
+            rounded="lg"
+            hide-details="auto"
+            required
+          />
+        </div>
+
+        <div class="mb-4">
+          <label class="editorial-tag text-sand-dark d-block mb-1">{{ $t('lastName') }}</label>
+          <v-text-field
+            v-model="users.user.lastName"
+            variant="outlined"
+            density="comfortable"
+            color="forestGreen"
+            rounded="lg"
+            hide-details="auto"
+            required
+          />
+        </div>
+
+        <div class="mb-6">
+          <label class="editorial-tag text-sand-dark d-block mb-1">{{ $t('email') }}</label>
+          <v-text-field
+            v-model="users.user.email"
+            type="email"
+            variant="outlined"
+            density="comfortable"
+            color="forestGreen"
+            rounded="lg"
+            hide-details="auto"
+            required
+          />
+        </div>
+
+        <!-- Feedback Alerts -->
+        <v-alert
+          v-if="err"
+          type="error"
+          variant="tonal"
+          rounded="lg"
+          density="comfortable"
+          class="mb-4 text-caption"
+        >
+          {{ $t(err) }}
+        </v-alert>
+
+        <v-alert
+          v-if="info"
+          type="success"
+          variant="tonal"
+          rounded="lg"
+          density="comfortable"
+          class="mb-4 text-caption"
+        >
+          {{ $t(info) }}
+        </v-alert>
+
+        <!-- Submit Button -->
+        <v-btn
+          type="submit"
+          block
+          class="btn-editorial-primary"
+          size="large"
+          :loading="loading"
+        >
+          {{ $t('update') || 'Save Changes' }}
+        </v-btn>
+      </form>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import { useI18n } from 'vue-i18n'
-    import { useLocale } from 'vuetify'
-    import { useUsersStore } from '@/stores/users'
-    import UseCamera from '@/components/UseCamera.vue'
-    
-    const { current } = useLocale()
-    const { locale } = useI18n()
-    const users = useUsersStore()
+  import { ref, onMounted } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { useUsersStore } from '@/stores/users'
+  import UseCamera from '@/components/UseCamera.vue'
 
-    let password = ref(''),
-        passwordConfirmation = ref(''),
-        err = ref(''),
-        info = ref(''),
-        loading = ref(false),
-        image = ref(undefined),
-        photo = ref(null),
-        locals = ref([
-        {
-            value: "ar",
-            title: "arabic"
-        }, 
-        {
-            value: "fr",
-            title: "french"
-        }, 
-        {
-            value: "en",
-            title: "english"
-        }])
+  const { locale } = useI18n()
+  const users = useUsersStore()
 
-        let userObj = {}
+  const err = ref('')
+  const info = ref('')
+  const loading = ref(false)
+  const image = ref(undefined)
+  const photo = ref(null)
+  const avatarFallback = ref(new URL('@/assets/avatar.png', import.meta.url).href)
 
-        const updateUser = () => {
-            userObj.language = locale.value
-            userObj.firstName = users.user.firstName
-            userObj.lastName = users.user.lastName
-            userObj.email = users.user.email
-                try {
-                    users.updateUserProfile(userObj).then(() => {
-                        loading.value = false
-                        info.value = 'User updated successfully'
-                        setTimeout(() => {
-                            info.value = ''
-                        }, "5000")
-                    })
-                } catch (error) {
-                    err.value = error.message
-                    console.log('error user Information', error)
-                }
-            }
-            
-            const uploadImage = (value) => {
-                photo.value = value
-            }
+  const locals = ref([
+    { value: "ar", title: "arabic" },
+    { value: "fr", title: "french" },
+    { value: "en", title: "english" }
+  ])
 
-            const submit = () => {
-                loading.value = true
-                updateUser() 
-            }
+  const submit = () => {
+    loading.value = true
+    try {
+      users.updateUserProfile(users.user).then(() => {
+        loading.value = false
+        info.value = 'Profile updated successfully'
+        setTimeout(() => {
+          info.value = ''
+        }, 5000)
+      })
+    } catch (error) {
+      loading.value = false
+      err.value = error.message
+    }
+  }
 
-            onMounted(() => {
-                users.loadUser()
-            })
+  const uploadImage = (e) => {
+    photo.value = e
+    users.user.photo = e
+  }
+
+  onMounted(() => {
+    users.loadUser()
+  })
 </script>
 
 <style scoped>
-    :deep(.v-input__control .v-text-field__details) {
-        margin-bottom: 0;
-    }
-    :deep(.v-file-input) {
-        position:relative; 
-        left: 170px;
-        top: 150px;
-    }
-    :deep(.v-file-input .v-icon) {
-        color: #00366f !important;
-    }
+  .max-w-700 {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .border-sand {
+    border: 2px solid var(--color-sand) !important;
+  }
 </style>

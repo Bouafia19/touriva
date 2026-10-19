@@ -11,9 +11,9 @@ describe('Touriva Brand Identity & Configuration', () => {
   })
 
   it('defines the premium tourism color palette tokens', () => {
-    expect(BRANDING.colors.primary).toBe('#0f766e')   // Oceanic Emerald
-    expect(BRANDING.colors.secondary).toBe('#0f172a') // Deep Slate
-    expect(BRANDING.colors.accent).toBe('#f59e0b')    // Sunrise Amber
+    expect(BRANDING.colors.primary).toBe('#173F35')   // Forest Green
+    expect(BRANDING.colors.secondary).toBe('#102D27') // Deep Green
+    expect(BRANDING.colors.accent).toBe('#21866B')    // Emerald Accent
   })
 
   it('configures all required tourism core routes', () => {

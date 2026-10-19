@@ -11,7 +11,7 @@
   const setStatusBarStyle = async () => {
     try {
       await StatusBar.setOverlaysWebView({ overlay: false })
-      await StatusBar.setBackgroundColor({ color: '#0f766e' })
+      await StatusBar.setBackgroundColor({ color: '#173F35' })
     } catch (error) {
       // console.log(error)
     }

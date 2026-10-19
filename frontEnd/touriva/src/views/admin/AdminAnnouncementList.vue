@@ -133,12 +133,14 @@
   
 <script setup>
   import { ref, onMounted, watch } from 'vue'
+  import { useRouter } from 'vue-router'
   import { usePublicationsStore } from '@/stores/publications'
   import { useAuthStore } from '@/stores/auth'
   import axios from 'axios'
   import NewPlan from '@/components/NewPlan.vue'
   import { storeToRefs } from 'pinia'
 
+  const router = useRouter()
   const publications = usePublicationsStore()
   const auth = useAuthStore()
   const { getPublicationsByOwnerId } = storeToRefs(publications)
@@ -187,7 +189,6 @@
     currentDate.setMonth(currentDate.getMonth() + plan.duration);
     currentDate.toISOString().split("T")[0]; 
     announcement.value.expirationOfSubscription = currentDate;
-    announcement.value.pai
     console.log('announcement', announcement.value)
     
     try {

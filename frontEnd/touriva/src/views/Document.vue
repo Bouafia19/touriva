@@ -1,110 +1,137 @@
 <template>
-  <v-container fluid :class="containerClass">
-
-    <!-- Loading -->
-    <div v-if="loading" class="text-center">
-      <v-row
-        class="d-flex justify-center align-center"
-        style="height: 80vh"
-      >
-        <v-progress-circular
-          indeterminate
-          color="next"
-        />
-      </v-row>
-    </div>
-
-    <!-- Content -->
-    <div v-else>
-      <h1>{{ $t(users.getTitle) }}</h1>
-      <!-- Preview / Placeholder -->
-      <div class="image-wrapper mt-3 text-center">
-
-        <div class="image-container">
-
-          <!-- Image Preview -->
-          <v-img
-            v-if="users.getPhoto"
-            :src="users.getPhoto"
-            max-height="300"
-            cover
-          />
-
-          <!-- Placeholder -->
-          <div
-            v-else
-            class="image-placeholder"
-            @click="$refs.fileInput.click()"
-          >
-            <v-icon size="48" color="grey">
-              mdi-camera
-            </v-icon>
-
-            <span class="placeholder-text">
-              {{ $t('clickToUploadImage') }}
-            </span>
-          </div>
-
-          <!-- Document title overlay -->
-          <!-- <div class="document-title">
-            {{ $t(users.getTitle) }}
-          </div> -->
-
-        </div>
-
-        <!-- Hidden file input -->
-        <input
-          ref="fileInput"
-          type="file"
-          accept="image/*"
-          hidden
-          @change="onFileSelected"
-        />
-      </div>
-
-      <!-- Error -->
-      <div class="text-center ma-2">
-        <v-alert
-          dense
-          rounded
-          type="error"
-          v-if="err"
-        >
-          {{ $t(err) }}
-        </v-alert>
-      </div>
-
-      <!-- Camera -->
-      <use-camera
-        @cameraUpload="uploadImage"
-        pageTitle="document"
-      />
-
-      <!-- Back -->
-      <div class="text-center mt-4">
+  <div class="document-upload-page bg-warm-ivory py-10 px-4 min-h-screen d-flex align-center justify-center">
+    <v-container class="max-w-md">
+      <!-- Back Button -->
+      <div class="mb-4">
         <v-btn
-          color="next"
-          block
-          dark
+          variant="text"
+          density="comfortable"
+          class="text-forest text-body-2 font-weight-medium"
           @click="$router.go(-1)"
         >
-          {{ $t('submit') }}
+          <v-icon start>mdi-arrow-left</v-icon>
+          {{ $t('backToDossier') || 'Back to Dossier' }}
         </v-btn>
       </div>
 
-    </div>
-  </v-container>
+      <!-- Card -->
+      <v-card class="editorial-card pa-6 pa-md-8 elevation-1">
+        <!-- Loading -->
+        <div v-if="loading" class="text-center py-12">
+          <v-progress-circular
+            indeterminate
+            color="#21866B"
+            size="48"
+          />
+          <p class="text-secondary-editorial text-caption mt-4">Uploading and verifying document...</p>
+        </div>
+
+        <!-- Content -->
+        <div v-else>
+          <div class="editorial-tag text-emerald mb-2">
+            ACCREDITATION DOCUMENT
+          </div>
+
+          <h2 class="editorial-title text-forest mb-2">
+            {{ $t(users.getTitle) }}
+          </h2>
+
+          <p class="text-secondary-editorial text-body-2 mb-6">
+            {{ $t('documentUploadInstructions') || 'Upload a clear, readable scan or photograph of your document. Make sure all edges and text are clearly visible.' }}
+          </p>
+
+          <!-- Preview / Placeholder -->
+          <div class="image-wrapper mb-6">
+            <div class="image-container">
+              <!-- Image Preview -->
+              <div v-if="users.getPhoto" class="preview-box position-relative">
+                <v-img
+                  :src="users.getPhoto"
+                  max-height="280"
+                  cover
+                  class="rounded-lg border-editorial"
+                />
+                <v-btn
+                  size="small"
+                  color="#173F35"
+                  icon
+                  class="replace-btn"
+                  @click="$refs.fileInput.click()"
+                >
+                  <v-icon size="18">mdi-camera-retake-outline</v-icon>
+                </v-btn>
+              </div>
+
+              <!-- Placeholder -->
+              <div
+                v-else
+                class="image-placeholder rounded-lg d-flex flex-column align-center justify-center pa-8 cursor-pointer"
+                @click="$refs.fileInput.click()"
+              >
+                <div class="icon-circle bg-sand-light d-flex align-center justify-center mb-3">
+                  <v-icon size="32" color="#173F35">
+                    mdi-cloud-upload-outline
+                  </v-icon>
+                </div>
+                <div class="font-weight-bold text-forest text-body-2 mb-1">
+                  {{ $t('clickToUploadImage') || 'Select Document File' }}
+                </div>
+                <div class="text-caption text-secondary-editorial">
+                  Supports JPG, PNG or PDF scans
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden file input -->
+            <input
+              ref="fileInput"
+              type="file"
+              accept="image/*"
+              hidden
+              @change="onFileSelected"
+            />
+          </div>
+
+          <!-- Error Alert -->
+          <v-alert
+            v-if="err"
+            type="error"
+            variant="tonal"
+            class="mb-6 rounded-lg text-body-2"
+          >
+            {{ $t(err) }}
+          </v-alert>
+
+          <!-- Camera Integration -->
+          <div class="mb-4">
+            <use-camera
+              @cameraUpload="uploadImage"
+              pageTitle="document"
+            />
+          </div>
+
+          <!-- Return / Save Button -->
+          <v-btn
+            class="btn-editorial-primary"
+            block
+            size="large"
+            @click="$router.go(-1)"
+          >
+            <v-icon start>mdi-check</v-icon>
+            {{ $t('confirmAndSave') || 'Confirm & Save Document' }}
+          </v-btn>
+        </div>
+      </v-card>
+    </v-container>
+  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useUsersStore } from '@/stores/users'
-import { useDisplay } from 'vuetify'
 import UseCamera from '@/components/UseCamera.vue'
 
 const users = useUsersStore()
-const display = useDisplay()
-
 const loading = ref(false)
 const err = ref('')
 const fileInput = ref(null)
@@ -124,6 +151,7 @@ const onFileSelected = (e) => {
 /* Upload logic */
 const uploadImage = (img64) => {
   loading.value = true
+  err.value = ''
 
   users.uploadPartnerImages({
     [users.getTitle]: img64,
@@ -131,23 +159,15 @@ const uploadImage = (img64) => {
   })
   .then(() => {
     users.photo = img64
+    if (!users.images) users.images = {}
     users.images[users.getTitle] = img64
     loading.value = false
   })
   .catch((error) => {
-    err.value = error
+    err.value = error?.message || 'Failed to upload document'
     loading.value = false
   })
 }
-
-/* Responsive container */
-const containerClass = computed(() => {
-  if (display.xs.value) return 'custom-width-xs'
-  if (display.sm.value) return 'custom-width-sm'
-  if (display.md.value) return 'custom-width-md'
-  if (display.lg.value || display.xl.value) return 'custom-width-lg'
-  return ''
-})
 
 onMounted(() => {
   if (users.photo) {
@@ -157,50 +177,40 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Container sizes */
-.custom-width-xs { max-width: 100%; }
-.custom-width-sm { max-width: 540px; }
-.custom-width-md { max-width: 720px; }
-.custom-width-lg { max-width: 960px; }
-
-/* Preview container */
-.image-container {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
+.min-h-screen {
+  min-height: 100vh;
 }
 
-/* Title overlay */
-.document-title {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.45);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 16px;
-  text-align: center;
-  pointer-events: none;
+.max-w-md {
+  max-width: 540px;
 }
 
-/* Placeholder */
 .image-placeholder {
-  height: 220px;
-  border: 2px dashed #ccc;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  gap: 8px;
+  border: 2px dashed #D9B98C;
+  background-color: #FAF8F2;
+  transition: all 0.2s ease;
 }
 
-.placeholder-text {
-  color: #777;
-  font-size: 14px;
+.image-placeholder:hover {
+  border-color: #21866B;
+  background-color: #F4F6F4;
+}
+
+.icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(217, 185, 140, 0.4);
+}
+
+.replace-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>

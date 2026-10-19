@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest --detectOpenHandles --forceExit",
     "migrate": "node scripts/migrate_from_djawal.js",
+    "seed:demo": "node seed/seed_touriva.js",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },

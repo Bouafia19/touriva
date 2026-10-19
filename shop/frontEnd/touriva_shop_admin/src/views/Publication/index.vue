@@ -18,7 +18,7 @@
             :search="search"
         >
             <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                <tr style="color: #00366f;">
+                <tr style="color: #102D27;">
                 <template v-for="column in columns" :key="column.key">
                     <td>
                     {{ $t(column.text) }}
@@ -540,10 +540,10 @@
 
 <style scoped>
 :deep(.v-card .v-card-title) {
-    background-color: #00366f;
+    background-color: #102D27;
     color: white;
 }
 :deep(.v-card-actions) {
-    background-color: #00366f;
+    background-color: #102D27;
 }
 </style>

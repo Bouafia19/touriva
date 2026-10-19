@@ -55,7 +55,7 @@
             >
 
                 <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                    <tr style="color: #00366f;">
+                    <tr style="color: #102D27;">
                     <template v-for="column in columns" :key="column.key">
                         <td>
                         {{ $t(column.text) }}
@@ -109,7 +109,7 @@
                 class="mt-4"
             >
                 <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                    <tr style="color: #00366f;">
+                    <tr style="color: #102D27;">
                         <template v-for="column in columns" :key="column.key">
                             <td>
                                 {{ column.text }}
@@ -419,41 +419,14 @@
 
 
             const newOrder = () => {
-                this.editedIndex = -1
-                this.defaultItem.amount = total.value
-                this.defaultItem.brutAmount = subTotal.value
-                this.defaultItem.date = Date.now()
-                this.defaultItem.partnerId = this.id
+                editedIndex.value = -1
+                defaultItem.value.amount = total.value
+                defaultItem.value.brutAmount = subTotal.value
+                defaultItem.value.date = Date.now()
+                defaultItem.value.partnerId = props.id
                 Object.assign(editedItem.value, defaultItem.value)
-                this.dialog = true
-                // this.$router.push('/order/new')
-                // this.loadingNewOrder = true
-                // let currentOrder = {
-                //     partnerId: this.id,
-                //     photo: '',
-                //     orderMethod: '',
-                //     amount: this.total,
-                //     date: Date.now(),
-                //     description: 'payment for frettic',
-                // }
-
-                // this.tripsByTransporterId.forEach(e => {
-                //     e.paid = true
-                //     this.updateTrip(e)
-                // })
-
-                // this.addOrders(currentOrder).then(() => {
-                //     this.fetchOrdersByTransporterId(this.id)
-                //     this.fetchtripsByTransporterId(this.id)
-                // })
-
-                // this.loadingNewOrder = false
+                dialog.value = true
             }
-
-            // generatePdf() {
-            //     this.trips = this.tripsByTransporterId
-            //     this.$refs.report.generateReport()
-            // },
 
             const formatNumber = (value) => {
                 return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'DZD' }).format(value)
@@ -469,24 +442,26 @@
                 console.log('item', item)
                 partner.value = item.userId
                 setTimeout(() => {
-                    report.value.generateReport()
+                    if (report.value) {
+                        report.value.generateReport()
+                    }
                     item.createloading = false
-                    editedIndex.value = orders.getOrders.indexOf(item)
-                    Object.assign(orders.getOrders[this.editedIndex], item)
-                }, "3000")
-
+                    const idx = orders.getOrders.indexOf(item)
+                    if (idx > -1) {
+                        editedIndex.value = idx
+                        Object.assign(orders.getOrders[idx], item)
+                    }
+                }, 3000)
             }
 
             const getColor = (valeur) => {
-                if (valeur.status == 'pending') return '#FF8C00'
-                else if (valeur.status == 'confirmed') return '#28a74580'
+                if (valeur.status == 'pending') return '#D9943B'
+                else if (valeur.status == 'confirmed') return '#21866B'
+                return '#69736E'
             }
 
             const getDetail = (item) => {
                 console.log('item', item)
-                /*if(props.typeAccount === 'rented'){
-                    announcements.value = [item.pubId]
-                }*/
                 editedIndex.value = orders.getOrders.indexOf(item)
                 editedItem.value = Object.assign({}, item)
                 dialog.value = true
@@ -501,9 +476,13 @@
                 console.log('editedItem.value', editedItem.value)
                 console.log('announ', announcements.value)
                 
-               for (const e of announcements.value) {
-                    e.paid = true
-                    await pub.editAnnouncements(e) 
+                if (Array.isArray(announcements.value)) {
+                    for (const e of announcements.value) {
+                        if (e) {
+                            e.paid = true
+                            await pub.editAnnouncements(e) 
+                        }
+                    }
                 }
                 
                 editedItem.value.status = 'confirmed'
@@ -515,26 +494,27 @@
                 loading.value = false
                 orders.fetchOrdersByUserId(props.id)
                 dialog.value = false
-                
             }
 </script>
 
 <style scoped>
     .v-data-table {
-        border: 1px solid black;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        overflow: hidden;
     }
     :deep(table > thead > tr:last-child > th) {
-        color: white !important;
-        background-color: #00366f !important;
+        color: #FAF8F2 !important;
+        background-color: var(--color-deep-green) !important;
     }
     :deep(.mdi-arrow-up::before) {
-        color: white !important;
+        color: #FAF8F2 !important;
     }
     .v-card__title {
-        background-color: #00366f;
+        background-color: var(--color-deep-green);
         color: white;
     }
     .v-card__actions {
-        background-color: #00366f;
+        background-color: #FAF8F2;
     }
 </style>

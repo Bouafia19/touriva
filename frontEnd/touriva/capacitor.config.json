@@ -1,5 +1,9 @@
 {
   "appId": "com.touriva.app",
   "appName": "Touriva",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  }
 }

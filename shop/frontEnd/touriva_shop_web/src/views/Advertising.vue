@@ -299,8 +299,9 @@
 <script setup>
     import { ref, watch, computed, onMounted } from 'vue'
     import { useAdvertisingStore } from '@/stores/advertising'
-    import { useAdsSettingsStore} from '@/stores/adsSettings'
+    import { useAdsSettingsStore } from '@/stores/adsSettings'
     import { useRouter, useRoute } from 'vue-router'
+    import { Capacitor } from '@capacitor/core'
     
     const ads = useAdvertisingStore()
     const router = useRouter()

@@ -348,8 +348,7 @@
         },
 
         methods: {
-            ...mapActions(useAdsStore, ["fetchAds", "addAd", "editAds", "deleteAd"]),
-            // ...mapActions(['fetchAds', 'addAds', 'editAds', 'deleteAds', 'fetchVehicles', 'fetchRoles']),
+            ...mapActions(useAdsStore, ["fetchAds", "addAds", "editAds", "deleteAds"]),
 
             formatPrice(price){
                 return new Intl.NumberFormat('en-US', {
@@ -369,15 +368,15 @@
             getBillingColor(status) {
                 switch (status) {
                     case 'draft':
-                    return '#9E9E9E'; // Grey
+                    return '#9E9E9E';
                     case 'pending':
-                    return '#2196F3'; // Blue
+                    return '#D9943B';
                     case 'paid':
-                    return '#17a2b8'; // Teal
+                    return '#21866B';
                     case 'cancelled':
-                    return '#DC143C'; // Crimson
+                    return '#C24545';
                     default:
-                    return '#BDBDBD'; // Light Grey fallback
+                    return '#BDBDBD';
                 }
             },
 
@@ -389,13 +388,9 @@
                 this.loading = true
                 await Promise.all([this.fetchAds()])
                 this.loading = false
-                // this.fetchAds()
-                // this.fetchVehicles()
-                // this.fetchRoles()
             },
 
             editItem (e, {item}) {
-                console.log('item', item)
                 this.editedIndex = this.ads.indexOf(item)
                 this.editedItem = Object.assign({}, item)
                 this.dialog = true
@@ -414,14 +409,12 @@
             },
 
             deleteItem (item) {
-                // this.editedIndex = this.ads.indexOf(item)
                 this.editedIndex = item._id
                 this.editedItem = Object.assign({}, item)
                 this.dialogDelete = true
             },
 
             deleteItemConfirm () {
-                // this.ads.splice(this.editedIndex, 1)
                 this.deleteAds(this.editedIndex)
                 this.initialize()
                 this.closeDelete()
@@ -430,16 +423,16 @@
             close () {
                 this.dialog = false
                 this.$nextTick(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
                 })
             },
 
             closeDelete () {
                 this.dialogDelete = false
                 this.$nextTick(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
                 })
             },
 
@@ -455,7 +448,6 @@
             save () {
                 this.loading = true
                 if (this.editedIndex > -1) {
-                   
                     this.editAds(this.editedItem).then(() => {
                         Object.assign(this.ads[this.editedIndex], this.editedItem)
                         this.loading = false
@@ -469,8 +461,6 @@
                         this.initialize()
                     })
                 }
-                
-                
             },
         }
     }
@@ -478,30 +468,19 @@
 
 <style scoped>
     .v-data-table {
-        border: 1px solid black;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
     }
     :deep(table > thead > tr:last-child > th) {
-        color: white !important;
-        background-color: #00366f !important;
-    }
-    :deep(.mdi-arrow-up::before) {
-        color: white !important;
+        color: var(--color-forest-green) !important;
+        background-color: var(--color-warm-ivory) !important;
+        font-weight: 700;
     }
     .v-card__title {
-        background-color: #00366f;
+        background-color: var(--color-forest-green);
         color: white;
     }
     .v-card__actions {
-        background-color: #00366f;
-    }
-    :deep(.style-1) {
-        color: white !important;
-        background-color: #DC143C !important;
-    }
-    :deep(.style-2) {
-        background-color: white !important;
-    }
-    :deep(.mdi-calculator-variant::before) {
-        color: #00366f !important;
+        background-color: var(--color-forest-green);
     }
 </style>

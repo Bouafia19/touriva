@@ -32,7 +32,7 @@
         height: 100%;
         justify-content: center; 
         align-items: center;
-        color: #00366f;
+        color: #102D27;
         text-shadow: 0px 0px 10px ;
         font-size: 6rem;
         flex-direction: column;

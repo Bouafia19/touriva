@@ -1,103 +1,169 @@
 <template>
   <v-card
-    v-if="restaurant"
-    class="rounded-xl overflow-hidden hover:scale-105 transition-transform duration-200 mx-2"
-    elevation="4"
+    class="editorial-card h-100 d-flex flex-column"
+    elevation="0"
+    @click="goToDetails"
   >
-    <v-img
-      :src="getPhotoUrl(restaurant)"
-      height="200"
-      cover
-    >
-      <template #placeholder>
-        <v-row class="fill-height ma-0 align-center justify-center">
-          <v-progress-circular indeterminate color="primary" />
-        </v-row>
-      </template>
-    </v-img>
-
-    <v-card-title>{{ restaurant.displayName?.text || restaurant.name }}</v-card-title>
-    <v-card-subtitle>
-      <v-icon icon="mdi-map-marker" size="small" color="primary" />
-      {{ restaurant.formattedAddress || restaurant.address }}
-    </v-card-subtitle>
-
-    <v-card-text>
-      <v-rating
-        v-model="restaurant.rating"
-        readonly
-        color="amber"
-        density="compact"
-      ></v-rating>
-      <div class="text-grey">
-        {{ restaurant.reviews }} reviews • {{ restaurant.cuisine }}
-      </div>
-      <div class="mt-2">{{ restaurant.description }}</div>
-    </v-card-text>
-
-    <!-- Action -->
-    <v-card-actions class="justify-center">
-      <v-btn
-        color="next"
-        variant="flat"
-        @click="goToDetails"
+    <div class="position-relative overflow-hidden">
+      <v-img
+        :src="imageUrl"
+        height="220"
+        cover
+        eager
+        class="img-editorial-zoom cursor-pointer"
       >
-        Details
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+        <template #placeholder>
+          <div class="d-flex fill-height align-center justify-center bg-grey-lighten-4">
+            <v-progress-circular indeterminate color="#21866B" size="28" />
+          </div>
+        </template>
+      </v-img>
 
-  <v-alert v-else type="error" variant="outlined">
-    Missing restaurant data
-  </v-alert>
+      <div class="editorial-scrim"></div>
+
+      <!-- Rating Badge -->
+      <div class="position-absolute top-0 right-0 pa-3" v-if="restaurant.rating">
+        <span class="editorial-badge">
+          <v-icon size="14" color="#D9B98C" class="mr-1">mdi-star</v-icon>
+          {{ Number(restaurant.rating).toFixed(1) }}
+        </span>
+      </div>
+
+      <!-- Category Tag -->
+      <div class="position-absolute top-0 left-0 pa-3">
+        <span class="editorial-dining-badge">
+          <v-icon size="13" color="#FAF8F2" class="mr-1">mdi-silverware-fork-knife</v-icon>
+          {{ $t('Dining') || 'Gastronomy' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
+      <div>
+        <h3 class="text-h6 font-weight-bold text-forest mb-1 line-clamp-1">
+          {{ restaurantName }}
+        </h3>
+        <div class="d-flex align-center text-caption text-secondary-editorial mb-2">
+          <v-icon size="15" color="#21866B" class="mr-1">mdi-map-marker</v-icon>
+          <span class="text-truncate">{{ restaurantAddress }}</span>
+        </div>
+        <p v-if="restaurant.description" class="text-caption text-secondary-editorial line-clamp-2 mb-3">
+          {{ restaurant.description }}
+        </p>
+      </div>
+
+      <div class="mt-auto pt-2">
+        <v-btn
+          block
+          variant="outlined"
+          color="#173F35"
+          size="small"
+          rounded="pill"
+          class="btn-editorial-outline text-capitalize font-weight-bold"
+        >
+          {{ $t('ViewDetails') || 'View Table & Menu' }}
+          <v-icon end size="16">mdi-arrow-right</v-icon>
+        </v-btn>
+      </div>
+    </div>
+  </v-card>
 </template>
 
 <script setup>
-  import { useRouter } from 'vue-router'
-  import { usePlacesStore } from '@/stores/places'
-  const placesStore = usePlacesStore()
-  const router = useRouter()
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { usePlacesStore } from '@/stores/places'
+import { getResolvedImage } from '@/config/curatedImages'
 
-  const props = defineProps({
-    restaurant: {
-      type: Object,
-      default: () => ({
-        name: 'Unknown Restaurant',
-        image: 'https://via.placeholder.com/400x200?text=No+Image',
-        city: '',
-        country: '',
-        cuisine: '',
-        rating: 0,
-        reviews: 0,
-        description: ''
-      })
-    }
-  })
+const placesStore = usePlacesStore()
+const router = useRouter()
 
-  const API_KEY = "AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4"
-
-  const getPhotoUrl = (restaurant) => {
-    // local image from your database
-    if (restaurant.photo) {
-      return restaurant.photo
-    }
-
-    if (!restaurant || !restaurant.photos || restaurant.photos.length === 0) {
-      return "/no-image.png"
-    }
-
-    const photoName = restaurant.photos[0].name // e.g. "places/xxxx/photos/yyyy"
-
-    return `https://places.googleapis.com/v1/${photoName}/media?key=${API_KEY}&maxWidthPx=800`
+const props = defineProps({
+  restaurant: {
+    type: Object,
+    required: true
   }
+})
 
-  const goToDetails = () => {
-    placesStore.setTrip(props.restaurant)
-    router.push({
+const restaurantName = computed(() => {
+  return props.restaurant.displayName?.text || props.restaurant.name || 'Authentic Eatery & Café'
+})
+
+const restaurantAddress = computed(() => {
+  return props.restaurant.formattedAddress || props.restaurant.address || props.restaurant.wilayaId?.name || 'Algeria'
+})
+
+const imageUrl = computed(() => {
+  return getResolvedImage(props.restaurant, 'restaurant')
+})
+
+const goToDetails = () => {
+  placesStore.setTrip(props.restaurant)
+  const placeId = props.restaurant.name?.includes('places/') 
+    ? props.restaurant.name.replace('places/', '') 
+    : (props.restaurant._id || props.restaurant.name || 'detail')
+
+  router.push({
     name: 'PlaceDetail',
-    params: {
-      placeId: props.restaurant.name.replace('places/', '')
-    }
+    params: { placeId }
   })
-  }
+}
 </script>
+
+<style scoped>
+.editorial-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 45, 39, 0.45) 0%,
+    transparent 50%,
+    rgba(16, 45, 39, 0.75) 100%
+  );
+  pointer-events: none;
+}
+
+.editorial-badge {
+  background: rgba(16, 45, 39, 0.85);
+  backdrop-filter: blur(6px);
+  color: #FAF8F2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(217, 185, 140, 0.3);
+  display: inline-flex;
+  align-items: center;
+}
+
+.editorial-dining-badge {
+  background: rgba(184, 149, 100, 0.95);
+  backdrop-filter: blur(6px);
+  color: #102D27;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>

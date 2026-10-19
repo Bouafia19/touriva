@@ -9,7 +9,7 @@ const { transporter } = require("../services/mail")
 
 const sendOtpEmail = async (to, otp) => {
   await transporter.sendMail({
-    from: '"Djawal" <no-reply@djawal.com>',
+    from: '"Touriva" <no-reply@touriva.com>',
     to,
     subject: "Your password reset code",
     html: `

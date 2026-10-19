@@ -195,10 +195,10 @@
 
 <style scoped>
     :deep(.v-text-field__suffix) {
-        color: #00366f !important;
+        color: #173F35 !important;
     }
     :deep(.v-input__icon--append .v-icon) { 
-        color: #00366f !important;
+        color: #173F35 !important;
     }
     :deep(.v-dialog:not(.v-dialog--fullscreen)) {
         max-height: 100%;

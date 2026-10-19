@@ -1,235 +1,226 @@
 <template>
-    <v-container 
-        fluid 
-        :class="[platform === 'web' ? 'px-0 main-container' : '']"
-    >
-        <!-- <v-row>
-            <v-col class="d-flex justify-start">
-                <v-btn 
-                    color="next"
-                    @click="returnTo"
-                    variant="text"
-                    prepend-icon="mdi-arrow-left"
-                >
-                    {{ $t('Return') }}
-                </v-btn>
+  <div class="editorial-catalog bg-warm-ivory min-vh-100">
+    <!-- Header Banner -->
+    <div class="catalog-hero py-10 px-4 border-b border-subtle">
+      <v-container class="max-w-container">
+        <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center">
+          <div>
+            <div class="editorial-tag mb-1">{{ $t('Gastronomy') || 'DINING & CULINARY TRADITIONS' }}</div>
+            <h1 class="text-h3 font-serif font-weight-bold text-forest mb-2">
+              {{ $t('Restaurants') || 'Dining & Gastronomy' }}
+            </h1>
+            <p class="text-secondary-editorial mb-0 max-w-prose">
+              Savor authentic Algerian hospitality, time-honored Berber recipes, Ottoman-era street flavors, and Mediterranean seafood.
+            </p>
+          </div>
+
+          <!-- Add Restaurant Dialog (for Authorized Users) -->
+          <div class="mt-4 mt-md-0 d-flex align-center ga-3">
+            <PlaceDialog 
+              type="restaurant" 
+              v-if="isAgency || isGuide || isAssociation"
+            />
+            <v-chip class="editorial-chip px-3 py-1 font-weight-bold">
+              <v-icon start size="16">mdi-silverware-fork-knife</v-icon>
+              {{ filteredRestaurants.length }} {{ $t('Eateries') || 'Eateries' }}
+            </v-chip>
+          </div>
+        </div>
+
+        <!-- Search Bar and Regional Filter Chips -->
+        <div class="mt-6">
+          <v-row dense align="center">
+            <v-col cols="12" md="5">
+              <v-text-field
+                v-model="searchQuery"
+                :placeholder="$t('SearchRestaurants') || 'Search restaurants by name or city...'"
+                prepend-inner-icon="mdi-magnify"
+                variant="outlined"
+                density="comfortable"
+                rounded="pill"
+                hide-details
+                color="#173F35"
+                class="bg-white"
+                clearable
+              />
             </v-col>
-        </v-row> -->
-        <v-row class="align-center px-4 mb-2">
-            <v-col class="d-flex align-center justify-space-between">
-                
-                <h1 class="ma-0">
-                    {{ $t('Restaurants') }}
-                </h1>
 
-                <PlaceDialog 
-                    type="restaurant" 
-                    v-if="isAgency || isGuide || isAssociation"
-                />
-
-            </v-col>
-        </v-row>
-
-        <v-row class="d-flex justify-center mt-2">
-            <v-col
-                md="4"
-                class="pt-0"
-            >
-                <v-text-field
-                    v-model="city"
-                    rounded
-                    variant="solo"
-                    ref="cityInputRef"
-                    id="cityInput"
-                    :placeholder="$t('search')"
-                    style="margin-left: 24px;margin-top: 24px;"
-                    prepend-icon="mdi-map-marker"
-                    hide-details
-                    class="ma-2"
-                ></v-text-field>
-                
-            </v-col>
-        </v-row>
-
-        <v-row>
-            <v-col cols="12" class="text-center">
-                <div class="text-subtitle-1 mb-4">
-                {{ $t('popularCities') }}
-                </div>
-
-                <v-chip
+            <v-col cols="12" md="7" class="d-flex align-center flex-wrap ga-2 mt-2 mt-md-0">
+              <span class="text-caption font-weight-bold text-forest mr-1">REGIONS:</span>
+              <v-chip
                 v-for="c in popularCities"
                 :key="c.name"
-                class="ma-1"
-                color="next"
-                variant="outlined"
-                @click="selectCity(c)"
-                >
+                :color="selectedCity === c.name ? '#173F35' : 'default'"
+                :variant="selectedCity === c.name ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium"
+                size="small"
+                @click="toggleCity(c)"
+              >
                 {{ c.name }}
-                </v-chip>
+              </v-chip>
+              <v-chip
+                v-if="selectedCity"
+                color="error"
+                variant="text"
+                size="small"
+                @click="clearCity"
+              >
+                Clear Region
+              </v-chip>
             </v-col>
-        </v-row>
+          </v-row>
+        </div>
+      </v-container>
+    </div>
 
-        <v-row>
+    <!-- Main Restaurants Grid -->
+    <v-container class="max-w-container py-8">
+      <!-- LOADING SKELETONS -->
+      <v-row v-if="restaurantsStore.isLoading">
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="4">
+          <v-card class="editorial-card pa-4">
+            <v-skeleton-loader type="image, heading, text, button" height="340" />
+          </v-card>
+        </v-col>
+      </v-row>
 
-            <!-- LOADING SKELETONS -->
-            <template v-if="restaurants.isLoading">
-                <v-col
-                v-for="n in 6"
-                :key="n"
-                cols="12"
-                sm="6"
-                md="4"
-                >
-                <v-card elevation="1">
-                    <v-skeleton-loader
-                    type="image, heading, text, text"
-                    height="300"
-                    />
-                </v-card>
-                </v-col>
-            </template>
+      <!-- EMPTY STATE -->
+      <v-card
+        v-else-if="!filteredRestaurants.length"
+        class="editorial-card pa-12 text-center my-6"
+        elevation="0"
+      >
+        <v-icon size="56" color="#D9B98C" class="mb-4">mdi-silverware-clean</v-icon>
+        <h3 class="text-h5 font-serif font-weight-bold text-forest mb-2">
+          No Restaurants Found
+        </h3>
+        <p class="text-secondary-editorial max-w-prose mx-auto mb-6">
+          We could not find any culinary listings matching your current search. Try resetting your query or exploring other cities.
+        </p>
+        <v-btn
+          color="#173F35"
+          class="btn-editorial-primary px-6"
+          rounded="pill"
+          @click="resetSearch"
+        >
+          View All Restaurants
+        </v-btn>
+      </v-card>
 
-            <!-- EMPTY STATE (AFTER LOAD) -->
-            <template v-else-if="!restaurants.getRestaurants.length">
-                <v-col cols="12">
-                <v-alert
-                    type="info"
-                    variant="tonal"
-                    border="start"
-                    prominent
-                >
-                    {{ $t('noRestaurantsFound') }}
-                </v-alert>
-                </v-col>
-            </template>
-
-            <!-- REAL CONTENT -->
-            <template v-else>
-                <v-col 
-                v-for="restaurant in restaurants.getRestaurants" 
-                :key="restaurant.id" 
-                cols="12" 
-                sm="6" 
-                md="4"
-                >
-                <RestaurantCard :restaurant="restaurant" />
-                </v-col>
-            </template>
-
-            </v-row>
-
-            
-
+      <!-- RESTAURANTS GRID -->
+      <v-row v-else>
+        <v-col
+          v-for="resto in filteredRestaurants"
+          :key="resto._id || resto.name"
+          cols="12"
+          sm="6"
+          md="4"
+        >
+          <RestaurantCard :restaurant="resto" />
+        </v-col>
+      </v-row>
     </v-container>
+  </div>
 </template>
 
 <script setup>
-    import { Capacitor } from '@capacitor/core'
-    import { Geolocation } from '@capacitor/geolocation'
-    import { ref, onMounted, computed } from 'vue'
-    import { useRouter } from 'vue-router'
-    import RestaurantCard from '@/components/RestaurantCard.vue'
-    import PlaceDialog from '@/components/DialogAdd.vue'
-    import { useRestaurantsStore } from '@/stores/restaurants'
-    import { useAuthStore } from '@/stores/auth'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useRestaurantsStore } from '@/stores/restaurants'
+import { useAuthStore } from '@/stores/auth'
+import RestaurantCard from '@/components/RestaurantCard.vue'
+import PlaceDialog from '@/components/DialogAdd.vue'
 
-    const restaurants = useRestaurantsStore()
-    const auth = useAuthStore()
+const route = useRoute()
+const restaurantsStore = useRestaurantsStore()
+const auth = useAuthStore()
 
-    const router = useRouter()
+const searchQuery = ref('')
+const selectedCity = ref('')
+const typeAccount = ref('')
 
-    const platform = ref(null),
-            city = ref(''),
-            cityInputRef = ref(null),
-            typeAccount = ref("")
+const popularCities = [
+  { name: 'Algiers', lat: 36.7538, lng: 3.0588 },
+  { name: 'Oran', lat: 35.6971, lng: -0.6308 },
+  { name: 'Constantine', lat: 36.3650, lng: 6.6147 },
+  { name: 'Annaba', lat: 36.9040, lng: 7.7550 },
+  { name: 'Djanet', lat: 24.5533, lng: 9.4853 },
+  { name: 'Taghit', lat: 30.9167, lng: -2.0333 },
+  { name: 'Ghardaïa', lat: 32.4833, lng: 3.6667 }
+]
 
-    const popularCities = [
-        { name: 'Algiers', lat: 36.7538, lng: 3.0588 },
-        { name: 'Oran', lat: 35.6971, lng: -0.6308 },
-        { name: 'Constantine', lat: 36.3650, lng: 6.6147 },
-        { name: 'Annaba', lat: 36.9040, lng: 7.7550 }
-    ]
+const isAgency = computed(() => typeAccount.value === 'touristAgencies')
+const isGuide = computed(() => typeAccount.value === 'touristGuide')
+const isAssociation = computed(() => typeAccount.value === 'associations')
 
-    const isAgency = computed(() => typeAccount.value === 'touristAgencies')
-    const isGuide = computed(() => typeAccount.value === 'touristGuide')
-    const isAssociation = computed(() => typeAccount.value === 'associations')
+const toggleCity = (c) => {
+  if (selectedCity.value === c.name) {
+    selectedCity.value = ''
+    restaurantsStore.fetchCatalogRestaurants()
+  } else {
+    selectedCity.value = c.name
+    restaurantsStore.fetchRestaurants(c.lat, c.lng)
+  }
+}
 
-    const selectCity = (c) => {
-        city.value = c.name
-        restaurants.fetchRestaurants(c.lat, c.lng)
-    }
+const clearCity = () => {
+  selectedCity.value = ''
+  restaurantsStore.fetchCatalogRestaurants()
+}
 
-    const returnTo = () => {
-        router.go(-1)
-    }
+const resetSearch = () => {
+  searchQuery.value = ''
+  selectedCity.value = ''
+  restaurantsStore.fetchCatalogRestaurants()
+}
 
-    const requestGps = async () => {
-        try {
-          await Geolocation.requestPermissions()
-        } catch (error) {
-          
-        }
-    }
+const filteredRestaurants = computed(() => {
+  const query = (searchQuery.value || '').toLowerCase().trim()
+  return (restaurantsStore.getRestaurants || []).filter(r => {
+    if (!query) return true
+    const name = (r.displayName?.text || r.name || '').toLowerCase()
+    const addr = (r.formattedAddress || r.address || '').toLowerCase()
+    const desc = (r.description || '').toLowerCase()
+    return name.includes(query) || addr.includes(query) || desc.includes(query)
+  })
+})
 
-    const currentPosition = async () => {
-        try {
-          const coordinates = await Geolocation.getCurrentPosition({
-                                        enableHighAccuracy: true
-                                    })
-          if(coordinates.coords){
-            console.log('Current position:', coordinates.coords.latitude, coordinates.coords.longitude)
-            restaurants.fetchRestaurants(coordinates.coords.latitude, coordinates.coords.longitude)
-          }
-        } catch (error) {
-          console.log('error', error)
-        }
-    }
+onMounted(async () => {
+  const ls = await auth.getLSUserInfo()
+  if (ls?.user) {
+    typeAccount.value = ls.user.typeAccount
+  }
 
-    const setupAutocomplete = async () => {
-  
-        const input = document.getElementById('cityInput')
-        console.log('Input element:', input)
-        console.log('ref', cityInputRef)
-        const options = {
-            types: ['(cities)'],
-            componentRestrictions: { country: 'dz' }
-        }
+  if (route.query.q) {
+    searchQuery.value = String(route.query.q)
+  }
 
-        const autocomplete = new google.maps.places.Autocomplete(input, options)
-
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace()
-            if (!place.geometry) {
-            alert("No details available for input: '" + place.name + "'")
-            return
-            }
-
-            const location = place.geometry.location
-            console.log('Selected city:', place.name, location.lat(), location.lng())
-            restaurants.fetchRestaurants(location.lat(), location.lng())
-        })
-    }
-
-    onMounted(async() => {
-        platform.value = Capacitor.getPlatform()
-        const ls = await auth.getLSUserInfo()
-        if(ls?.user?.typeAccount){
-            typeAccount.value = ls.user.typeAccount
-        }
-        setupAutocomplete()
-        requestGps().then(() => {
-            currentPosition()
-        })
-    })
+  restaurantsStore.fetchCatalogRestaurants()
+})
 </script>
 
 <style scoped>
+.editorial-catalog {
+  min-height: 100vh;
+}
 
-    .main-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+.max-w-container {
+  max-width: 1360px;
+}
 
+.max-w-prose {
+  max-width: 620px;
+}
+
+.catalog-hero {
+  background: #FFFFFF;
+}
+
+.border-subtle {
+  border-color: #E7E8E1 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
 </style>

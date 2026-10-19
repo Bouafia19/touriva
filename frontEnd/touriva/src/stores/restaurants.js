@@ -17,7 +17,27 @@ export const useRestaurantsStore = defineStore('restaurants', {
     },
 
     actions: {
-        
+        async fetchCatalogRestaurants() {
+            this.loading = true
+            this.error = null
+            try {
+                const res = await axios.get('/api/restaurants')
+                if (Array.isArray(res.data) && res.data.length > 0) {
+                    this.restaurants = res.data.map(r => ({
+                        ...r,
+                        displayName: { text: r.name },
+                        formattedAddress: r.address,
+                        rating: r.rating || 4.4,
+                        reviews: r.reviews || 32,
+                        photo: r.photo || r.image || null
+                    }))
+                }
+            } catch (err) {
+                console.error('Failed to load catalog restaurants:', err)
+            } finally {
+                this.loading = false
+            }
+        },
         async fetchRestaurants(lat, lng) {
             this.loading = true
             this.error = null

@@ -1,234 +1,226 @@
 <template>
-    <v-container 
-        fluid 
-        :class="[platform === 'web' ? 'px-0 main-container' : '']"
-    >
-        <!-- <v-row>
-            <v-col class="d-flex justify-start">
-                <v-btn 
-                    color="next"
-                    @click="returnTo"
-                    variant="text"
-                    prepend-icon="mdi-arrow-left" 
-                >
-                    {{ $t('Return') }}
-                </v-btn>
+  <div class="editorial-catalog bg-warm-ivory min-vh-100">
+    <!-- Header Banner -->
+    <div class="catalog-hero py-10 px-4 border-b border-subtle">
+      <v-container class="max-w-container">
+        <div class="d-flex flex-column flex-md-row justify-space-between align-start align-md-center">
+          <div>
+            <div class="editorial-tag mb-1">{{ $t('Stays') || 'HOSPITALITY & LODGING' }}</div>
+            <h1 class="text-h3 font-serif font-weight-bold text-forest mb-2">
+              {{ $t('Hotels') || 'Accommodations & Resorts' }}
+            </h1>
+            <p class="text-secondary-editorial mb-0 max-w-prose">
+              Discover boutique kasbahs, Mediterranean coastal resorts, and luxury desert camps curated for discerning travelers.
+            </p>
+          </div>
+
+          <!-- Add Hotel Dialog (for Authorized Users) -->
+          <div class="mt-4 mt-md-0 d-flex align-center ga-3">
+            <PlaceDialog 
+              type="hotel" 
+              v-if="isAgency || isGuide || isAssociation"
+            />
+            <v-chip class="editorial-chip px-3 py-1 font-weight-bold">
+              <v-icon start size="16">mdi-bed-outline</v-icon>
+              {{ filteredHotels.length }} {{ $t('Properties') || 'Properties' }}
+            </v-chip>
+          </div>
+        </div>
+
+        <!-- Search Bar and Regional Filter Chips -->
+        <div class="mt-6">
+          <v-row dense align="center">
+            <v-col cols="12" md="5">
+              <v-text-field
+                v-model="searchQuery"
+                :placeholder="$t('SearchHotels') || 'Search accommodations by name or city...'"
+                prepend-inner-icon="mdi-magnify"
+                variant="outlined"
+                density="comfortable"
+                rounded="pill"
+                hide-details
+                color="#173F35"
+                class="bg-white"
+                clearable
+              />
             </v-col>
-        </v-row> -->
 
-        <v-row class="align-center px-4 mb-2">
-            <v-col class="d-flex align-center justify-space-between">
-                
-                <h1 class="ma-0">
-                    {{ $t('Hotels') }}
-                </h1>
-
-                <PlaceDialog 
-                    type="hotel" 
-                    v-if="isAgency || isGuide || isAssociation"
-                />
-
+            <v-col cols="12" md="7" class="d-flex align-center flex-wrap ga-2 mt-2 mt-md-0">
+              <span class="text-caption font-weight-bold text-forest mr-1">DESTINATIONS:</span>
+              <v-chip
+                v-for="c in popularCities"
+                :key="c.name"
+                :color="selectedCity === c.name ? '#173F35' : 'default'"
+                :variant="selectedCity === c.name ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium"
+                size="small"
+                @click="toggleCity(c)"
+              >
+                {{ c.name }}
+              </v-chip>
+              <v-chip
+                v-if="selectedCity"
+                color="error"
+                variant="text"
+                size="small"
+                @click="clearCity"
+              >
+                Clear Destination
+              </v-chip>
             </v-col>
-        </v-row>
+          </v-row>
+        </div>
+      </v-container>
+    </div>
 
-        <v-row class="d-flex justify-center mt-2">
-            <v-col
-                md="4"
-                class="pt-0"
-            >
-                <v-text-field
-                    v-model="city"
-                    rounded
-                    variant="solo"
-                    id="cityInput"
-                    :placeholder="$t('search')"
-                    style="margin-left: 24px;margin-top: 24px;"
-                    prepend-icon="mdi-map-marker"
-                    hide-details
-                    class="ma-2"
-                ></v-text-field>
-                
-            </v-col>
-        </v-row>
+    <!-- Main Hotels Grid -->
+    <v-container class="max-w-container py-8">
+      <!-- LOADING SKELETONS -->
+      <v-row v-if="hotelsStore.isLoading">
+        <v-col v-for="n in 6" :key="n" cols="12" sm="6" md="4">
+          <v-card class="editorial-card pa-4">
+            <v-skeleton-loader type="image, heading, text, button" height="340" />
+          </v-card>
+        </v-col>
+      </v-row>
 
-        <v-row>
-            <v-col cols="12" class="text-center">
-                <div class="text-subtitle-1 mb-4">
-                    {{ $t('popularCities') }}
-                </div>
+      <!-- EMPTY STATE -->
+      <v-card
+        v-else-if="!filteredHotels.length"
+        class="editorial-card pa-12 text-center my-6"
+        elevation="0"
+      >
+        <v-icon size="56" color="#D9B98C" class="mb-4">mdi-bed-empty</v-icon>
+        <h3 class="text-h5 font-serif font-weight-bold text-forest mb-2">
+          No Accommodations Found
+        </h3>
+        <p class="text-secondary-editorial max-w-prose mx-auto mb-6">
+          We could not find any hotel listings matching your current search. Try resetting your query or exploring other destinations.
+        </p>
+        <v-btn
+          color="#173F35"
+          class="btn-editorial-primary px-6"
+          rounded="pill"
+          @click="resetSearch"
+        >
+          View All Hotels
+        </v-btn>
+      </v-card>
 
-                <v-chip
-                    v-for="c in popularCities"
-                    :key="c.name"
-                    class="ma-1"
-                    color="next"
-                    variant="outlined"
-                    @click="selectCity(c)"
-                >
-                    {{ c.name }}
-                </v-chip>
-            </v-col>
-        </v-row>
-
-        <v-row>
-
-            <!-- LOADING SKELETONS -->
-            <template v-if="hotels.isLoading">
-                <v-col
-                v-for="n in 6"
-                :key="n"
-                cols="12"
-                sm="6"
-                md="4"
-                >
-                <v-card elevation="1">
-                    <v-skeleton-loader
-                    type="image, heading, text, text"
-                    height="300"
-                    />
-                </v-card>
-                </v-col>
-            </template>
-
-            <!-- EMPTY STATE (AFTER LOAD) -->
-            <template v-else-if="!hotels.getHotels.length">
-                <v-col cols="12">
-                <v-alert
-                    type="info"
-                    variant="tonal"
-                    border="start"
-                    prominent
-                >
-                    {{ $t('noHotelsFound') }}
-                </v-alert>
-                </v-col>
-            </template>
-
-            <!-- REAL CONTENT -->
-            <template v-else>
-                <v-col
-                v-for="hotel in hotels.getHotels"
-                :key="hotel.id"
-                cols="12"
-                sm="6"
-                md="4"
-                >
-                <HotelCard :hotel="hotel" />
-                </v-col>
-            </template>
-        </v-row>
-
+      <!-- HOTELS GRID -->
+      <v-row v-else>
+        <v-col
+          v-for="hotel in filteredHotels"
+          :key="hotel._id || hotel.name"
+          cols="12"
+          sm="6"
+          md="4"
+        >
+          <HotelCard :hotel="hotel" />
+        </v-col>
+      </v-row>
     </v-container>
+  </div>
 </template>
 
 <script setup>
-    import { Capacitor } from '@capacitor/core'
-    import { Geolocation } from '@capacitor/geolocation'
-    import { ref, onMounted, computed } from 'vue'
-    import { useRouter } from 'vue-router'
-    import HotelCard from '@/components/HotelCard.vue'
-    import PlaceDialog from '@/components/DialogAdd.vue'
-    import { useHotelsStore } from '@/stores/hotels'
-    import { useAuthStore } from '@/stores/auth'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useHotelsStore } from '@/stores/hotels'
+import { useAuthStore } from '@/stores/auth'
+import HotelCard from '@/components/HotelCard.vue'
+import PlaceDialog from '@/components/DialogAdd.vue'
 
-    const hotels = useHotelsStore()
-    const router = useRouter()
-    const auth = useAuthStore()
+const route = useRoute()
+const hotelsStore = useHotelsStore()
+const auth = useAuthStore()
 
-    const platform = ref(null),
-            city = ref(''),
-            dialog = ref(false),
-            typeAccount = ref("")
+const searchQuery = ref('')
+const selectedCity = ref('')
+const typeAccount = ref('')
 
-    const popularCities = [
-        { name: 'Algiers', lat: 36.7538, lng: 3.0588 },
-        { name: 'Oran', lat: 35.6971, lng: -0.6308 },
-        { name: 'Constantine', lat: 36.3650, lng: 6.6147 },
-        { name: 'Annaba', lat: 36.9040, lng: 7.7550 }
-    ]
+const popularCities = [
+  { name: 'Algiers', lat: 36.7538, lng: 3.0588 },
+  { name: 'Oran', lat: 35.6971, lng: -0.6308 },
+  { name: 'Constantine', lat: 36.3650, lng: 6.6147 },
+  { name: 'Annaba', lat: 36.9040, lng: 7.7550 },
+  { name: 'Djanet', lat: 24.5533, lng: 9.4853 },
+  { name: 'Taghit', lat: 30.9167, lng: -2.0333 },
+  { name: 'Ghardaïa', lat: 32.4833, lng: 3.6667 }
+]
 
-    const isAgency = computed(() => typeAccount.value === 'touristAgencies')
-    const isGuide = computed(() => typeAccount.value === 'touristGuide')
-    const isAssociation = computed(() => typeAccount.value === 'associations')
+const isAgency = computed(() => typeAccount.value === 'touristAgencies')
+const isGuide = computed(() => typeAccount.value === 'touristGuide')
+const isAssociation = computed(() => typeAccount.value === 'associations')
 
-    const selectCity = (c) => {
-        city.value = c.name
-        hotels.fetchHotels(c.lat, c.lng)
-    }
+const toggleCity = (c) => {
+  if (selectedCity.value === c.name) {
+    selectedCity.value = ''
+    hotelsStore.fetchCatalogHotels()
+  } else {
+    selectedCity.value = c.name
+    hotelsStore.fetchHotels(c.lat, c.lng)
+  }
+}
 
-    const returnTo = () => {
-        router.go(-1)
-    }
+const clearCity = () => {
+  selectedCity.value = ''
+  hotelsStore.fetchCatalogHotels()
+}
 
-    const goToCreate = () => {
-        dialog.value = true
-    }
+const resetSearch = () => {
+  searchQuery.value = ''
+  selectedCity.value = ''
+  hotelsStore.fetchCatalogHotels()
+}
 
-    const requestGps = async () => {
-        try {
-          await Geolocation.requestPermissions()
-        } catch (error) {
-          
-        }
-    }
+const filteredHotels = computed(() => {
+  const query = (searchQuery.value || '').toLowerCase().trim()
+  return (hotelsStore.getHotels || []).filter(h => {
+    if (!query) return true
+    const name = (h.displayName?.text || h.name || '').toLowerCase()
+    const addr = (h.formattedAddress || h.address || '').toLowerCase()
+    const desc = (h.description || '').toLowerCase()
+    return name.includes(query) || addr.includes(query) || desc.includes(query)
+  })
+})
 
-    const currentPosition = async () => {
-        try {
-          const coordinates = await Geolocation.getCurrentPosition({
-                                        enableHighAccuracy: true
-                                    })
-          if(coordinates.coords){
-            console.log('Current position:', coordinates.coords.latitude, coordinates.coords.longitude)
-            hotels.fetchHotels(coordinates.coords.latitude, coordinates.coords.longitude)
-          }
-        } catch (error) {
-          console.log('error', error)
-        }
-    }
+onMounted(async () => {
+  const ls = await auth.getLSUserInfo()
+  if (ls?.user) {
+    typeAccount.value = ls.user.typeAccount
+  }
 
-    const setupAutocomplete = async () => {
-  
-        const input = document.getElementById('cityInput')
-        
-        const options = {
-            types: ['(cities)'],
-            componentRestrictions: { country: 'dz' }
-        }
+  if (route.query.q) {
+    searchQuery.value = String(route.query.q)
+  }
 
-        const autocomplete = new google.maps.places.Autocomplete(input, options)
-
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace()
-            if (!place.geometry) {
-            alert("No details available for input: '" + place.name + "'")
-            return
-            }
-
-            const location = place.geometry.location
-            console.log('Selected city:', place.name, location.lat(), location.lng())
-            hotels.fetchHotels(location.lat(), location.lng())
-        })
-    }
-
-    onMounted(async() => {
-        platform.value = Capacitor.getPlatform()
-        const ls = await auth.getLSUserInfo()
-        if(ls?.user?.typeAccount){
-            typeAccount.value = ls.user.typeAccount
-        }
-        setupAutocomplete()
-        requestGps().then(() => {
-            currentPosition()
-        })
-    })
+  hotelsStore.fetchCatalogHotels()
+})
 </script>
 
 <style scoped>
+.editorial-catalog {
+  min-height: 100vh;
+}
 
-    .main-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+.max-w-container {
+  max-width: 1360px;
+}
 
+.max-w-prose {
+  max-width: 620px;
+}
+
+.catalog-hero {
+  background: #FFFFFF;
+}
+
+.border-subtle {
+  border-color: #E7E8E1 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
 </style>

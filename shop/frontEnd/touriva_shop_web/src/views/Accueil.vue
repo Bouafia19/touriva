@@ -1,175 +1,156 @@
 <template>
- 
-    <v-container fluid class="px-0 main-container">
-        <v-carousel
-            cycle
-            hide-delimiter-background
-            show-arrows-on-hover
-            height="50vh"
+  <div class="accueil-container">
+    <!-- Editorial Hero Carousel -->
+    <v-carousel
+      cycle
+      hide-delimiter-background
+      show-arrows="hover"
+      height="460"
+      class="accueil-carousel mb-8 rounded-b-xl overflow-hidden"
+    >
+      <v-carousel-item
+        v-for="(slide, idx) in slides"
+        :key="idx"
+      >
+        <v-img
+          :src="slide.image"
+          cover
+          height="100%"
+          class="d-flex align-center"
         >
-            <v-carousel-item
-            v-for="(slide, idx) in slides"
-            :key="idx"
-            >
-            <v-img
-                :src="slide.image"
-                cover
-                class="d-flex flex-column align-center justify-center"
-            ></v-img>
-            </v-carousel-item>
-        </v-carousel>
-        
-        <Products />
-    
-        <!-- <h2 class="text-center my-8">Shop by Collection</h2>
-        <v-row class="d-flex align-center justify-center">
-          <v-col cols="12" md="4" v-for="category in getCategoriesLocal" :key="category._id">
-            <v-card class="hover-card" elevation="2">
-              <v-img :src="category.img" height="250px" cover></v-img>
-              <v-card-title class="justify-center">{{ category.name }}</v-card-title>
-            </v-card>
-          </v-col>
-        </v-row> -->
-      
-        <h2 class="text-center my-8">Best Sellers</h2>
-        <v-row>
-          <v-col cols="12" sm="6" md="3" v-for="product in products" :key="product.id">
-            <v-card class="product-card" elevation="2">
-              <v-img :src="product.image" height="220px" cover></v-img>
-              <v-card-title>{{ product.name }}</v-card-title>
-              <v-card-subtitle>{{ product.price }} DZD</v-card-subtitle>
-              <v-card-actions>
-                <v-btn block color="primary" @click="addToCart(product)">
-                  Add to Cart
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-col>
-        </v-row>  
+          <div class="carousel-overlay fill-height d-flex align-center px-6 px-md-16">
+            <div class="carousel-caption pa-6 pa-md-8 rounded-xl max-w-600">
+              <span class="editorial-tag text-sand mb-2 d-inline-block">TOURIVA SHOP EXCLUSIVE</span>
+              <h2 class="editorial-heading text-h4 text-md-h3 text-white font-weight-bold mb-3">
+                {{ slide.title }}
+              </h2>
+              <p class="text-body-1 text-sand-light mb-6">
+                {{ slide.subtitle }}
+              </p>
+              <v-btn
+                class="btn-editorial-sand px-6"
+                rounded="pill"
+                size="large"
+                @click="$router.push('/products')"
+              >
+                {{ slide.ctaText || 'Explore Now' }}
+              </v-btn>
+            </div>
+          </div>
+        </v-img>
+      </v-carousel-item>
+    </v-carousel>
+
+    <!-- Categories / Collections Row -->
+    <v-container class="max-w-1200 mb-8 px-4">
+      <div class="d-flex justify-space-between align-center mb-6">
+        <div>
+          <span class="editorial-tag text-sand-dark">{{ $t('CuratedCollections') || 'COLLECTIONS' }}</span>
+          <h2 class="editorial-heading text-h4 text-forest font-weight-bold">
+            {{ $t('Categories') }}
+          </h2>
+        </div>
+        <v-btn
+          variant="text"
+          color="forestGreen"
+          class="font-weight-bold px-0"
+          @click="$router.push('/categories')"
+        >
+          {{ $t('ViewAll') || 'View All' }}
+          <v-icon end size="18">mdi-arrow-right</v-icon>
+        </v-btn>
+      </div>
+
+      <v-row v-if="getCategoriesLocal && getCategoriesLocal.length > 0">
+        <v-col
+          cols="6"
+          sm="4"
+          md="2"
+          v-for="category in getCategoriesLocal.slice(0, 6)"
+          :key="category._id"
+        >
+          <v-card
+            class="editorial-card text-center pa-3 cursor-pointer h-100 d-flex flex-column align-center justify-center"
+            @click="openCategory(category)"
+          >
+            <v-avatar size="64" color="sandLight" class="mb-3 border-editorial">
+              <v-img v-if="isValidShopImage(category.img)" :src="category.img" cover eager />
+              <v-icon v-else size="28" color="forestGreen">mdi-tag-heart-outline</v-icon>
+            </v-avatar>
+            <div class="text-subtitle-2 font-weight-bold text-forest text-truncate w-100">
+              {{ category.name }}
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
     </v-container>
 
-    <!-- Footer -->
-    <v-footer color="next" class="text-white pa-8">
-        <v-container>
-            <v-row>
-            <v-col cols="12" md="4">
-                <h3 class="mb-4">Online Store</h3>
-                <p>Unique paintings and wallpapers to transform your space.</p>
-            </v-col>
-            <v-col cols="12" md="4">
-                <h4 class="mb-4">Quick Links</h4>
-                <ul class="footer-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/shop">Shop</a></li>
-                <li><a href="/about">About</a></li>
-                <li><a href="/contact">Contact</a></li>
-                </ul>
-            </v-col>
-            <v-col cols="12" md="4">
-                <h4 class="mb-4">Follow Us</h4>
-                <v-btn icon variant="text"><v-icon>mdi-facebook</v-icon></v-btn>
-                <v-btn icon variant="text"><v-icon>mdi-instagram</v-icon></v-btn>
-                <v-btn icon variant="text"><v-icon>mdi-twitter</v-icon></v-btn>
-            </v-col>
-            </v-row>
-        </v-container>
-    </v-footer>
-    
+    <!-- Main Products Catalogue View -->
+    <v-container class="max-w-1200 px-4">
+      <Products />
+    </v-container>
+  </div>
 </template>
 
 <script setup>
-    import { ref, onMounted, watch } from "vue"
-    import { storeToRefs } from 'pinia'
-    import { useCategoriesStore } from "@/stores/categories"
-    import Products from '@/views/Product/index.vue'
-    
-    const categories = useCategoriesStore()
-    const { getCategoriesLocal, getLoading } = storeToRefs(categories)
+  import { ref, onMounted, watch } from "vue"
+  import { storeToRefs } from 'pinia'
+  import { useRouter } from 'vue-router'
+  import { useCategoriesStore } from "@/stores/categories"
+  import { CURATED_SHOP_PHOTOGRAPHY, isValidShopImage } from "@/config/curatedImages"
+  import Products from '@/views/Product/index.vue'
 
-    watch(getCategoriesLocal, (newValue) => {
-        categories.categoriesLocal = newValue
-    }, { immediate: true })
+  const router = useRouter()
+  const categories = useCategoriesStore()
+  const { getCategoriesLocal, getLoading } = storeToRefs(categories)
 
-    const slides = ref([
-        {
-            image: "/1.webp",  // put actual image file url
-            title: "Street Art Collection",
-            subtitle: "Bright and bold pieces for modern rooms",
-            ctaText: "Explore Now",
-            link: "/collection/street-art",
-        },
-        {
-            image: "/2.jpg",
-            title: "Zen Decor",
-            subtitle: "Soothing designs for calm spaces",
-            ctaText: "View Collection",
-            link: "/collection/zen",
-        },
-        {
-            image: "/3.avif",
-            title: "Leaf & Nature",
-            subtitle: "Natural motifs to freshen your walls",
-            ctaText: "Shop Nature",
-            link: "/collection/nature",
-        },
-    ])
+  watch(getCategoriesLocal, (newValue) => {
+    categories.categoriesLocal = newValue
+  }, { immediate: true })
 
-const products = ref([
-  { id: 1, name: "Golden Sunset", price: 4500, image: "https://picsum.photos/300/220?random=11" },
-  { id: 2, name: "Modern Lines Wallpaper", price: 3200, image: "https://picsum.photos/300/220?random=12" },
-  { id: 3, name: "Nature Vibes", price: 5000, image: "https://picsum.photos/300/220?random=13" },
-  { id: 4, name: "Classic Art", price: 6000, image: "https://picsum.photos/300/220?random=14" },
-])
+  const slides = ref(CURATED_SHOP_PHOTOGRAPHY.heroSlides)
 
-const addToCart = (product) => {
-  console.log("Added to cart:", product)
-  // TODO: connect to Pinia or backend cart API
-}
+  const openCategory = (cat) => {
+    categories.categoryName = cat.name
+    router.push({ name: 'Subcategories', params: { id: cat._id } })
+  }
 
-onMounted(() => {
+  onMounted(() => {
     categories.fetchCategoriesNoImages()
-})
-
+  })
 </script>
 
 <style scoped>
-    .carousel-caption {
-        background: rgba(0, 0, 0, 0.4);
-        padding: 24px;
-        border-radius: 12px;
-    }
+  .accueil-container {
+    background-color: var(--color-warm-ivory);
+    min-height: 100vh;
+  }
 
-    .main-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+  .max-w-1200 {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
-.hover-card {
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-.hover-card:hover {
-  transform: scale(1.05);
-}
-.product-card {
-  transition: box-shadow 0.3s;
-}
-.product-card:hover {
-  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.15);
-}
-.footer-links {
-  list-style: none;
-  padding: 0;
-}
-.footer-links li {
-  margin-bottom: 8px;
-}
-.footer-links a {
-  color: white;
-  text-decoration: none;
-}
-.footer-links a:hover {
-  text-decoration: underline;
-}
+  .max-w-600 {
+    max-width: 600px;
+  }
+
+  .accueil-carousel {
+    border-bottom: 1px solid rgba(217, 185, 140, 0.3);
+  }
+
+  .carousel-overlay {
+    background: linear-gradient(90deg, rgba(16, 45, 39, 0.85) 0%, rgba(16, 45, 39, 0.4) 60%, transparent 100%);
+  }
+
+  .carousel-caption {
+    background: rgba(16, 45, 39, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(217, 185, 140, 0.3);
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
 </style>

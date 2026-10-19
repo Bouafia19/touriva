@@ -1,558 +1,558 @@
 <template>
-  <h1>Dashboard</h1>
-</template>
-<!-- <template>
-  <base-layout>
-  <v-container fluid>
-    <div class="text-center" v-if="loadingPage">
-      <v-row 
-        class="d-flex justify-center align-center"  
-        style="height: 80vh;"
-      >
-        <v-progress-circular
-          indeterminate
-          color="next"
-        ></v-progress-circular>
-      </v-row>
-    </div>
-    <div v-else>
-      <v-row class="justify-center">
-        <v-col
-          v-for="item in items"
-          :key="item.title"
-          cols="auto"
+  <v-container fluid class="px-4 px-md-8 py-6">
+    <!-- Editorial Page Header -->
+    <div class="editorial-page-header">
+      <div>
+        <div class="editorial-tag mb-1">Commerce Intelligence</div>
+        <h1 class="editorial-page-title">Executive Dashboard</h1>
+        <p class="editorial-page-subtitle">Real-time performance metrics, product catalog overview, and recent store activity.</p>
+      </div>
+
+      <div class="d-flex align-center gap-2 flex-wrap">
+        <v-btn
+          variant="outlined"
+          class="btn-editorial-outline px-4 me-2"
+          prepend-icon="mdi-refresh"
+          :loading="loading"
+          @click="refreshData"
         >
-          <v-card
-            class="mx-auto"
-            width="260"
-            outlined
-            :to="item.to"
-          >
-            <v-list-item three-line>
-              <v-list-item-icon :style="{ 'background-color': item.color}" style="border-radius: 50%;" >
-                <v-icon color="white" large>{{ item.icon }}</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <div class="text-overline mb-1" :style="{ 'color': item.color}">
-                  {{ $t(item.title) }}
+          {{ $t('Refresh') || 'Refresh' }}
+        </v-btn>
+        <v-btn
+          class="btn-editorial-primary px-5"
+          prepend-icon="mdi-plus"
+          to="/products"
+        >
+          {{ $t('New') || 'Add Product' }}
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div v-if="loading && isInitialLoad" class="d-flex justify-center align-center py-16">
+      <div class="text-center">
+        <v-progress-circular indeterminate color="forestGreen" size="48" width="4"></v-progress-circular>
+        <div class="mt-4 text-subtitle-2 text-editorial-secondary">Loading executive overview...</div>
+      </div>
+    </div>
+
+    <div v-else>
+      <!-- Stat Cards Grid -->
+      <v-row class="mb-6">
+        <!-- Stat 1: Total Orders -->
+        <v-col cols="12" sm="6" lg="3">
+          <div class="editorial-stat-card">
+            <div class="d-flex justify-space-between align-start">
+              <div>
+                <span class="editorial-tag">Commerce</span>
+                <div class="text-h4 font-serif font-weight-bold text-deep-green mt-1">
+                  {{ orderStats.totalOrders }}
                 </div>
-                <v-list-item-title class="text-h5 mb-1" >
-                  {{ item.count }}
-                </v-list-item-title>
-                <v-list-item-subtitle >{{ formatNumber(item.totalAmount) }}</v-list-item-subtitle>
-              </v-list-item-content>
-            </v-list-item>
-          </v-card>
+                <div class="text-caption text-editorial-secondary mt-1">
+                  Total Orders Placed
+                </div>
+              </div>
+              <div class="stat-icon-wrapper bg-sand-light">
+                <v-icon icon="mdi-receipt-text-outline" color="#B89564" size="24"></v-icon>
+              </div>
+            </div>
+            <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
+              <span class="status-badge status-badge-warning">
+                <span class="status-badge-dot"></span>
+                {{ orderStats.pendingOrders }} Pending
+              </span>
+              <router-link to="/orders" class="text-caption font-weight-bold text-forest text-decoration-none">
+                View orders &rarr;
+              </router-link>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- Stat 2: Gross Revenue / Volume -->
+        <v-col cols="12" sm="6" lg="3">
+          <div class="editorial-stat-card">
+            <div class="d-flex justify-space-between align-start">
+              <div>
+                <span class="editorial-tag">Revenue</span>
+                <div class="text-h4 font-serif font-weight-bold text-forest mt-1">
+                  {{ formatCurrency(orderStats.totalVolume) }}
+                </div>
+                <div class="text-caption text-editorial-secondary mt-1">
+                  Gross Processed Volume
+                </div>
+              </div>
+              <div class="stat-icon-wrapper" style="background-color: rgba(33, 134, 107, 0.12);">
+                <v-icon icon="mdi-cash-multiple" color="#21866B" size="24"></v-icon>
+              </div>
+            </div>
+            <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
+              <span class="status-badge status-badge-success">
+                <span class="status-badge-dot"></span>
+                Active Shop
+              </span>
+              <router-link to="/billing" class="text-caption font-weight-bold text-forest text-decoration-none">
+                Billing details &rarr;
+              </router-link>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- Stat 3: Products Catalog -->
+        <v-col cols="12" sm="6" lg="3">
+          <div class="editorial-stat-card">
+            <div class="d-flex justify-space-between align-start">
+              <div>
+                <span class="editorial-tag">Catalog</span>
+                <div class="text-h4 font-serif font-weight-bold text-deep-green mt-1">
+                  {{ productStats.total }}
+                </div>
+                <div class="text-caption text-editorial-secondary mt-1">
+                  Items in Inventory
+                </div>
+              </div>
+              <div class="stat-icon-wrapper" style="background-color: rgba(23, 63, 53, 0.1);">
+                <v-icon icon="mdi-package-variant-closed" color="#173F35" size="24"></v-icon>
+              </div>
+            </div>
+            <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
+              <span class="status-badge status-badge-sand">
+                <span class="status-badge-dot"></span>
+                {{ productStats.published }} Published
+              </span>
+              <router-link to="/products" class="text-caption font-weight-bold text-forest text-decoration-none">
+                Manage items &rarr;
+              </router-link>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- Stat 4: Community & Users -->
+        <v-col cols="12" sm="6" lg="3">
+          <div class="editorial-stat-card">
+            <div class="d-flex justify-space-between align-start">
+              <div>
+                <span class="editorial-tag">Accounts</span>
+                <div class="text-h4 font-serif font-weight-bold text-deep-green mt-1">
+                  {{ userStats.total }}
+                </div>
+                <div class="text-caption text-editorial-secondary mt-1">
+                  Active Users & Partners
+                </div>
+              </div>
+              <div class="stat-icon-wrapper" style="background-color: rgba(42, 111, 133, 0.12);">
+                <v-icon icon="mdi-account-group-outline" color="#2A6F85" size="24"></v-icon>
+              </div>
+            </div>
+            <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
+              <span class="status-badge status-badge-info">
+                <span class="status-badge-dot"></span>
+                {{ userStats.clients }} Clients · {{ userStats.partners }} Partners
+              </span>
+              <router-link to="/users" class="text-caption font-weight-bold text-forest text-decoration-none">
+                User list &rarr;
+              </router-link>
+            </div>
+          </div>
         </v-col>
       </v-row>
 
-      <v-row align="center" justify="center" >
-        <v-btn-toggle
-          rounded
-          color="teal darken-3"
-          dense
-        
-        >
-          <v-btn @click="updateData('one_month')">
-            {{ $t('oneMonth') }}
-          </v-btn>
+      <!-- Quick Actions Banner -->
+      <v-card class="editorial-card mb-6 pa-4 pa-md-5">
+        <div class="d-flex flex-wrap align-center justify-space-between gap-3">
+          <div>
+            <h3 class="font-serif text-h6 font-weight-bold text-deep-green mb-1">Quick Administrative Actions</h3>
+            <p class="text-caption text-editorial-secondary mb-0">Direct shortcuts to common operational and catalog tasks.</p>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            <v-btn
+              to="/products"
+              class="btn-editorial-primary text-none px-4 me-2 my-1"
+              size="small"
+              prepend-icon="mdi-plus-box-outline"
+            >
+              Add New Product
+            </v-btn>
+            <v-btn
+              to="/orders"
+              class="btn-editorial-sand text-none px-4 me-2 my-1"
+              size="small"
+              prepend-icon="mdi-receipt"
+            >
+              Review Orders
+            </v-btn>
+            <v-btn
+              to="/admin/categories"
+              class="btn-editorial-outline text-none px-4 me-2 my-1"
+              size="small"
+              prepend-icon="mdi-shape-outline"
+            >
+              Categories
+            </v-btn>
+            <v-btn
+              to="/ads"
+              variant="text"
+              class="btn-editorial-ghost text-none px-3 my-1"
+              size="small"
+              prepend-icon="mdi-bullhorn-outline"
+            >
+              Advertising
+            </v-btn>
+          </div>
+        </div>
+      </v-card>
 
-          <v-btn @click="updateData('six_months')">
-            {{ $t('sixMonths') }}
-          </v-btn>
-
-          <v-btn @click="updateData('one_year')">
-            {{ $t('oneYear') }}
-          </v-btn>
-
-          <v-btn @click="updateData('all')">
-            {{ $t('ALL') }}
-          </v-btn>
-        </v-btn-toggle>
-      </v-row>
-
-      <v-row >
-          <v-col 
-            cols="12"
-          >
-                  <template id="vuechart-trips">
-                      <div>
-                          <apexchart type="area" height="350" :options="tripsOptions" :series="tripsSeries"></apexchart>
-                      </div>
-                  </template>
-          </v-col>
-          <v-col
-            cols="4"
-          >
-            <template>
-              <div>
-                <apexchart width="380" type="donut" :options="tripsStatusOptions" :series="tripsStatusSeries"></apexchart>
+      <!-- Two-Column Main Content: Recent Orders & Catalog Highlights -->
+      <v-row>
+        <!-- Left: Recent Orders / Transactions -->
+        <v-col cols="12" lg="8">
+          <div class="editorial-card">
+            <div class="editorial-card-header">
+              <div class="d-flex align-center">
+                <v-icon icon="mdi-history" color="forestGreen" class="me-2"></v-icon>
+                <div>
+                  <h2 class="text-subtitle-1 font-weight-bold text-deep-green mb-0 font-serif">Recent Store Orders</h2>
+                  <span class="text-caption text-editorial-secondary">Latest client purchases and processing status</span>
+                </div>
               </div>
-            </template>
-          </v-col>
-          <v-col 
-            cols="4"
-            
-          >
-                  <template>
-                      <div>
-                        <apexchart width="380" type="donut" :options="usersRoleOptions" :series="usersRoleSeries"></apexchart>
-                      </div>
-                  </template>
-          </v-col>
-          <v-col 
-            cols="4"
-            
-          >
-                  <template>
-                      <div>
-                        <apexchart width="380" type="donut" :options="cancellationByOptions" :series="cancellationBySeries"></apexchart>
-                      </div>
-                  </template>
-          </v-col>
+              <v-btn
+                to="/orders"
+                variant="text"
+                size="small"
+                class="btn-editorial-ghost"
+              >
+                View all &rarr;
+              </v-btn>
+            </div>
+
+            <!-- Table or Empty State -->
+            <div v-if="recentOrders.length > 0" class="table-responsive">
+              <v-table density="comfortable" class="editorial-table">
+                <thead>
+                  <tr>
+                    <th>Order Ref / Code</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="ord in recentOrders" :key="ord._id || ord.id">
+                    <td class="font-weight-medium text-deep-green">
+                      {{ ord.code || (ord._id ? '#' + ord._id.slice(-6).toUpperCase() : 'N/A') }}
+                    </td>
+                    <td>
+                      <div class="font-weight-medium">{{ getCustomerName(ord) }}</div>
+                      <div class="text-caption text-editorial-secondary">{{ ord.client?.email || ord.customerEmail || '' }}</div>
+                    </td>
+                    <td class="text-caption">
+                      {{ formatDate(ord.createdAt || ord.date) }}
+                    </td>
+                    <td class="font-weight-bold text-forest">
+                      {{ formatCurrency(ord.totalAmount || ord.total || ord.price || 0) }}
+                    </td>
+                    <td>
+                      <span :class="['status-badge', getOrderStatusBadgeClass(ord.status)]">
+                        <span class="status-badge-dot"></span>
+                        {{ ord.status || 'pending' }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <v-btn
+                        icon="mdi-arrow-right"
+                        size="x-small"
+                        variant="tonal"
+                        color="forestGreen"
+                        @click="viewOrder(ord)"
+                        title="View order details"
+                      ></v-btn>
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
+
+            <div v-else class="text-center py-10 px-4">
+              <v-icon icon="mdi-basket-outline" size="48" color="sand" class="mb-2"></v-icon>
+              <div class="text-subtitle-2 font-weight-medium text-deep-green">No Orders Recorded Yet</div>
+              <p class="text-caption text-editorial-secondary mb-4">When clients place purchases, they will appear here in real time.</p>
+              <v-btn to="/orders" size="small" class="btn-editorial-primary px-4">
+                Explore Orders Management
+              </v-btn>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- Right: Catalog Snapshot & Platform Status -->
+        <v-col cols="12" lg="4">
+          <!-- Catalog Highlights -->
+          <div class="editorial-card mb-6">
+            <div class="editorial-card-header">
+              <div class="d-flex align-center">
+                <v-icon icon="mdi-tag-outline" color="sandDark" class="me-2"></v-icon>
+                <h2 class="text-subtitle-1 font-weight-bold text-deep-green mb-0 font-serif">Recent Catalog Items</h2>
+              </div>
+              <router-link to="/products" class="text-caption font-weight-bold text-forest text-decoration-none">
+                All ({{ productStats.total }})
+              </router-link>
+            </div>
+
+            <div v-if="recentProducts.length > 0" class="pa-3">
+              <div
+                v-for="prod in recentProducts"
+                :key="prod._id"
+                class="product-preview-row d-flex align-center py-2 px-2 border-b"
+              >
+                <v-avatar rounded="lg" size="44" class="me-3 bg-sand-light border-editorial flex-shrink-0">
+                  <v-img v-if="prod.img" :src="prod.img" cover></v-img>
+                  <v-icon v-else icon="mdi-package-variant" color="forestGreen" size="22"></v-icon>
+                </v-avatar>
+                <div class="overflow-hidden flex-grow-1">
+                  <div class="text-subtitle-2 font-weight-semibold text-truncate text-deep-green">{{ prod.name }}</div>
+                  <div class="d-flex align-center gap-2 mt-1">
+                    <span class="text-caption font-weight-bold text-forest">{{ formatCurrency(prod.price) }}</span>
+                    <span class="text-caption text-editorial-secondary ms-2">Code: {{ prod.code || 'N/A' }}</span>
+                  </div>
+                </div>
+                <span :class="['status-badge ms-2', prod.published ? 'status-badge-success' : 'status-badge-neutral']" style="font-size: 0.65rem; padding: 2px 8px;">
+                  {{ prod.published ? 'Live' : 'Draft' }}
+                </span>
+              </div>
+            </div>
+
+            <div v-else class="text-center py-8 px-4">
+              <v-icon icon="mdi-package-variant-closed" size="36" color="sand" class="mb-2"></v-icon>
+              <div class="text-caption text-editorial-secondary">No products added to catalog yet.</div>
+              <v-btn to="/products" size="x-small" class="btn-editorial-sand px-3 mt-3">
+                Create First Product
+              </v-btn>
+            </div>
+          </div>
+
+          <!-- Editorial Platform Health Card -->
+          <div class="editorial-card pa-4">
+            <div class="d-flex align-center justify-space-between mb-3">
+              <span class="editorial-tag">Platform Health</span>
+              <span class="status-badge status-badge-success">
+                <span class="status-badge-dot"></span> Online
+              </span>
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-space-between text-caption mb-1">
+                <span class="text-editorial-secondary">Catalog Published Ratio</span>
+                <span class="font-weight-bold text-deep-green">{{ publishedRatio }}%</span>
+              </div>
+              <v-progress-linear
+                :model-value="publishedRatio"
+                color="forestGreen"
+                height="6"
+                rounded
+                bg-color="sandLight"
+              ></v-progress-linear>
+            </div>
+
+            <div class="pt-2 border-t d-flex justify-space-between align-center text-caption">
+              <span class="text-editorial-secondary">Active Campaigns:</span>
+              <span class="font-weight-bold text-deep-green">{{ activeAdsCount }} active</span>
+            </div>
+            <div class="pt-2 border-t d-flex justify-space-between align-center text-caption mt-2">
+              <span class="text-editorial-secondary">Pending Partner Verifications:</span>
+              <span class="font-weight-bold text-sand-dark">{{ userStats.pendingPartners }} pending</span>
+            </div>
+          </div>
+        </v-col>
       </v-row>
     </div>
   </v-container>
-  </base-layout>
 </template>
 
-<script>
-  import BaseLayout from '@/components/BaseLayout.vue'
-  import moment from 'moment'
-  import axios from 'axios'
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useOrdersStore } from '@/stores/orders'
+import { useProductsStore } from '@/stores/products'
+import { useUsersStore } from '@/stores/users'
+import { useAdsStore } from '@/stores/advertising'
 
-export default {
-  components: {
-    'base-layout': BaseLayout
-  },
-   
-  data: () => ({
-    loadingPage: true,
-    items: [
-          { title: 'TripsInProgress', icon: 'mdi-routes-clock', to: '/products', color: '#008080', count: 0, totalAmount: 0 },
-          { title: 'TripsCanceled', icon: 'mdi-routes', to: '/trips', color: '#4682B4', count: 0, totalAmount: 0 },
-          { title: 'TripsFinished', icon: 'mdi-routes', to: '/purchases', color: '#A52A2A', count: 0, totalAmount: 0 },
-          { title: 'Clients', icon: 'mdi-account-group-outline', to: '/customers', color: '#9ACD32', count: 0, totalAmount: 0 },
-          { title: 'Transporters', icon: 'mdi-account-group', to: '/vendors', color: '#DDA0DD', count: 0, totalAmount: 0 },
-          { title: 'Administrators', icon: 'mdi-account-group', to: '/invoices', color: '#008B8B', count: 0, totalAmount: 0 },
-        ],
-        tripsOptions: {
-          chart: {
-            id: 'vuechart-trips',
-            toolbar: {
-              show: false,
-            }
-          },
-          xaxis: {
-            categories: []
-          },
-          title: {
-            text: 'état des voyages terminés',
-            align: 'center',
-            style: {
-              fontSize:  '16px',
-            },
-          },
-          colors: ['#00897b']
-        },
-        tripsSeries: [{
-          name: 'Total',
-          data: []
-        }],
-        tripsStatusOptions: {
-            chart: {
-              width: 420,
-              id: 'vuechart-tripsStates',
-              dropShadow: {
-                enabled: true,
-                color: '#111',
-                top: -1,
-                left: 3,
-                blur: 3,
-                opacity: 0.2
-              }
-            },
-            stroke: {
-              width: 0,
-            },
-            plotOptions: {
-              pie: {
-                donut: {
-                  labels: {
-                    show: true,
-                    total: {
-                      showAlways: true,
-                      show: true
-                    }
-                  }
-                }
-              }
-            },
-            labels: [],
-            dataLabels: {
-              dropShadow: {
-                blur: 3,
-                opacity: 0.8
-              }
-            },
-            states: {
-              hover: {
-                filter: 'none'
-              }
-            },
-            theme: {
-              palette: 'palette2'
-            },
-            title: {
-              text: "Trips Status"
-            },
-            responsive: [{
-              breakpoint: 480,
-              options: {
-                chart: {
-                  width: 200
-                },
-                legend: {
-                  position: 'bottom'
-                }
-              }
-            }]
-        },
-        tripsStatusSeries: [],
-        usersRoleOptions: {
-            chart: {
-              width: 420,
-              id: 'vuechart-usersStates',
-              dropShadow: {
-                enabled: true,
-                color: '#111',
-                top: -1,
-                left: 3,
-                blur: 3,
-                opacity: 0.2
-              }
-            },
-            stroke: {
-              width: 0,
-            },
-            plotOptions: {
-              pie: {
-                donut: {
-                  labels: {
-                    show: true,
-                    total: {
-                      showAlways: true,
-                      show: true
-                    }
-                  }
-                }
-              }
-            },
-            labels: [],
-            dataLabels: {
-              dropShadow: {
-                blur: 3,
-                opacity: 0.8
-              }
-            },
-            states: {
-              hover: {
-                filter: 'none'
-              }
-            },
-            theme: {
-              palette: 'palette3'
-            },
-            title: {
-              text: "Users Role"
-            },
-            responsive: [{
-              breakpoint: 480,
-              options: {
-                chart: {
-                  width: 200
-                },
-                legend: {
-                  position: 'bottom'
-                }
-              }
-            }]
-        },
-        usersRoleSeries: [],
-        cancellationByOptions: {
-          chart: {
-              width: 420,
-              id: 'vuechart-cancellationBy',
-              dropShadow: {
-                enabled: true,
-                color: '#111',
-                top: -1,
-                left: 3,
-                blur: 3,
-                opacity: 0.2
-              }
-            },
-            stroke: {
-              width: 0,
-            },
-            plotOptions: {
-              pie: {
-                donut: {
-                  labels: {
-                    show: true,
-                    total: {
-                      showAlways: true,
-                      show: true
-                    }
-                  }
-                }
-              }
-            },
-            labels: [],
-            dataLabels: {
-              dropShadow: {
-                blur: 3,
-                opacity: 0.8
-              }
-            },
-            fill: {
-            type: 'pattern',
-              opacity: 1,
-              pattern: {
-                enabled: true,
-                style: ['verticalLines', 'squares', 'horizontalLines', 'circles','slantedLines'],
-              },
-            },
-            states: {
-              hover: {
-                filter: 'none'
-              }
-            },
-            theme: {
-              palette: 'palette2'
-            },
-            title: {
-              text: "Cancellation By"
-            },
-            responsive: [{
-              breakpoint: 480,
-              options: {
-                chart: {
-                  width: 200
-                },
-                legend: {
-                  position: 'bottom'
-                }
-              }
-            }]
-        },
-        cancellationBySeries: [],
-    }),
-    methods: {
-        init() {
-            this.loadTrips()
-            this.loadUsers()
-        },
-        async loadTrips(){
-            const user = JSON.parse(localStorage.getItem('userInfo'))
-            const response = await axios.get('api/trips', {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            })
-           
-                let tripsItems = response.data
-                this.trips = tripsItems.filter(i => i.status === 'finished')
+const orders = useOrdersStore()
+const products = useProductsStore()
+const users = useUsersStore()
+const ads = useAdsStore()
+const router = useRouter()
 
-                this.items[2].count = tripsItems.length
-                this.items[2].totalAmount = tripsItems.filter(i => i.status === 'finished').reduce(function(prev, cur) {
-                  return prev + cur.price;
-                }, 0);
+const loading = ref(false)
+const isInitialLoad = ref(true)
 
-                this.items[0].count = tripsItems.filter(i => i.status === 'started').length
-              
-                this.items[1].count = tripsItems.filter(i => i.status === 'canceled').length
-                
-                let categories = []
-                let data = []
-                let states = []
-                let cancellationBy = []
-                this.trips.forEach(i => categories.push(this.formatDate(i.start)))
-                this.trips.forEach(i => data.push(i.price))
-                tripsItems.forEach(i => states.push(i.status))
-                let by = tripsItems.filter(i => i.cancellation.by)
-                by.forEach(i => cancellationBy.push(i.cancellation.by))
+const orderStats = computed(() => {
+  const ords = orders.getOrders || []
+  const pending = orders.getPendingOrder || []
+  let volume = 0
+  ords.forEach(o => {
+    const val = Number(o.totalAmount || o.total || o.price || 0)
+    if (!isNaN(val)) volume += val
+  })
+  return {
+    totalOrders: ords.length,
+    pendingOrders: pending.length,
+    totalVolume: volume
+  }
+})
 
-                this.tripsOptions.xaxis.categories = categories
-                this.tripsSeries[0].data = data
+const productStats = computed(() => {
+  const prods = products.getProducts || []
+  const published = prods.filter(p => p.published).length
+  return {
+    total: prods.length,
+    published
+  }
+})
 
-                this.updateSalechart(categories, data)
+const userStats = computed(() => {
+  const us = users.getUsers || []
+  const clients = users.getClients || []
+  const partners = users.getPartners || []
+  const pendingPartners = users.getPendingPartners || []
+  return {
+    total: us.length,
+    clients: clients.length,
+    partners: partners.length,
+    pendingPartners: pendingPartners.length
+  }
+})
 
-                var counts = {};
-                states.forEach(function(x) { counts[x] = (counts[x] || 0)+1; });    
+const activeAdsCount = computed(() => {
+  return ads.getAds?.length || 0
+})
 
-                let keys = Object.keys(counts)
-                let values = Object.values(counts)
+const publishedRatio = computed(() => {
+  if (!productStats.value.total) return 0
+  return Math.round((productStats.value.published / productStats.value.total) * 100)
+})
 
-                this.updateSaleStateschart( keys, values)
+const recentOrders = computed(() => {
+  const ords = orders.getOrders || []
+  return [...ords].slice(0, 7)
+})
 
-                var counts = {};
-              
-                cancellationBy.forEach(function(x) { counts[x] = (counts[x] || 0)+1; });    
-                
-                let cancellationBykeys = Object.keys(counts)
-                let cancellationByvalues = Object.values(counts)
+const recentProducts = computed(() => {
+  const prods = products.getProducts || []
+  return [...prods].slice(0, 5)
+})
 
-                this.updateCancellationByChart( cancellationBykeys, cancellationByvalues)
-
-          
-        },
-        async loadUsers(){
-            const user = JSON.parse(localStorage.getItem('userInfo'))
-            const response = await axios.get('api/users', {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            })
-              let tripsItems = response.data
-                let clients = tripsItems.filter(i => i.role === 'client')
-                this.items[3].count = clients.length
-
-                let transporters = tripsItems.filter(i => i.role === 'transporter')
-                this.items[4].count = transporters.length
-
-                let admins = tripsItems.filter(i => i.role === 'administrator')
-                this.items[5].count = admins.length
-
-
-                let categories = []
-                let data = []
-                let states = []
-            
-                tripsItems.forEach(i => states.push(i.role))
-                var counts = {};
-                states.forEach(function(x) { counts[x] = (counts[x] || 0)+1; });    
-
-                let keys = Object.keys(counts)
-                let values = Object.values(counts)
-
-                this.updateUsersRolschart( keys, values)
-                
-        },
-        
-        updateSalechart(categories, data){
-            this.tripsOptions = {
-                ...this.tripsOptions,
-                xaxis: {
-                    ...this.tripsOptions.xaxis,
-                    categories: categories
-                },
-                // title: {
-                //   ...this.purchaseOptions.title,
-                //   text: this.$t('TripsChart')
-                // } 
-            }
-            this.tripsSeries =  [{
-                ...this.tripsSeries,
-                name: this.$t('Total'),
-                data: data
-            }]
-        },
-        updateSaleStateschart( keys, values){
-            this.tripsStatusOptions = {
-                ...this.tripsStatusOptions,
-                labels: keys
-            }
-            this.tripsStatusSeries.push(...values)
-        },
-        //
-        updateUsersRolschart( keys, values){
-            this.usersRoleOptions = {
-                ...this.usersRoleOptions,
-                labels: keys
-            }
-            this.usersRoleSeries.push(...values)
-        },
-        //
-        updateCancellationByChart( keys, values){
-            this.cancellationByOptions = {
-                ...this.cancellationByOptions,
-                labels: keys
-            }
-            this.cancellationBySeries.push(...values)
-
-            this.loadingPage = false
-        },
-        //
-        formatDate(value) {
-            return moment(value).locale(this.$i18n.locale).format("DD MMMM YYYY")
-        },
-        filterTrips(firstDay, lastDay){
-          let tripsItems = this.trips.filter(i => new Date(i.start) > firstDay && new Date(i.start) < lastDay )
-          
-          let categories = []
-          let data = []
-          
-          tripsItems.forEach(i => categories.push(this.formatDate(i.start)))
-          tripsItems.forEach(i => data.push(i.price))
-
-          this.updateSalechart(categories, data)
-        },
-        // filterUsers(firstDay, lastDay){
-        //   let purchasesItems = this.purchases.filter(i => new Date(i.date) > firstDay && new Date(i.date) < lastDay )
-          
-        //   let categories = []
-        //   let data = []
-          
-        //   purchasesItems.forEach(i => categories.push(this.formatDate(i.date)))
-        //   purchasesItems.forEach(i => data.push(i.totalPrice))
-
-        //   this.updatePurhaseCharte(categories, data)
-        // },
-        updateData(timeline) {
-            this.selection = timeline
-            var date = new Date();
-            let lastDay = new Date();
-            switch (timeline) {
-              case 'one_month':
-                let firstDay = new Date(date.getFullYear(), date.getMonth() - 1, 1)
-                this.filterTrips(firstDay, lastDay)
-                // this.filterUsers(firstDay, lastDay)
-                
-                
-                break
-              case 'six_months':
-                let firstDaySix = new Date(date.getFullYear(), date.getMonth() - 6, 1)
-                this.filterTrips(firstDaySix, lastDay)
-                // this.filterUsers(firstDaySix, lastDay)
-                
-                break
-              case 'one_year':
-                let firstDayYear = new Date(date.getFullYear(), date.getMonth() - 12, 1)
-                this.filterTrips(firstDayYear, lastDay)
-                // this.filterUsers(firstDayYear, lastDay)
-                break
-              
-              case 'all':
-                this.filterTrips(null, lastDay)
-                // this.filterUsers(null, lastDay)
-                break
-              default:
-            }
-          },
-          formatNumber(value) {
-            return new Intl.NumberFormat(this.$i18n.locale, { style: 'currency', currency: 'DZD' }).format(value)
-          },
-    },
-    created(){
-        this.init()
+const getCustomerName = (ord) => {
+  if (ord.client) {
+    if (ord.client.firstName || ord.client.lastName) {
+      return `${ord.client.firstName || ''} ${ord.client.lastName || ''}`.trim()
     }
+    if (ord.client.companyName) return ord.client.companyName
+  }
+  if (ord.customerName) return ord.customerName
+  if (ord.firstName || ord.lastName) {
+    return `${ord.firstName || ''} ${ord.lastName || ''}`.trim()
+  }
+  return 'Direct Customer'
 }
 
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'Recent'
+  try {
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    })
+  } catch (e) {
+    return dateStr
+  }
+}
+
+const formatCurrency = (val) => {
+  const num = Number(val) || 0
+  return new Intl.NumberFormat('en-DZ', {
+    style: 'currency',
+    currency: 'DZD',
+    maximumFractionDigits: 0
+  }).format(num)
+}
+
+const getOrderStatusBadgeClass = (status) => {
+  const s = String(status).toLowerCase()
+  if (s === 'confirmed' || s === 'completed' || s === 'paid' || s === 'delivered') {
+    return 'status-badge-success'
+  }
+  if (s === 'pending' || s === 'processing') {
+    return 'status-badge-warning'
+  }
+  if (s === 'cancelled' || s === 'rejected') {
+    return 'status-badge-error'
+  }
+  return 'status-badge-sand'
+}
+
+const viewOrder = (ord) => {
+  if (ord._id) {
+    const clientName = getCustomerName(ord)
+    router.push({ name: 'OrderDetail', params: { id: ord._id, client: clientName } })
+  } else {
+    router.push({ name: 'Orders' })
+  }
+}
+
+const refreshData = async () => {
+  loading.value = true
+  try {
+    await Promise.allSettled([
+      orders.fetchOrders(),
+      products.fetchProducts(),
+      users.fetchUsers(),
+      ads.fetchAds()
+    ])
+  } catch (e) {
+    console.error('Error refreshing dashboard data', e)
+  } finally {
+    loading.value = false
+    isInitialLoad.value = false
+  }
+}
+
+onMounted(() => {
+  refreshData()
+})
 </script>
 
 <style scoped>
-.col {
-    padding: 5px;
-  }
-</style> -->
+.editorial-table {
+  background: transparent !important;
+}
+
+.editorial-table thead tr th {
+  background-color: #102D27 !important;
+  color: #FAF8F2 !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  padding: 12px 16px !important;
+  border-bottom: 2px solid var(--color-sand) !important;
+}
+
+.editorial-table tbody tr td {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  font-size: 0.88rem !important;
+}
+
+.editorial-table tbody tr:hover {
+  background-color: #F8F6F0 !important;
+}
+
+.product-preview-row:last-child {
+  border-bottom: none !important;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+</style>

@@ -257,25 +257,24 @@
         },
 
         methods: {
-            ...mapActions(useSitesStore, ["fetchSites", "addSite", "editSites", "deleteSite"]),
+            ...mapActions(useSitesStore, ["fetchSites", "addSites", "editSites", "deleteSites"]),
 
             generateCode(){
                 this.editedItem.code = this.getId()
             },
 
-            // generate a unique id
             getId() {
-                const limit = 100; // max tries to create unique id
-                let attempts = 0; // how many attempts
+                const limit = 100;
+                let attempts = 0;
                 let id = false;
                 while(!id && attempts < limit) {
-                    id = this.randomId(); // create id
-                    if(!this.checkId(id)) { // check unique
-                        id = false; // reset id
-                        attempts++; // record failed attempt
+                    id = this.randomId();
+                    if(!this.checkId(id)) {
+                        id = false;
+                        attempts++;
                     }
                 }
-                return id; // the id or false if did not get unique after max attempts
+                return id;
             },
 
             formatPrice(price){
@@ -292,7 +291,6 @@
                 return match ? false : true;
             },
 
-            // short random string for ids - not guaranteed to be unique
             randomId() {
                 return Math.random().toString(36).substring(2, 6 + 2)
             },
@@ -326,14 +324,12 @@
             },
 
             deleteItem (item) {
-                // this.editedIndex = this.sites.indexOf(item)
                 this.editedIndex = item._id
                 this.editedItem = Object.assign({}, item)
                 this.dialogDelete = true
             },
 
             deleteItemConfirm () {
-                // this.sites.splice(this.editedIndex, 1)
                 this.deleteSites(this.editedIndex)
                 this.initialize()
                 this.closeDelete()
@@ -342,16 +338,16 @@
             close () {
                 this.dialog = false
                 this.$nextTick(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
                 })
             },
 
             closeDelete () {
                 this.dialogDelete = false
                 this.$nextTick(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
                 })
             },
 
@@ -387,30 +383,19 @@
 
 <style scoped>
     .v-data-table {
-        border: 1px solid black;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
     }
     :deep(table > thead > tr:last-child > th) {
-        color: white !important;
-        background-color: #00366f !important;
-    }
-    :deep(.mdi-arrow-up::before) {
-        color: white !important;
+        color: var(--color-forest-green) !important;
+        background-color: var(--color-warm-ivory) !important;
+        font-weight: 700;
     }
     .v-card__title {
-        background-color: #00366f;
+        background-color: var(--color-forest-green);
         color: white;
     }
     .v-card__actions {
-        background-color: #00366f;
-    }
-    :deep(.style-1) {
-        color: white !important;
-        background-color: #DC143C !important;
-    }
-    :deep(.style-2) {
-        background-color: white !important;
-    }
-    :deep(.mdi-calculator-variant::before) {
-        color: #00366f !important;
+        background-color: var(--color-forest-green);
     }
 </style>

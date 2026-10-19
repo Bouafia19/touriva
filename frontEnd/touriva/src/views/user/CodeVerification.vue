@@ -1,151 +1,137 @@
 <template>
-    <v-container fluid>
-      <v-row 
-        class="d-flex justify-center align-center"
-        style="height: 90vh;"
+  <div class="auth-page bg-warm-ivory min-vh-100 d-flex align-center justify-center py-12 px-4">
+    <v-card class="editorial-card auth-card pa-8 pa-md-10" width="100%" max-width="480" elevation="0">
+      <!-- Brand Header -->
+      <div class="text-center mb-8">
+        <v-img
+          src="/logo.svg"
+          alt="Touriva"
+          width="170"
+          height="45"
+          contain
+          class="mx-auto mb-3"
+        />
+        <div class="editorial-tag text-sand mb-1">ACCOUNT VERIFICATION</div>
+        <h2 class="text-h5 font-serif font-weight-bold text-forest">
+          Verification Code
+        </h2>
+        <p class="text-caption text-secondary-editorial mt-1">
+          Please enter the 6-digit confirmation code sent to <strong class="text-forest">{{ route.params.phonenumber }}</strong>
+        </p>
+      </div>
+
+      <!-- Error Alert -->
+      <v-alert
+        v-if="err"
+        type="error"
+        variant="tonal"
+        density="comfortable"
+        class="mb-6 rounded-lg"
       >
-        <v-col>
-         
-            <h3 class="text-h5">Verification Code</h3>
+        {{ $t(err) || err }}
+      </v-alert>
 
-            <div class="text-subtitle-2 font-weight-light mb-3">Please enter the verification code sent to your mobile</div>
+      <!-- OTP Input -->
+      <div class="mb-8">
+        <v-otp-input
+          v-model="otp"
+          length="6"
+          type="number"
+          variant="outlined"
+          color="#173F35"
+          class="editorial-otp"
+        ></v-otp-input>
+      </div>
 
-            <v-otp-input
-              v-model="otp"
-              class="mb-8"
-             
-              length="6"
-            
-            ></v-otp-input>
+      <!-- Action Buttons -->
+      <div class="mb-4">
+        <v-btn
+          block
+          color="#173F35"
+          size="large"
+          rounded="pill"
+          class="btn-editorial-primary font-weight-bold"
+          :disabled="!isActive"
+          :loading="auth.getLoading"
+          @click="show"
+        >
+          {{ $t('next') || 'Verify & Continue' }}
+        </v-btn>
+      </div>
 
-            <div class="text-caption">
-              <div class="text-center ma-2">
-                <v-alert
-                    dense
-                    outlined
-                    type="error"
-                    v-if="err"
-                >
-                    {{ $t(err) }}
-                </v-alert>
-              </div>
-
-              <div class="text-center ma-2">
-                <v-btn 
-                  color="next" 
-                  dark  
-                  :disabled="!isActive" 
-                  @click="show" 
-                  :loading="auth.getLoading"
-                >
-                  {{ $t('next') }}
-                </v-btn>
-              </div>
-
-              <!-- <div class="text-center ma-2">
-                <v-btn 
-                  color="next" 
-                  dark 
-                  :disabled="!showTryAgain" 
-                  @click="tryAgain" :loading="loading">{{ $t('tryAgain') }}</v-btn>
-              </div> -->
-              
-            </div>
-
-
-         
-          <!-- <div class="text-center ma-2">
-            <v-otp-input
-              v-model="otp"
-              :length="length"
-              type="number"
-            ></v-otp-input>
-          </div>
-
-          <div class="text-center ma-2">
-            <h5>{{ $t(err) }}</h5>
-          </div>
-
-          <div class="text-center ma-2">
-            <v-btn color="next" dark block :disabled="!isActive" @click="show" :loading="loading">{{ $t('next') }}</v-btn>
-          </div>
-
-          <div class="text-center ma-2">
-            <v-btn color="next" dark block :disabled="!showTryAgain" @click="tryAgain" :loading="loading">{{ $t('tryAgain') }}</v-btn>
-          </div> -->
-        </v-col>
-      </v-row>
-
-    </v-container>
+      <div class="text-center">
+        <v-btn
+          variant="text"
+          color="#173F35"
+          size="small"
+          class="font-weight-medium text-capitalize"
+          @click="tryAgain"
+        >
+          <v-icon start size="16">mdi-arrow-left</v-icon>
+          {{ $t('tryAgain') || 'Edit phone number' }}
+        </v-btn>
+      </div>
+    </v-card>
+  </div>
 </template>
 
 <script setup>
-  import { ref, computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
-  import { useAuthStore } from '@/stores/auth'
-  import moment from "moment"
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-  const fmt = "YYYY-MM-DD HH:mm:ss"
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
 
-  const auth = useAuthStore()
-  const route = useRoute()
-  const router = useRouter()
+const otp = ref('')
+const err = ref('')
+const length = ref(6)
 
-  const otp = ref(''),
-        loading = ref(false),
-        err = ref(''),
-        length = ref(6),
-        deadlinets = moment()
-        .add(3, "m")
-        .format(fmt),
-        showTryAgain = ref(false)
-      
-  //     progress: 25,
- 
-    const isActive = computed(() => {
-      return otp.value.length === length.value
+const isActive = computed(() => {
+  return otp.value.length === length.value
+})
+
+const codeVerify = async () => {
+  const phone = route.params.phonenumber
+  try {
+    await auth.account_verify_OTP({
+      phonenumber: phone,
+      code: otp.value
     })
+  } catch (error) {
+    err.value = auth.getError || error.message || 'Invalid verification code'
+  } finally {
+    auth.loading = false
+  }
+}
 
-    const deadline = computed(() => {
-      return moment(deadlinets).format(fmt)
-    })
+const show = () => {
+  auth.loading = true
+  codeVerify()
+}
 
-
-      const codeVerify = async () => {
-        let phone = route.params.phonenumber
-        try {
-          await auth.account_verify_OTP({  phonenumber: phone,
-                                            code: otp.value 
-                                        })
-        } catch (error) {
-          err.value = auth.getError
-          console.log('error code', error.value)
-
-        }finally {
-          auth.loading = false
-        }
-        // try {
-        //   await auth.account_verify_code({  phonenumber: phone,
-        //                                     code: this.otp 
-        //                                 })
-        // } catch (error) {
-        //   err.value = error.message
-        //   console.log('error code', error.value)
-
-        // }
-        loading.value = false
-      }
-
-      const show = () => {
-        auth.loading = true
-        codeVerify()
-      }
-  //     timeElapsedHandler() {
-  //       this.showTryAgain = true
-  //     },
-      const tryAgain = () => {
-        router.push('/signup')
-      }
-  //   }
-  // }
+const tryAgain = () => {
+  router.push('/signup')
+}
 </script>
+
+<style scoped>
+.auth-page {
+  background-color: #FAF8F2;
+}
+
+.auth-card {
+  background: #FFFFFF !important;
+  border: 1px solid #E7E8E1 !important;
+}
+
+:deep(.editorial-otp .v-otp-input__field) {
+  border-radius: 10px !important;
+  border-color: #E7E8E1 !important;
+}
+
+:deep(.editorial-otp .v-otp-input__field:focus) {
+  border-color: #173F35 !important;
+}
+</style>

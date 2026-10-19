@@ -194,7 +194,7 @@
     <v-dialog v-model="dialog" max-width="500">
       <v-card>
         <v-card-title 
-          style="background-color: #00366f;color: white"
+          style="background-color: #173F35; color: white"
         >
           {{announcement.ownerId.companyName}}
         </v-card-title>
@@ -333,18 +333,18 @@ export default {
 
 <style scoped>
   .v-card-actions {
-    background-color: #00366f;
+    background-color: #173F35;
   }
 
   .v-img.active {
-    border: 2px solid #1976d2;
+    border: 2px solid #D9B98C;
     border-radius: 4px;
     cursor: pointer;
   }
 
   .v-card {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
   }
 
   .image-gallery {

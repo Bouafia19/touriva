@@ -1,0 +1,191 @@
+/* ==========================================================================
+   Touriva — Premium Travel Editorial Design System Styles
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-forest-green: #173F35;
+  --color-deep-green: #102D27;
+  --color-emerald: #21866B;
+  --color-warm-ivory: #FAF8F2;
+  --color-sand: #D9B98C;
+  --color-sand-light: #F5EDE0;
+  --color-sand-dark: #B89564;
+  --color-white: #FFFFFF;
+  --color-text-primary: #202A27;
+  --color-text-secondary: #69736E;
+  --color-border: #E7E8E1;
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-arabic: 'Cairo', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background-color: var(--color-warm-ivory);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+.font-serif,
+.editorial-heading {
+  font-family: var(--font-serif) !important;
+  letter-spacing: -0.02em;
+}
+
+[dir="rtl"] body,
+[dir="rtl"] .v-application {
+  font-family: var(--font-arabic) !important;
+}
+
+/* Palette utility classes */
+.bg-warm-ivory {
+  background-color: var(--color-warm-ivory) !important;
+}
+
+.bg-forest-green {
+  background-color: var(--color-forest-green) !important;
+}
+
+.bg-deep-green {
+  background-color: var(--color-deep-green) !important;
+}
+
+.text-sand {
+  color: var(--color-sand) !important;
+}
+
+.text-sand-dark {
+  color: var(--color-sand-dark) !important;
+}
+
+.text-emerald {
+  color: var(--color-emerald) !important;
+}
+
+.text-forest {
+  color: var(--color-forest-green) !important;
+}
+
+.text-secondary-editorial {
+  color: var(--color-text-secondary) !important;
+}
+
+.border-editorial {
+  border: 1px solid var(--color-border) !important;
+}
+
+/* Editorial Cards */
+.editorial-card {
+  background: #FFFFFF;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(16, 45, 39, 0.05) !important;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease !important;
+  overflow: hidden !important;
+}
+
+.editorial-card.bg-deep-green {
+  background: #102D27 !important;
+  color: #FFFFFF !important;
+}
+
+.editorial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 32px -8px rgba(16, 45, 39, 0.12) !important;
+  border-color: var(--color-sand) !important;
+}
+
+/* Badges & Chips */
+.editorial-chip {
+  background: var(--color-sand-light) !important;
+  color: var(--color-deep-green) !important;
+  border: 1px solid var(--color-sand) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 8px !important;
+}
+
+.editorial-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-sand-dark);
+}
+
+/* Buttons */
+.btn-editorial-primary {
+  background-color: var(--color-forest-green) !important;
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 14px rgba(23, 63, 53, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-editorial-primary:hover {
+  background-color: var(--color-deep-green) !important;
+  box-shadow: 0 6px 20px rgba(23, 63, 53, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+.btn-editorial-sand {
+  background-color: var(--color-sand) !important;
+  color: var(--color-deep-green) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 4px 14px rgba(217, 185, 140, 0.3) !important;
+}
+
+.btn-editorial-sand:hover {
+  background-color: var(--color-sand-dark) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-editorial-outline {
+  border: 1.5px solid var(--color-forest-green) !important;
+  color: var(--color-forest-green) !important;
+  background: transparent !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-editorial-outline:hover {
+  background-color: var(--color-forest-green) !important;
+  color: #FFFFFF !important;
+}
+
+/* Image zoom effect on card hover */
+.img-editorial-zoom {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.editorial-card:hover .img-editorial-zoom {
+  transform: scale(1.05);
+}
+
+/* Clean scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-warm-ivory);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4C9C5;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-sand-dark);
+}

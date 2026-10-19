@@ -1,308 +1,318 @@
 <template>
-        <v-container>
-        <v-data-table
-            :headers="filterHeaders"
-            :items="roles"
-            sort-by="name"
-            class="elevation-1"
+  <v-container fluid class="px-4 px-md-8 py-6">
+    <!-- Editorial Page Header -->
+    <div class="editorial-page-header">
+      <div>
+        <div class="editorial-tag mb-1">Access Control</div>
+        <h1 class="editorial-page-title">Roles & Permissions</h1>
+        <p class="editorial-page-subtitle">Configure administrative roles and granular authorization permissions.</p>
+      </div>
+
+      <div class="d-flex align-center gap-2">
+        <v-btn
+          class="btn-editorial-primary px-5"
+          prepend-icon="mdi-plus"
+          @click="dialog = true"
         >
-            <template v-slot:item.actions.read="{ item }">
-                <v-simple-checkbox
-                    v-model="item.actions.read"
-                    disabled
-                ></v-simple-checkbox>
-            </template>
+          {{ $t('New') || 'New Role' }}
+        </v-btn>
+      </div>
+    </div>
 
-            <template v-slot:item.actions.create="{ item }">
-                <v-simple-checkbox
-                    v-model="item.actions.create"
-                    disabled
-                ></v-simple-checkbox>
-            </template>
+    <!-- Data Table Container -->
+    <div class="editorial-table-container">
+      <v-data-table
+        :headers="headers"
+        :items="roles.getRoles || []"
+        :loading="!roles.getRoles"
+        sort-by="name"
+        class="editorial-table"
+      >
+        <template v-slot:[`item.actions.read`]="{ item }">
+          <v-checkbox
+            :model-value="item.actions?.read"
+            disabled
+            density="compact"
+            hide-details
+            color="forestGreen"
+          ></v-checkbox>
+        </template>
 
-            <template v-slot:item.actions.update="{ item }">
-                <v-simple-checkbox
-                    v-model="item.actions.update"
-                    disabled
-                ></v-simple-checkbox>
-            </template>
+        <template v-slot:[`item.actions.create`]="{ item }">
+          <v-checkbox
+            :model-value="item.actions?.create"
+            disabled
+            density="compact"
+            hide-details
+            color="forestGreen"
+          ></v-checkbox>
+        </template>
 
-            <template v-slot:item.actions.delete="{ item }">
-                <v-simple-checkbox
-                    v-model="item.actions.delete"
-                    disabled
-                ></v-simple-checkbox>
-            </template>
+        <template v-slot:[`item.actions.update`]="{ item }">
+          <v-checkbox
+            :model-value="item.actions?.update"
+            disabled
+            density="compact"
+            hide-details
+            color="forestGreen"
+          ></v-checkbox>
+        </template>
 
-            <template v-slot:top>
-            <v-toolbar
-                flat
-            >
-                <v-toolbar-title>{{ $t('Roles')}}</v-toolbar-title>
-                <v-divider
-                class="mx-4"
-                inset
-                vertical
-                ></v-divider>
-                <v-spacer></v-spacer>
-                <v-dialog
-                v-model="dialog"
-                max-width="700px"
-                >
-                <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                    color="next"
-                    dark
-                    class="mb-2"
-                    v-bind="attrs"
-                    v-on="on"
-                    icon
-                    >
-                        <v-icon large>
-                            mdi-plus-circle
-                        </v-icon>
-                    </v-btn>
-                </template>
-                <v-card>
-                    <v-card-title>
-                    <span class="text-h5">{{ formTitle }}</span>
-                    </v-card-title>
+        <template v-slot:[`item.actions.delete`]="{ item }">
+          <v-checkbox
+            :model-value="item.actions?.delete"
+            disabled
+            density="compact"
+            hide-details
+            color="forestGreen"
+          ></v-checkbox>
+        </template>
 
-                    <v-card-text>
-                    <v-container>
-                        <v-row>
-                        <v-col
-                            cols="auto"
-                        >
-                            <v-text-field
-                                v-model="editedItem.name"
-                                label="Name"
-                            ></v-text-field>
+        <template v-slot:[`item.actions`]="{ item }">
+          <v-btn
+            icon="mdi-pencil-outline"
+            size="small"
+            variant="text"
+            color="forestGreen"
+            @click="editItem(item)"
+            title="Edit role"
+          ></v-btn>
+        </template>
 
-                            <v-select
-                                :items="items"
-                                v-model="editedItem.subject"
-                                item-value="title"
-                                :label="$t('Subject')"
-                            >
-                                <template v-slot:selection="data">
-                                    <!-- HTML that describe how select should render items when the select is open -->
-                                    {{ $t(data.item.title) }}
-                                </template>
-                                <template v-slot:item="data">
-                                    <!-- HTML that describe how select should render items when the select is open -->
-                                    {{ $t(data.item.title) }}
-                                </template>
-                            </v-select>
-                        
-                            <!-- <v-text-field
-                                v-model="editedItem.subject"
-                                label="Subject"
-                            ></v-text-field> -->
-                        </v-col>
-                        <v-col
-                            cols="auto"
-                        >
-                            <v-checkbox
-                                v-model="editedItem.actions.read"
-                                label="Read"
-                            ></v-checkbox>
-                       
-                            <v-checkbox
-                                v-model="editedItem.actions.create"
-                                label="Create"
-                            ></v-checkbox>
-                       
-                            <v-checkbox
-                                v-model="editedItem.actions.update"
-                                label="Update"
-                            ></v-checkbox>
-        
-                            <v-checkbox
-                                v-model="editedItem.actions.delete"
-                                label="Delete"
-                            ></v-checkbox>
-                        </v-col>
-            
-                        </v-row>
-                    </v-container>
-                    </v-card-text>
+        <template v-slot:no-data>
+          <div class="text-center py-8">
+            <v-icon icon="mdi-shield-account-outline" size="40" color="sand" class="mb-2"></v-icon>
+            <div class="text-subtitle-2 text-editorial-secondary">No roles configured yet</div>
+            <v-btn class="btn-editorial-primary px-4 mt-3" size="small" @click="initialize">
+              {{ $t('Refresh') || 'Refresh' }}
+            </v-btn>
+          </div>
+        </template>
+      </v-data-table>
+    </div>
 
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        color="error"
-                        text
-                        @click="close"
-                    >
-                        Cancel
-                    </v-btn>
-                    <v-btn
-                        color="success"
-                        text
-                        @click="save"
-                    >
-                        Save
-                    </v-btn>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-                <v-dialog v-model="dialogDelete" max-width="500px">
-                <v-card>
-                    <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="error" text @click="closeDelete">Cancel</v-btn>
-                    <v-btn color="success" text @click="deleteItemConfirm">OK</v-btn>
-                    <v-spacer></v-spacer>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-            </v-toolbar>
-            </template>
-            <template v-slot:item.actions="{ item }">
-            <v-icon
-                small
-                class="mr-2"
-                color="primary"
-                @click="editItem(item)"
-            >
-                mdi-pencil
-            </v-icon>
-            <!-- <v-icon
-                small
-                color="error"
-                @click="deleteItem(item)"
-            >
-                mdi-delete
-            </v-icon> -->
-            </template>
-            <template v-slot:no-data>
-                <v-btn
-                    color="primary"
-                    text
-                >
-                    {{ $t('noRecords')}}
-                </v-btn>
-            </template>
-        </v-data-table>
-        </v-container>
+    <!-- Edit / Add Role Dialog -->
+    <v-dialog v-model="dialog" max-width="650px">
+      <v-card class="editorial-dialog-card">
+        <div class="editorial-dialog-header">
+          <span class="dialog-title font-serif">{{ formTitle }}</span>
+          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="close"></v-btn>
+        </div>
+
+        <v-card-text class="pa-5">
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="editedItem.name"
+                label="Role Name"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input mb-3"
+              ></v-text-field>
+
+              <v-select
+                :items="items"
+                v-model="editedItem.subject"
+                item-title="title"
+                item-value="title"
+                label="Module Subject"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <div class="text-subtitle-2 font-weight-bold text-deep-green mb-2">Permissions Matrix</div>
+              <v-checkbox
+                v-model="editedItem.actions.read"
+                label="Read Permission"
+                color="forestGreen"
+                density="compact"
+                hide-details
+                class="mb-2"
+              ></v-checkbox>
+              <v-checkbox
+                v-model="editedItem.actions.create"
+                label="Create Permission"
+                color="forestGreen"
+                density="compact"
+                hide-details
+                class="mb-2"
+              ></v-checkbox>
+              <v-checkbox
+                v-model="editedItem.actions.update"
+                label="Update Permission"
+                color="forestGreen"
+                density="compact"
+                hide-details
+                class="mb-2"
+              ></v-checkbox>
+              <v-checkbox
+                v-model="editedItem.actions.delete"
+                label="Delete Permission"
+                color="forestGreen"
+                density="compact"
+                hide-details
+              ></v-checkbox>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <div class="editorial-dialog-actions d-flex justify-end gap-2">
+          <v-btn class="btn-editorial-ghost px-4" @click="close">Cancel</v-btn>
+          <v-btn class="btn-editorial-primary px-6" @click="save">Save Role</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="dialogDelete" max-width="450px">
+      <v-card class="editorial-dialog-card">
+        <div class="editorial-dialog-header">
+          <span class="dialog-title font-serif">Confirm Deletion</span>
+          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="closeDelete"></v-btn>
+        </div>
+        <v-card-text class="pa-5 text-center">
+          <v-icon icon="mdi-alert-circle-outline" color="warning" size="48" class="mb-3"></v-icon>
+          <div class="text-body-1 font-weight-medium">Are you sure you want to delete this role?</div>
+          <div class="text-caption text-editorial-secondary mt-1">This action cannot be undone.</div>
+        </v-card-text>
+        <div class="editorial-dialog-actions d-flex justify-end gap-2">
+          <v-btn class="btn-editorial-ghost px-4" @click="closeDelete">Cancel</v-btn>
+          <v-btn color="error" variant="flat" rounded="pill" class="px-5" @click="deleteItemConfirm">Delete</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import { useRolesStore } from '@/stores/roles'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { useRolesStore } from '@/stores/roles'
 
-    const roles = useRolesStore()
+const roles = useRolesStore()
 
-    let dialog = ref(false),
-        dialogDelete = ref(false),
-        headers = ref([
-            {
-            text: 'Role',
-            align: 'start',
-            sortable: false,
-            value: 'name',
-            },
-            { text: 'Subject', value: 'subject' },
-            { text: 'Read', value: 'actions.read' },
-            { text: 'Create', value: 'actions.create' },
-            { text: 'Update', value: 'actions.update' },
-            { text: 'Delete', value: 'actions.delete' },
-            { text: 'Actions', value: 'actions', sortable: false },
-        ]),
-        editedIndex = ref(-1),
-        editedItem = ref({
-            name: '',
-            subject: '',
-            actions: {
-                read: false,    
-                create: false,
-                update: false,
-                delete: false
-            }
-        }),
-        defaultItem = ref({
-            name: '',
-            subject: '',
-            actions: {
-                read: false,    
-                create: false,
-                update: false,
-                delete: false
-            }
-        }),
-        items = ref([
-            { title: 'Dashboard' },
-            { title: 'Trips' },
-            { title: 'Vehicles' },
-            { title: 'Users' },
-            { title: 'Billing' },
-            { title: 'Notifications' },
-            { title: 'TermsConditions' },
-            { title: 'Roles' },
-            { title: 'Settings' }
-        ])
+const dialog = ref(false)
+const dialogDelete = ref(false)
+const headers = ref([
+  { title: 'Role', key: 'name', align: 'start', sortable: true },
+  { title: 'Subject', key: 'subject' },
+  { title: 'Read', key: 'actions.read', sortable: false },
+  { title: 'Create', key: 'actions.create', sortable: false },
+  { title: 'Update', key: 'actions.update', sortable: false },
+  { title: 'Delete', key: 'actions.delete', sortable: false },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
+])
 
-        const formTitle = computed(() => {
-            return editedIndex.value === -1 ? 'New Item' : 'Edit Item'
-        })
+const editedIndex = ref(-1)
+const deleteId = ref(null)
+const editedItem = ref({
+  name: '',
+  subject: '',
+  actions: {
+    read: false,
+    create: false,
+    update: false,
+    delete: false
+  }
+})
 
-        watch(dialog, (diaNew, diaOld) => {
-            diaNew || close()
-        })
+const defaultItem = ref({
+  name: '',
+  subject: '',
+  actions: {
+    read: false,
+    create: false,
+    update: false,
+    delete: false
+  }
+})
 
-        watch(dialogDelete, (dialogDelNew, dialogDelOld) => {
-            dialogDelNew || closeDelete()
-        })
+const items = ref([
+  { title: 'Dashboard' },
+  { title: 'Products' },
+  { title: 'Categories' },
+  { title: 'Orders' },
+  { title: 'Brands' },
+  { title: 'Users' },
+  { title: 'Billing' },
+  { title: 'Advertising' },
+  { title: 'Notifications' },
+  { title: 'TermsConditions' },
+  { title: 'Roles' },
+  { title: 'Settings' }
+])
 
-        onMounted(()=>{
-            initialize()
-        })
-    
+const formTitle = computed(() => {
+  return editedIndex.value === -1 ? 'New Role' : 'Edit Role'
+})
 
-        const initialize = () => {
-            roles.fetchRoles()
-        }
+watch(dialog, (val) => {
+  if (!val) close()
+})
 
-        const editItem  = (item) => {
-            editedIndex.value = roles.getRoles.indexOf(item)
-            editedItem.value = Object.assign({}, item)
-            dialog.value = true
-        }
+watch(dialogDelete, (val) => {
+  if (!val) closeDelete()
+})
 
-        const deleteItem = (item) => {
-            editedIndex.value = item._id
-            dialogDelete.value = true
-        }
+const initialize = () => {
+  roles.fetchRoles()
+}
 
-        const deleteItemConfirm = () => {
-            roles.deleteRoles(this.editedIndex)
-            this.closeDelete()
-        }
+const editItem = (item) => {
+  const list = roles.getRoles || []
+  editedIndex.value = list.indexOf(item)
+  editedItem.value = JSON.parse(JSON.stringify(item))
+  dialog.value = true
+}
 
-        const close = () => {
-            dialog.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItem = (item) => {
+  deleteId.value = item._id
+  dialogDelete.value = true
+}
 
-        const closeDelete = () => {
-            dialogDelete.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItemConfirm = () => {
+  if (deleteId.value) {
+    roles.deleteRoles(deleteId.value).then(() => {
+      initialize()
+      closeDelete()
+    })
+  } else {
+    closeDelete()
+  }
+}
 
-        const save = () => {
-            if (editedIndex.value > -1) {
-                roles.editRoles(editedItem.value)
-            } else {
-            roles.addRoles(editedItem.value)
-            }
-            close()
-        }
+const close = () => {
+  dialog.value = false
+  nextTick(() => {
+    editedItem.value = JSON.parse(JSON.stringify(defaultItem.value))
+    editedIndex.value = -1
+  })
+}
+
+const closeDelete = () => {
+  dialogDelete.value = false
+  nextTick(() => {
+    deleteId.value = null
+  })
+}
+
+const save = () => {
+  if (editedIndex.value > -1) {
+    roles.editRoles(editedItem.value).then(() => {
+      initialize()
+      close()
+    })
+  } else {
+    roles.addRoles(editedItem.value).then(() => {
+      initialize()
+      close()
+    })
+  }
+}
+
+onMounted(() => {
+  initialize()
+})
 </script>

@@ -1,488 +1,564 @@
 <template>
-    <v-container>
-        <div class="ma-2">
-            <v-alert
-                dense
-                outlined
-                type="error"
-                v-if="err"
-            >
-                {{ $t(err) }}
-            </v-alert>
-        </div>
-        
-        <v-data-table
-            :headers="headers"
-            :items="hotels.getHotels"
-            :loading="!hotels.getHotels"
-            :search="search"
+  <v-container fluid class="pa-6 hotel-management-page">
+    <!-- Editorial Page Header -->
+    <div class="editorial-section-header d-flex flex-wrap align-center justify-space-between mb-6">
+      <div>
+        <span class="editorial-tag">{{ $t('Tourism') }} • {{ $t('Hotels') }}</span>
+        <h1 class="editorial-title">{{ $t('Hotels') }}</h1>
+        <p class="editorial-subtitle">
+          Hotels, coastal resorts, Saharan eco-lodges, and boutique guest stays
+        </p>
+      </div>
+
+      <div class="d-flex align-center mt-3 mt-sm-0">
+        <v-btn
+          class="btn-editorial-primary"
+          prepend-icon="mdi-plus-circle"
+          @click="openCreateDialog"
         >
-            <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                <tr style="color: #00366f;">
-                <template v-for="column in columns" :key="column.key">
-                    <td>
-                    {{ $t(column.text) }}
-                    </td>
-                </template>
-                </tr>
+          {{ $t('New') }} {{ $t('Hotels') }}
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- Error Alert -->
+    <v-alert
+      v-if="err"
+      type="error"
+      variant="tonal"
+      closable
+      class="mb-4 rounded-lg"
+      @click:close="err = ''"
+    >
+      {{ $t(err) }}
+    </v-alert>
+
+    <!-- Data Table Card Container -->
+    <v-card class="admin-card overflow-hidden">
+      <!-- Table Controls Bar -->
+      <div class="pa-4 pa-sm-5 border-bottom d-flex flex-wrap align-center justify-space-between gap-3">
+        <div style="max-width: 380px; width: 100%;">
+          <v-text-field
+            v-model="search"
+            prepend-inner-icon="mdi-magnify"
+            :label="$t('Search') + ' ' + $t('Hotels') + '...'"
+            single-line
+            hide-details
+            density="compact"
+            variant="outlined"
+            rounded="pill"
+            color="primary"
+            bg-color="warmIvory"
+            clearable
+          ></v-text-field>
+        </div>
+
+        <div class="d-flex align-center gap-2">
+          <v-chip size="small" color="primary" variant="tonal" class="font-weight-bold">
+            {{ hotels.getHotels?.length || 0 }} {{ $t('Hotels') }}
+          </v-chip>
+          <v-btn
+            icon="mdi-refresh"
+            size="small"
+            variant="text"
+            color="primary"
+            @click="initialize"
+            :loading="!hotels.getHotels"
+            title="Refresh hotels"
+          ></v-btn>
+        </div>
+      </div>
+
+      <!-- Hotels Data Table -->
+      <v-data-table
+        :headers="headers"
+        :items="hotels.getHotels || []"
+        :loading="!hotels.getHotels"
+        :search="search"
+        hover
+        class="editorial-data-table"
+      >
+        <!-- Custom Table Headers -->
+        <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
+          <tr class="table-header-row">
+            <template v-for="column in columns" :key="column.key">
+              <th class="table-header-cell">
+                {{ $t(column.text) }}
+              </th>
             </template>
+          </tr>
+        </template>
 
-            <template v-slot:[`item.status`]="{ item }">
-                <v-chip
-                    v-if="!item.googleId"
-                    :color="getColor(item)"
-                    dark
-                >
-                    <div v-if="item.status == 'rejected'">
-                        {{ $t('rejected') }}
-                    </div>
-                    <div v-if="item.status == 'pending'">
-                        {{ $t('pendingStatus') }}
-                    </div>
-                    <div v-else-if="item.status == 'published'">
-                        {{ $t('published') }}
-                    </div>
-                </v-chip>
-                <span v-else>google</span>
-            </template>
+        <!-- Hotel Name & Photo -->
+        <template v-slot:[`item.name`]="{ item }">
+          <div class="d-flex align-center py-2">
+            <v-avatar size="44" rounded="lg" color="sandLight" class="mr-3 overflow-hidden border-editorial">
+              <v-img v-if="item.photo" :src="item.photo" cover></v-img>
+              <v-icon v-else icon="mdi-bed-outline" color="sandDark" size="22"></v-icon>
+            </v-avatar>
+            <div>
+              <div class="font-weight-bold text-forest text-body-2">{{ item.name }}</div>
+              <div class="text-caption text-secondary-editorial">{{ item.address || 'Algeria' }}</div>
+            </div>
+          </div>
+        </template>
 
-            <template v-slot:top>
-            <v-toolbar
-                flat
-            >
-                <v-toolbar-title>{{ $t('Hotels') }}</v-toolbar-title>
-                <v-divider
-                class="mx-4"
-                inset
-                vertical
-                ></v-divider>
+        <!-- Rating Column -->
+        <template v-slot:[`item.rating`]="{ item }">
+          <div class="d-flex align-center">
+            <v-icon icon="mdi-star" size="16" color="warning" class="mr-1"></v-icon>
+            <span class="font-weight-semibold text-body-2 text-forest">
+              {{ item.rating ? Number(item.rating).toFixed(1) : '5.0' }}
+            </span>
+          </div>
+        </template>
 
-                 <v-text-field
-                    v-model="search"
-                    append-icon="mdi-magnify"
-                    :label="$t('Search')"
-                    single-line
-                    hide-details
-                    class="shrink mx-4"
-                    dense
-                ></v-text-field>
-                
-                <v-spacer></v-spacer>
-
-                <v-dialog
-                    v-model="dialog"
-                    :max-width="'500px'"
-                >
-
-                <template v-slot:activator="{ props: activatorProps }">
-                    <v-btn
-                    color="next"
-                    dark
-                    class="mb-2"
-                    v-bind="activatorProps"
-                    icon
-                    size="x-large"
-                    >
-                        <v-icon large>
-                            mdi-plus-circle
-                        </v-icon>
-                    </v-btn>
-                </template>
-                <v-card>
-                    <v-card-title>
-                    <span class="text-h5">{{ formTitle }}</span>
-                    </v-card-title>
-
-                    <v-card-text>
-                    <v-container>
-                        <v-row justify="center">
-                            <v-col cols="12" md="12">
-                                <v-text-field
-                                    v-model="editedItem.name"
-                                    label="Hotel Name"
-                                    type="text"
-                                    required
-                                    />
-                                </v-col>
-
-                                <v-col cols="12" md="12">
-                                    <v-autocomplete
-                                        v-model="editedItem.wilayaId"
-                                        :items="wilaya.getWilayas"
-                                        label="Wilaya"
-                                        item-title="name"
-                                        item-value="_id"
-                                        @update:modelValue="updateDaira()"
-                                    ></v-autocomplete>
-                                </v-col>
-
-                                <v-col cols="12" md="12">
-                                    <v-autocomplete
-                                        v-model="editedItem.dairaId"
-                                        :items="dairaItems"
-                                        label="daira"
-                                        item-title="name"
-                                        item-value="_id"
-                                        @update:modelValue="updateCommune()"
-                                    ></v-autocomplete>
-                                </v-col>
-
-                                <v-col cols="12" md="12">
-                                    <v-autocomplete
-                                        v-model="editedItem.communeId"
-                                        :items="communeItems"
-                                        label="commune"
-                                        item-title="name"
-                                        item-value="_id"
-                                        @update:modelValue="getCommuneId()"
-                                    ></v-autocomplete>
-                                </v-col>
-
-                                <!-- Address -->
-                                <v-col cols="12" md="12">
-                                    <v-text-field
-                                    v-model="editedItem.address"
-                                    label="Address"
-                                    type="text"
-                                    />
-                                </v-col>
-
-                                <!-- Rating -->
-                                <!-- <v-col cols="12" md="4">
-                                    <v-text-field
-                                    v-model.number="editedItem.rating"
-                                    label="Rating"
-                                    type="number"
-                                    min="0"
-                                    max="5"
-                                    step="0.1"
-                                    />
-                                </v-col> -->
-
-                                <!-- Latitude -->
-                                <v-col cols="6" md="6">
-                                    <v-text-field
-                                        v-model.number="editedItem.latitude"
-                                        label="Latitude"
-                                        type="number"
-                                    />
-                                </v-col>
-
-                                <!-- Longitude -->
-                                <v-col cols="6" md="6">
-                                    <v-text-field
-                                        v-model.number="editedItem.longitude"
-                                        label="Longitude"
-                                        type="number"
-                                    />
-                                </v-col>
-
-                                <!-- Phone -->
-                                <v-col cols="12" md="8">
-                                    <v-text-field
-                                        v-model="editedItem.phone"
-                                        label="Phone number"
-                                        type="tel"
-                                        placeholder="+213 555 123 456"
-                                        prepend-inner-icon="mdi-phone"
-                                        clearable
-                                    />
-                                </v-col>
-
-                                <!-- Description -->
-                                <v-col cols="12">
-                                    <v-textarea
-                                    v-model="editedItem.description"
-                                    label="Description"
-                                    rows="3"
-                                    />
-                                </v-col>
-
-                                <!-- Image upload -->
-                                 <v-col cols="12">
-                                    <v-file-input 
-                                        v-model="mainImg" 
-                                        :label="$t('Photo')"
-                                        outlined
-                                        prepend-icon="mdi-camera"
-                                        dense
-                                        @change="onImageChange"
-                                        class="mt-4"
-                                    />
-                                 </v-col>
-                                
-                                <v-col cols="12">
-                                    <!-- Preview -->
-                                    <v-img
-                                        v-if="editedItem.photo"
-                                        :src="editedItem.photo"
-                                        max-height="200"
-                                        class="mt-3"
-                                        cover
-                                    />
-                                </v-col>
-                                
-                            </v-row>
-                        </v-container>
-                    </v-card-text>
-
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        color="error"
-                        text
-                        @click="close"
-                    >
-                        Cancel
-                    </v-btn>
-                    <v-btn
-                        color="success"
-                        text
-                        @click="save"
-                        :loading="loading"
-                    >
-                        Save
-                    </v-btn>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-                <v-dialog v-model="dialogDelete" max-width="500px">
-                <v-card>
-                    <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="error" text @click="closeDelete">Cancel</v-btn>
-                    <v-btn 
-                        color="success" 
-                        text 
-                        @click="deleteItemConfirm"
-                        :loading="loadingDelete"
-                    >
-                        OK
-                    </v-btn>
-                    <v-spacer></v-spacer>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-            </v-toolbar>
-            </template>
-            <template v-slot:[`item.actions`]="{ item }">
+        <!-- Status Column -->
+        <template v-slot:[`item.status`]="{ item }">
+          <span
+            v-if="!item.googleId"
+            class="status-badge"
+            :class="{
+              'success': item.status === 'published',
+              'warning': item.status === 'pending',
+              'error': item.status === 'rejected'
+            }"
+          >
             <v-icon
-                small
-                class="mr-2"
-                @click="editItem(item)"
-                color="primary"
-            >
-                mdi-pencil
-            </v-icon>
-            <v-icon
-                small
-                @click="deleteItem(item)"
-                color="error"
-            >
-                mdi-delete
-            </v-icon> 
-            </template>
-            <template v-slot:no-data>
+              :icon="item.status === 'published' ? 'mdi-check-circle' : (item.status === 'pending' ? 'mdi-clock-outline' : 'mdi-close-circle')"
+              size="12"
+            ></v-icon>
+            {{ item.status === 'published' ? $t('published') : (item.status === 'pending' ? $t('pendingStatus') : $t('rejected')) }}
+          </span>
+          <v-chip v-else size="x-small" variant="outlined" color="info">Google Verified</v-chip>
+        </template>
+
+        <!-- Actions Column -->
+        <template v-slot:[`item.actions`]="{ item }">
+          <div class="d-flex align-center justify-end">
             <v-btn
-                color="primary"
-                @click="initialize"
-            >
-                Reset
+              icon="mdi-pencil-outline"
+              size="small"
+              variant="text"
+              color="primary"
+              @click="editItem(item)"
+              title="Edit Hotel"
+            ></v-btn>
+            <v-btn
+              icon="mdi-delete-outline"
+              size="small"
+              variant="text"
+              color="error"
+              @click="deleteItem(item)"
+              title="Delete Hotel"
+            ></v-btn>
+          </div>
+        </template>
+
+        <!-- Empty State -->
+        <template v-slot:no-data>
+          <div class="text-center py-10">
+            <v-avatar size="56" color="sandLight" class="mb-3">
+              <v-icon icon="mdi-bed-empty" color="sandDark" size="28"></v-icon>
+            </v-avatar>
+            <div class="font-serif font-weight-bold text-forest text-body-1 mb-1">No hotels found</div>
+            <div class="text-caption text-secondary-editorial mb-4">No accommodations registered or matching your filter.</div>
+            <v-btn class="btn-editorial-primary px-5" size="small" @click="initialize">
+              {{ $t('Reset') }}
             </v-btn>
-            </template>
-        </v-data-table>
-    </v-container>
+          </div>
+        </template>
+      </v-data-table>
+    </v-card>
+
+    <!-- Create / Edit Hotel Dialog -->
+    <v-dialog v-model="dialog" max-width="680px" persistent scrollable>
+      <v-card class="editorial-card rounded-xl overflow-hidden">
+        <!-- Dialog Header -->
+        <div class="px-6 py-4 bg-forest-green text-white d-flex align-center justify-space-between">
+          <div class="d-flex align-center">
+            <v-avatar size="34" color="rgba(255,255,255,0.15)" class="mr-3">
+              <v-icon icon="mdi-bed-outline" color="sand" size="18"></v-icon>
+            </v-avatar>
+            <div>
+              <div class="font-serif text-h6 font-weight-bold">{{ formTitle }}</div>
+              <div class="text-caption text-sand">{{ editedItem.name || 'Accommodation Registry' }}</div>
+            </div>
+          </div>
+          <v-btn icon="mdi-close" variant="text" color="white" @click="close"></v-btn>
+        </div>
+
+        <!-- Dialog Body -->
+        <v-card-text class="pa-6 bg-white" style="max-height: 70vh;">
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="editedItem.name"
+                label="Hotel Name"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+                required
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-autocomplete
+                v-model="editedItem.wilayaId"
+                :items="wilaya.getWilayas || []"
+                label="Wilaya"
+                item-title="name"
+                item-value="_id"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+                @update:modelValue="updateDaira"
+              ></v-autocomplete>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-autocomplete
+                v-model="editedItem.dairaId"
+                :items="dairaItems"
+                label="Daira"
+                item-title="name"
+                item-value="_id"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+                @update:modelValue="updateCommune"
+              ></v-autocomplete>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-autocomplete
+                v-model="editedItem.communeId"
+                :items="communeItems"
+                label="Commune"
+                item-title="name"
+                item-value="_id"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+                @update:modelValue="getCommuneId"
+              ></v-autocomplete>
+            </v-col>
+
+            <v-col cols="12" md="8">
+              <v-text-field
+                v-model="editedItem.address"
+                label="Address / Street"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <v-text-field
+                v-model="editedItem.phone"
+                label="Phone Number"
+                prepend-inner-icon="mdi-phone"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="6">
+              <v-text-field
+                v-model.number="editedItem.latitude"
+                label="Latitude"
+                type="number"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="6">
+              <v-text-field
+                v-model.number="editedItem.longitude"
+                label="Longitude"
+                type="number"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12">
+              <v-textarea
+                v-model="editedItem.description"
+                label="Description & Amenities"
+                rows="3"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+              ></v-textarea>
+            </v-col>
+
+            <v-col cols="12">
+              <v-file-input
+                v-model="mainImg"
+                :label="$t('Photo')"
+                prepend-icon="mdi-camera"
+                variant="outlined"
+                density="comfortable"
+                color="primary"
+                @change="onImageChange"
+              ></v-file-input>
+
+              <div v-if="editedItem.photo" class="mt-3 border-editorial rounded-lg overflow-hidden">
+                <v-img :src="editedItem.photo" max-height="200" cover></v-img>
+              </div>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <!-- Dialog Actions -->
+        <v-divider></v-divider>
+        <v-card-actions class="px-6 py-3 bg-white">
+          <v-spacer></v-spacer>
+          <v-btn variant="text" rounded="pill" class="px-5 font-weight-medium" @click="close">
+            {{ $t('Cancel') }}
+          </v-btn>
+          <v-btn
+            class="btn-editorial-primary px-6"
+            rounded="pill"
+            @click="save"
+            :loading="loading"
+          >
+            {{ $t('Save') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="dialogDelete" max-width="480px" persistent>
+      <v-card class="editorial-card rounded-xl pa-6 text-center">
+        <v-avatar size="56" color="#FBEBEB" class="mb-4 mx-auto">
+          <v-icon icon="mdi-alert-outline" color="error" size="28"></v-icon>
+        </v-avatar>
+        <h3 class="font-serif text-h6 font-weight-bold text-forest mb-2">
+          {{ $t('AreYouSureYouWantToDeleteThisItem') }}
+        </h3>
+        <p class="text-caption text-secondary-editorial mb-6">
+          This operation will remove the hotel listing and cannot be undone.
+        </p>
+        <div class="d-flex justify-center gap-3">
+          <v-btn variant="text" rounded="pill" class="px-5 mr-2" @click="closeDelete">
+            {{ $t('Cancel') }}
+          </v-btn>
+          <v-btn
+            color="error"
+            class="px-6 font-weight-semibold"
+            rounded="pill"
+            @click="deleteItemConfirm"
+            :loading="loadingDelete"
+          >
+            {{ $t('OK') }}
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted, nextTick, computed, watch } from 'vue'
-    import { useHotelsStore } from '@/stores/hotels'
-    import { useWilayasStore } from '@/stores/wilaya'
-    import { useDairasStore } from '@/stores/daira'
-    import { useCommunesStore } from '@/stores/commune'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
+import { useHotelsStore } from '@/stores/hotels'
+import { useWilayasStore } from '@/stores/wilaya'
+import { useDairasStore } from '@/stores/daira'
+import { useCommunesStore } from '@/stores/commune'
 
-    const wilaya = useWilayasStore()
-    const daira = useDairasStore()
-    const commune = useCommunesStore()
+const wilaya = useWilayasStore()
+const daira = useDairasStore()
+const commune = useCommunesStore()
+const hotels = useHotelsStore()
 
-    const hotels = useHotelsStore()
+const search = ref('')
+const dialog = ref(false)
+const dialogDelete = ref(false)
+const loadingDelete = ref(false)
+const loading = ref(false)
+const err = ref('')
+const editedIndex = ref(-1)
+const deleteId = ref(-1)
 
-    let search = ref(''),
-        dialog = ref(false),
-        dialogDelete = ref(false),
-        loadingDelete = ref(false),
-        headers = ref([
-            {
-                text: 'Name',
-                align: 'start',
-                sortable: false,
-                value: 'name',
-            },
-            { text: 'Address', value: 'address' },
-            { text: 'Rating', value: 'rating' },
-            { text: 'Phone', value: 'phone' },
-            { text: 'Status', value: 'status' },
-            { text: 'Actions', value: 'actions', sortable: false },
-        ]),
-        loading = ref(false),
-        err = ref(''),
-        editedIndex = ref(-1),
-        deleteId = ref(-1),
-        editedItem = ref({
-            name: '',
-            address: '',
-            rating: 0,
-            latitude: null,
-            longitude: null,
-            description: '',
-            phone: '',
-            photo: '',
-            status: 'published',
-            wilayaId: '',
-            dairaId: '',
-            communeId: ''
-        }),
-        defaultItem = ref({
-            name: '',
-            address: '',
-            rating: 0,
-            latitude: null,
-            longitude: null,
-            description: '',
-            phone: '',
-            photo: '',
-            status: 'published',
-            wilayaId: '',
-            dairaId: '',
-            communeId: ''
-        }),
-        mainImg = ref(null),
-        wilayaId = ref(""),
-        dairaItems = ref([]),
-        dairaId = ref(""),
-        communeItems = ref([]),
-        communeId = ref(""),
-        tab = ref(null),
-        loadingTab = ref(true),
-        firstLoad = ref(true)
+const headers = ref([
+  { text: 'Name', value: 'name', align: 'start' },
+  { text: 'Address', value: 'address' },
+  { text: 'Rating', value: 'rating' },
+  { text: 'Phone', value: 'phone' },
+  { text: 'Status', value: 'status' },
+  { text: 'Actions', value: 'actions', sortable: false, align: 'end' }
+])
 
-        const formTitle = computed(() => {
-            return editedIndex.value === -1 ? 'New Item' : 'Edit Item'
-        })
+const editedItem = ref({
+  name: '',
+  address: '',
+  rating: 0,
+  latitude: null,
+  longitude: null,
+  description: '',
+  phone: '',
+  photo: '',
+  status: 'published',
+  wilayaId: '',
+  dairaId: '',
+  communeId: ''
+})
 
-        const filterHeaders = computed(() => {
-            return headers.value
-        })
+const defaultItem = ref({
+  name: '',
+  address: '',
+  rating: 0,
+  latitude: null,
+  longitude: null,
+  description: '',
+  phone: '',
+  photo: '',
+  status: 'published',
+  wilayaId: '',
+  dairaId: '',
+  communeId: ''
+})
 
-        watch(dialog, (diaNew, diaOld) => {
-            diaNew || close()
-        })
+const mainImg = ref(null)
+const dairaItems = ref([])
+const communeItems = ref([])
 
-        watch(dialogDelete, (dialogDelNew, dialogDelOld) => {
-            dialogDelNew || closeDelete()
-        })
+const formTitle = computed(() => {
+  return editedIndex.value === -1 ? 'New Hotel' : 'Edit Hotel'
+})
 
-        onMounted(()=>{
-            hotels.fetchHotels()
-            wilaya.fetchWilayas()
-            daira.fetchDairas()
-            commune.fetchCommunes()
-        })
+watch(dialog, (diaNew) => {
+  diaNew || close()
+})
 
-        const updateDaira = () => {
-            dairaItems.value = daira.getDairas.filter(e => e.wilayaId === editedItem.value.wilayaId)
-        }
+watch(dialogDelete, (dialogDelNew) => {
+  dialogDelNew || closeDelete()
+})
 
-        const updateCommune = () => {
-            communeItems.value = commune.getCommunes.filter(e => e.dairaId === editedItem.value.dairaId)
-        }
+onMounted(() => {
+  initialize()
+})
 
-        const getCommuneId = () => {
-        }
+const openCreateDialog = () => {
+  editedItem.value = Object.assign({}, defaultItem.value)
+  editedIndex.value = -1
+  dialog.value = true
+}
 
-        const getColor = (valeur) => {
-            if (valeur.status == 'pending') return '#FF8C00'
-            else if (valeur.status == 'published') return '#28a74580'
-            else if (valeur.status == 'rejected') return '#dc3545'
-        }
+const initialize = () => {
+  hotels.fetchHotels()
+  wilaya.fetchWilayas()
+  daira.fetchDairas()
+  commune.fetchCommunes()
+}
 
-        /* Convert image to base64 */
-        const onImageChange = () => {
-            const reader = new FileReader()
-            reader.onload = (e) => {
-                editedItem.value.photo = e.target.result
-            }
-            reader.readAsDataURL(mainImg.value)
-        }
+const updateDaira = () => {
+  dairaItems.value = (daira.getDairas || []).filter((e) => e.wilayaId === editedItem.value.wilayaId)
+}
 
-        const editItem = (item) => {
-            editedIndex.value = hotels.getHotels.indexOf(item)
-            editedItem.value = Object.assign({}, item)
-            dialog.value = true
-        }
+const updateCommune = () => {
+  communeItems.value = (commune.getCommunes || []).filter((e) => e.dairaId === editedItem.value.dairaId)
+}
 
-        const deleteItem = (item) => {
-            editedIndex.value = hotels.getHotels.indexOf(item)
-            deleteId.value = item._id
-            editedItem.value = Object.assign({}, item)
-            dialogDelete.value = true
-        }
+const getCommuneId = () => {}
 
-        const deleteItemConfirm = () => {
-            loadingDelete.value = true
-            hotels.deleteHotels(deleteId.value).then(() => {
-                hotels.getHotels.splice(editedIndex.value, 1)
-                initialize()
-                loadingDelete.value = false
-                closeDelete()
-            })
-        }
+const onImageChange = () => {
+  if (!mainImg.value) return
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    editedItem.value.photo = e.target.result
+  }
+  reader.readAsDataURL(mainImg.value)
+}
 
-        const close = () => {
-            dialog.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const editItem = (item) => {
+  editedIndex.value = hotels.getHotels.indexOf(item)
+  editedItem.value = Object.assign({}, item)
+  if (editedItem.value.wilayaId) updateDaira()
+  if (editedItem.value.dairaId) updateCommune()
+  dialog.value = true
+}
 
-        const closeDelete = () => {
-            dialogDelete.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItem = (item) => {
+  editedIndex.value = hotels.getHotels.indexOf(item)
+  deleteId.value = item._id
+  editedItem.value = Object.assign({}, item)
+  dialogDelete.value = true
+}
 
-        const save = () => {
-            console.log('editedItem', editedItem.value)
-            loading.value = true
-            if (editedIndex.value > -1) {
-                
-                hotels.editHotels(editedItem.value).then(() => {
-                    Object.assign(hotels.hotels[editedIndex.value], editedItem.value)
-                   
-                    loading.value = false
-                    close()
-                    initialize()
-                })
-            } else {
-                hotels.addHotels(editedItem.value).then(() => {
-                    close()
-                    loading.value = false
-                    initialize()
-                })
-            }   
-        }
+const deleteItemConfirm = () => {
+  loadingDelete.value = true
+  hotels.deleteHotels(deleteId.value).then(() => {
+    hotels.getHotels.splice(editedIndex.value, 1)
+    initialize()
+    loadingDelete.value = false
+    closeDelete()
+  })
+}
+
+const close = () => {
+  dialog.value = false
+  nextTick(() => {
+    editedItem.value = Object.assign({}, defaultItem.value)
+    editedIndex.value = -1
+  })
+}
+
+const closeDelete = () => {
+  dialogDelete.value = false
+  nextTick(() => {
+    editedItem.value = Object.assign({}, defaultItem.value)
+    editedIndex.value = -1
+  })
+}
+
+const save = () => {
+  loading.value = true
+  if (editedIndex.value > -1) {
+    hotels.editHotels(editedItem.value).then(() => {
+      Object.assign(hotels.hotels[editedIndex.value], editedItem.value)
+      loading.value = false
+      close()
+      initialize()
+    })
+  } else {
+    hotels.addHotels(editedItem.value).then(() => {
+      close()
+      loading.value = false
+      initialize()
+    })
+  }
+}
 </script>
 
 <style scoped>
-:deep(.v-card .v-card-title) {
-    background-color: #00366f;
-    color: white;
+.hotel-management-page {
+  max-width: 1600px;
+  margin: 0 auto;
 }
-:deep(.v-card-actions) {
-    background-color: #00366f;
+
+.table-header-row {
+  background-color: var(--color-warm-ivory);
+}
+
+.table-header-cell {
+  color: var(--color-forest-green) !important;
+  font-weight: 700 !important;
+  font-size: 0.8125rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid var(--color-border) !important;
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--color-border);
 }
 </style>

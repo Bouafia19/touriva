@@ -254,7 +254,7 @@
     }
     :deep(table > thead > tr:last-child > th) {
         color: white !important;
-        background-color: #00366f !important;
+        background-color: #102D27 !important;
     }
     :deep(.mdi-arrow-up::before) {
         color: white !important;

@@ -1,0 +1,38 @@
+services:
+  # Touriva Core Tourism & Travel REST API
+  - type: web
+    name: touriva-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MONGO_URI
+        sync: false
+
+  # Touriva Main Tourism Discovery Web App
+  - type: web
+    name: touriva-web
+    runtime: static
+    rootDir: frontEnd/touriva
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: touriva-api
+          property: host

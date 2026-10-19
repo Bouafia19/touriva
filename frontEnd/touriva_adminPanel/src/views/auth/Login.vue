@@ -1,134 +1,145 @@
 <template>
-  <div>
-    <v-container
-      fluid
-      class="d-flex justify-center align-center"
-      style="height: 90vh;"
-    >
-      <v-card
-        width="70%"
-        outlined
-        class="rounded-lg"
-          
-      >
-        <v-row 
-          class="d-flex justify-space-around align-center ma-4 pa-4"
-        
-        >
-          <v-col 
-            cols="12"
-            md="4"
-          >
-            <v-img           
-                size="100%"
-                :src="image"
-                alt="img"
-              >
-            </v-img>
-          </v-col>
-
-        <v-divider
-          class="mx-4"
-          vertical
-        ></v-divider>
-
-        <v-col 
-          cols="12"
-          md="4"
-        >
-          <div class="text-center ma-2 mb-6">
-            <h5>{{ $t('logInParagraph') }}</h5>
+  <div class="login-wrapper d-flex align-center justify-center pa-4">
+    <div class="login-container">
+      <v-card class="editorial-card pa-6 pa-sm-8 elevation-2">
+        <!-- Logo & Branding Header -->
+        <div class="text-center mb-6">
+          <v-avatar size="56" color="deepGreen" class="elevation-2 mb-3">
+            <v-icon icon="mdi-compass" color="sand" size="32"></v-icon>
+          </v-avatar>
+          <div class="font-serif brand-title text-h4 font-weight-bold text-forest">
+            TOU<span class="text-sand-dark">RIVA</span>
           </div>
-            <form @submit.prevent="submit">
-              <v-text-field
-                v-model="email"
-                :label="$t('Email')"
-                required
-                append-icon="mdi-backspace-outline"
-                @click:append="email = null"
-              >
-              </v-text-field>
+          <div class="editorial-tag text-sand-dark mt-1">
+            {{ $t('AdminPortal') }}
+          </div>
+          <p class="text-caption text-secondary-editorial mt-2 mb-0">
+            {{ $t('logInParagraph') }} — Sign in to platform control center
+          </p>
+        </div>
 
-              <v-text-field
-                v-model="password"
-                :append-icon="show ? 'mdi-eye' : 'mdi-eye-off'"
-                :type="show ? 'text' : 'password'"
-                @click:append="show = !show"
-                :label="$t('Password')"
-                required
-                
-              >
-              </v-text-field>
+        <!-- Error Alert -->
+        <v-alert
+          v-if="err"
+          type="error"
+          variant="tonal"
+          density="comfortable"
+          closable
+          class="mb-4 rounded-lg text-caption"
+          @click:close="err = ''"
+        >
+          {{ $t(err) }}
+        </v-alert>
 
-              <div class="ma-2">
-                <v-alert
-                    dense
-                    outlined
-                    type="error"
-                    v-if="err"
-                >
-                    {{ $t(err) }}
-                </v-alert>
-              </div>
+        <!-- Login Form -->
+        <form @submit.prevent="submit" class="login-form">
+          <div class="mb-3">
+            <v-text-field
+              v-model="email"
+              :label="$t('Email')"
+              prepend-inner-icon="mdi-email-outline"
+              type="email"
+              variant="outlined"
+              color="primary"
+              density="comfortable"
+              rounded="pill"
+              required
+              hide-details="auto"
+              class="mb-3"
+            ></v-text-field>
+          </div>
 
-              <div class="text-center ma-2">
-                <v-btn
-                  type="submit"
-                  color="next"
-                  block
-                 
-                  dark
-                  :loading="loading"
-                >
-                  {{ $t('Login') }}
-                </v-btn>
-              </div>
-            </form>
-          </v-col>
-        </v-row>
+          <div class="mb-4">
+            <v-text-field
+              v-model="password"
+              :label="$t('Password')"
+              prepend-inner-icon="mdi-lock-outline"
+              :append-inner-icon="show ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+              :type="show ? 'text' : 'password'"
+              @click:append-inner="show = !show"
+              variant="outlined"
+              color="primary"
+              density="comfortable"
+              rounded="pill"
+              required
+              hide-details="auto"
+            ></v-text-field>
+          </div>
+
+          <v-btn
+            type="submit"
+            block
+            class="btn-editorial-primary py-3 mb-4"
+            size="large"
+            rounded="pill"
+            :loading="loading"
+          >
+            {{ $t('Login') }}
+          </v-btn>
+        </form>
+
+        <div class="text-center pt-2 border-top">
+          <span class="text-caption text-secondary-editorial">
+            Touriva Platform &copy; 2026 • Editorial Travel & Tourism
+          </span>
+        </div>
       </v-card>
-    </v-container>
+    </div>
   </div>
 </template>
 
 <script setup>
-  import { ref } from 'vue'
-  import { useAuthStore } from '@/stores/auth'
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
-  const auth = useAuthStore()
- 
-  let image = ref(new URL('/logo.jpg', import.meta.url).href),
-      email = ref(''),
-      err = ref(''),
-      password = ref(''),
-      show = ref(false),
-      loading = ref(false)
-   
-      const logIn = async () => {
-        try {
-          await auth.account_sign_in({  
-            email: email.value,
-            password: password.value,
-            role: 'administrator'
-          })
-        } catch (error) {
-          err.value = error.message
-          console.log('error email', error.message)
-        }
-        loading.value = false
-      }
+const auth = useAuthStore()
 
-      const submit = () => {
-        loading.value = true
-        logIn()
-      }
+const email = ref('')
+const err = ref('')
+const password = ref('')
+const show = ref(false)
+const loading = ref(false)
+
+const logIn = async () => {
+  try {
+    await auth.account_sign_in({
+      email: email.value,
+      password: password.value,
+      role: 'administrator'
+    })
+  } catch (error) {
+    err.value = error.message || 'Authentication failed'
+    console.error('error email', error.message)
+  } finally {
+    loading.value = false
+  }
+}
+
+const submit = () => {
+  loading.value = true
+  logIn()
+}
 </script>
 
 <style scoped>
-  :deep(.mdi-backspace-outline::before) {
-    color: #DC143C !important;
-  }
-  :deep(.v-input__icon--append .v-icon) { 
-    color: #008B8B;
-  }
+.login-wrapper {
+  min-height: 100vh;
+  background-color: var(--color-warm-ivory);
+  background-image: radial-gradient(circle at 10% 20%, rgba(217, 185, 140, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(23, 63, 53, 0.08) 0%, transparent 40%);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 440px;
+}
+
+.brand-title {
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.border-top {
+  border-top: 1px solid var(--color-border);
+}
 </style>

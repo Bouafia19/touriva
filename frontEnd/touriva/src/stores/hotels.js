@@ -17,7 +17,27 @@ export const useHotelsStore = defineStore('hotels', {
     },
 
     actions: {
-        
+        async fetchCatalogHotels() {
+            this.loading = true
+            this.error = null
+            try {
+                const res = await axios.get('/api/hotels')
+                if (Array.isArray(res.data) && res.data.length > 0) {
+                    this.hotels = res.data.map(h => ({
+                        ...h,
+                        displayName: { text: h.name },
+                        formattedAddress: h.address,
+                        rating: h.rating || 4.2,
+                        reviews: h.reviews || 18,
+                        photo: h.photo || h.image || null
+                    }))
+                }
+            } catch (err) {
+                console.error('Failed to load catalog hotels:', err)
+            } finally {
+                this.loading = false
+            }
+        },
         async fetchHotels(lat, lng) {
             this.loading = true
             this.error = null

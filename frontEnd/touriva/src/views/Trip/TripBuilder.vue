@@ -1,595 +1,669 @@
 <template>
-    
-    <v-container class="main-container">
-        <h1 class="d-flex justify-center">{{ $t('poweredByAI') }}</h1>
-        <v-stepper
-            v-model="step"
-            :items="items"
-            mobile
-            flat
+  <div class="editorial-trip-builder bg-warm-ivory min-vh-100 pb-16">
+    <!-- Header Banner -->
+    <div class="catalog-hero py-10 px-4 border-b border-subtle bg-white">
+      <v-container class="max-w-container">
+        <div class="text-center max-w-content mx-auto">
+          <div class="editorial-tag mb-1">
+            <v-icon size="14" color="#D9B98C" class="mr-1">mdi-creation</v-icon>
+            {{ $t('poweredByAI') || 'AI TRIP CONCIERGE' }}
+          </div>
+          <h1 class="text-h3 font-serif font-weight-bold text-forest mb-2">
+            Design Your Bespoke Algerian Journey
+          </h1>
+          <p class="text-secondary-editorial mb-0">
+            {{ $t('customRecommendations') || "Tell us your preferences and let our AI concierge curate an authentic, multi-day itinerary across Algeria's finest heritage and natural landmarks." }}
+          </p>
+        </div>
+      </v-container>
+    </div>
+
+    <!-- Main Stepper Wizard -->
+    <v-container class="max-w-container py-8">
+      <!-- Step Indicator Bar -->
+      <div class="stepper-indicator-bar mb-8 d-flex justify-center align-center">
+        <div
+          v-for="(stName, stIdx) in items"
+          :key="stIdx"
+          class="step-node d-flex align-center"
+          :class="{ 'step-active': step === stIdx + 1, 'step-completed': step > stIdx + 1 }"
         >
-            <template #actions="{ prev, next }">
-                <div class="d-flex align-center w-100">
-                    
-                    <v-btn
-                        v-if="step > 1 && !isSubmitting"
-                        variant="text"
-                        @click="prev"
-                    >
-                        {{ $t('previous') }}
-                    </v-btn>
+          <div class="step-circle" @click="step > stIdx + 1 ? step = stIdx + 1 : null">
+            <v-icon size="16" v-if="step > stIdx + 1">mdi-check</v-icon>
+            <span v-else>{{ stIdx + 1 }}</span>
+          </div>
+          <span class="step-label d-none d-sm-inline-block ml-2">{{ stName }}</span>
+          <div v-if="stIdx < items.length - 1" class="step-connector mx-3"></div>
+        </div>
+      </div>
 
-                    <v-spacer />
+      <v-card class="editorial-card pa-6 pa-md-10" elevation="0">
+        <!-- ================= STEP 1: DESTINATION ================= -->
+        <div v-if="step === 1" class="step-content">
+          <div class="text-center mb-8">
+            <div class="editorial-tag text-sand mb-1">STEP 1 OF 4</div>
+            <h2 class="text-h4 font-serif font-weight-bold text-forest mb-2">
+              {{ $t('whereDoYouWantToGo') || 'Where would you like to explore?' }}
+            </h2>
+            <p class="text-secondary-editorial max-w-prose mx-auto">
+              Select an Algerian wilaya or city to begin crafting your itinerary with local verified spots.
+            </p>
+          </div>
 
-                    <v-btn
-                        v-if="step < 4"
-                        color="primary"
-                        :disabled="isNextDisabled"
-                        @click="next"
-                    >
-                        {{ $t('next') }}
-                    </v-btn>
+          <v-row justify="center">
+            <v-col cols="12" md="8">
+              <v-text-field
+                v-model="selectedState"
+                id="cityInput"
+                ref="cityInputRef"
+                :placeholder="$t('search') || 'Enter city or destination (e.g. Algiers, Djanet, Oran)...'"
+                prepend-inner-icon="mdi-map-marker-outline"
+                variant="outlined"
+                density="comfortable"
+                rounded="pill"
+                color="#173F35"
+                class="bg-white elevation-1"
+                clearable
+              />
+            </v-col>
+          </v-row>
+
+          <div class="text-center mt-6">
+            <div class="editorial-tag text-secondary-editorial mb-3">
+              {{ $t('orPopularDestination') || 'POPULAR FEATURED DESTINATIONS' }}
+            </div>
+            <div class="d-flex flex-wrap justify-center ga-2 max-w-prose mx-auto">
+              <v-chip
+                v-for="c in popularCities"
+                :key="c.name"
+                :color="selectedState === c.name ? '#173F35' : 'default'"
+                :variant="selectedState === c.name ? 'flat' : 'outlined'"
+                class="cursor-pointer font-weight-medium px-4 py-2"
+                size="default"
+                @click="selectCity(c)"
+              >
+                <v-icon start size="16">mdi-compass</v-icon>
+                {{ c.name }}
+              </v-chip>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= STEP 2: DATES ================= -->
+        <div v-else-if="step === 2" class="step-content">
+          <div class="text-center mb-8">
+            <div class="editorial-tag text-sand mb-1">STEP 2 OF 4</div>
+            <h2 class="text-h4 font-serif font-weight-bold text-forest mb-2">
+              {{ $t('selectTripDates') || 'Select Your Journey Window' }}
+            </h2>
+            <p class="text-secondary-editorial max-w-prose mx-auto">
+              Choose your arrival and departure dates to determine your excursion schedule.
+            </p>
+          </div>
+
+          <v-row justify="center">
+            <v-col cols="12" md="6">
+              <v-card class="editorial-card pa-4" elevation="0">
+                <div class="text-subtitle-1 font-weight-bold text-forest mb-2 text-center">
+                  {{ new Date(today).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) }}
                 </div>
-            </template>
-            
-            <template v-slot:item.1>
-                <v-container>
-                    <h3 class="d-flex justify-center">{{ $t('whereDoYouWantToGo') }}</h3>
-                    <h6 class="d-flex justify-center">{{ $t('customRecommendations') }}</h6>
-                    <v-row :class="[platform === 'web' ? 'my-2 d-flex justify-center' : 'my-1 d-flex justify-center']">
-                        <v-col
-                            cols="12" 
-                            sm="6" 
-                            md="6"
-                        >
-                            <v-text-field
-                                v-model="selectedState"
-                                rounded
-                                variant="solo"
-                                ref="cityInputRef"
-                                id="cityInput"
-                                :placeholder="$t('search')"
-                                style="margin-left: 24px;margin-top: 24px;"
-                                prepend-icon="mdi-map-marker"
-                                hide-details
-                                class="ma-0"
-                            ></v-text-field>
-                            <!-- <v-autocomplete
-                                v-model="selectedState"
-                                :items="wilayaStore.getWilayas"
-                                item-title="name"
-                                return-object
-                                :label="$t('destination')"
-                                required
-                            ></v-autocomplete> -->
-                        </v-col>
-                    </v-row>
-                    <h4 class="d-flex justify-center">{{ $t('orPopularDestination') }}</h4>
-                    <v-row>
-                        <v-col cols="12" class="text-center">
-                            <div class="text-subtitle-1 mb-4">
-                                {{ $t('popularCities') }}
-                            </div>
+                <v-date-picker
+                  v-model="pickerOneDate"
+                  :day-props="getDayProps"
+                  :min="today"
+                  color="#173F35"
+                  class="w-100"
+                  @update:model-value="handlePickerOneSelection"
+                />
+              </v-card>
+            </v-col>
 
-                            <v-chip
-                                v-for="c in popularCities"
-                                :key="c.name"
-                                class="ma-1"
-                                color="next"
-                                variant="outlined"
-                                @click="selectCity(c)"
-                            >
-                                {{ c.name }}
-                            </v-chip>
-                        </v-col>
-                    </v-row>
-                </v-container>
-            </template>
+            <v-col cols="12" md="6">
+              <v-card class="editorial-card pa-4" elevation="0">
+                <div class="text-subtitle-1 font-weight-bold text-forest mb-2 text-center">
+                  {{ new Date(now.getFullYear(), nextMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) }}
+                </div>
+                <v-date-picker
+                  v-model="pickerTwoDate"
+                  :day-props="getDayProps"
+                  :min="today"
+                  :month="nextMonth"
+                  :year="nextYear"
+                  color="#173F35"
+                  class="w-100"
+                  @update:model-value="handlePickerTwoSelection"
+                />
+              </v-card>
+            </v-col>
+          </v-row>
 
-            <template v-slot:item.2>
-                <v-container class="py-8">
-                    <v-row class="mb-8">
-                        <v-col cols="12">
-                            <h2 class="text-h5 font-weight-bold mb-2">Select Your Travel Dates</h2>
-                            <p class="text-subtitle-2 text-medium-emphasis">Choose start and end dates from either calendar</p>
-                        </v-col>
-                    </v-row>
+          <!-- Selected Dates Summary -->
+          <v-card v-if="debutDate || endDate" class="editorial-card pa-4 bg-deep-green text-white mt-6" elevation="0">
+            <v-row align="center">
+              <v-col cols="12" sm="4">
+                <div class="editorial-tag text-sand">START DATE</div>
+                <div class="text-h6 font-weight-bold text-white">
+                  {{ debutDate ? new Date(debutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' }}
+                </div>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <div class="editorial-tag text-sand">END DATE</div>
+                <div class="text-h6 font-weight-bold text-white">
+                  {{ endDate ? new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' }}
+                </div>
+              </v-col>
+              <v-col cols="12" sm="4" class="text-sm-end">
+                <div class="editorial-tag text-sand">DURATION</div>
+                <div class="text-h5 font-weight-bold text-sand-light">
+                  {{ numberOfDays }} {{ numberOfDays === 1 ? 'day' : 'days' }}
+                </div>
+              </v-col>
+            </v-row>
+          </v-card>
 
-                   
-                    <v-row>
-                        
-                        <v-col cols="12" md="6">
-                            <v-card>
-                                <v-card-item>
-                                    <v-card-title class="text-h6">
-                                        {{ new Date(today).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) }}
-                                    </v-card-title>
-                                </v-card-item>
-                                <v-card-text>
-                                    <v-date-picker
-                                        :day-props="getDayProps"
-                                        v-model="pickerOneDate"
-                                        :min="today"
-                                        @update:model-value="handlePickerOneSelection"
-                                    />
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
+          <v-alert v-if="debutDate && endDate && endDate <= debutDate" type="error" variant="tonal" class="mt-4">
+            End date must be after the start date.
+          </v-alert>
+        </div>
 
-                       
-                        <v-col cols="12" md="6">
-                            <v-card>
-                                <v-card-item>
-                                    <v-card-title class="text-h6">
-                                        {{ new Date(now.getFullYear(), nextMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) }}
-                                    </v-card-title>
-                                </v-card-item>
-                                <v-card-text>
-                                    <v-date-picker
-                                        :day-props="getDayProps"
-                                        v-model="pickerTwoDate"
-                                        :min="today"
-                                        :month="nextMonth"
-                                        :year="nextYear"
-                                        @update:model-value="handlePickerTwoSelection"
-                                    />
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-                    </v-row>
+        <!-- ================= STEP 3: TRIP TYPE ================= -->
+        <div v-else-if="step === 3" class="step-content">
+          <div class="text-center mb-8">
+            <div class="editorial-tag text-sand mb-1">STEP 3 OF 4</div>
+            <h2 class="text-h4 font-serif font-weight-bold text-forest mb-2">
+              {{ $t('selectTripType') || 'Who is traveling on this journey?' }}
+            </h2>
+            <p class="text-secondary-editorial max-w-prose mx-auto">
+              We personalize pace, activity selection, and accommodations based on your group dynamics.
+            </p>
+          </div>
 
-                    
-                    <v-row v-if="debutDate || endDate" class="mt-8">
-                        <v-col cols="12">
-                            <v-card color="info">
-                                <v-card-text class="text-white">
-                                    <v-row align="center">
-                                        <v-col cols="12" sm="4">
-                                            <div class="text-caption">Start Date</div>
-                                            <div class="text-h6 font-weight-bold">
-                                                {{ debutDate ? new Date(debutDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' }}
-                                            </div>
-                                        </v-col>
-                                        <v-col cols="12" sm="4">
-                                            <div class="text-caption">End Date</div>
-                                            <div class="text-h6 font-weight-bold">
-                                                {{ endDate ? new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—' }}
-                                            </div>
-                                        </v-col>
-                                        <v-col cols="12" sm="4" class="text-right">
-                                            <div class="text-caption">Duration</div>
-                                            <div class="text-h5 font-weight-bold">
-                                                {{ numberOfDays }} {{ numberOfDays === 1 ? 'day' : 'days' }}
-                                            </div>
-                                        </v-col>
-                                    </v-row>
-                                </v-card-text>
-                            </v-card>
-                        </v-col>
-                    </v-row>
+          <v-row justify="center">
+            <v-col
+              v-for="t in trips"
+              :key="t.value"
+              cols="12"
+              sm="4"
+            >
+              <v-card
+                class="editorial-card pa-6 text-center cursor-pointer h-100 transition-all"
+                :class="{ 'card-selected': tripType === t.value }"
+                elevation="0"
+                @click="tripType = t.value"
+              >
+                <div
+                  class="category-icon-box mx-auto mb-4"
+                  :style="{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '16px',
+                    backgroundColor: tripType === t.value ? '#173F35' : '#F5EDE0'
+                  }"
+                >
+                  <v-icon
+                    size="32"
+                    :color="tripType === t.value ? '#FAF8F2' : '#173F35'"
+                  >
+                    {{ t.icon }}
+                  </v-icon>
+                </div>
+                <h3 class="text-h6 font-weight-bold text-forest mb-1">
+                  {{ t.label }}
+                </h3>
+                <p class="text-caption text-secondary-editorial mb-0">
+                  {{ t.value === 'SOLO' ? 'Immersive, independent exploration' : t.value === 'FRIENDS' ? 'Active social adventures and excursions' : 'Comfortable pacing and multigenerational sites' }}
+                </p>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
 
-                   
-                    <v-row v-if="debutDate && endDate && endDate <= debutDate" class="mt-6">
-                        <v-col cols="12">
-                            <v-alert type="error" icon="mdi-alert-circle-outline">
-                                End date must be after start date
-                            </v-alert>
-                        </v-col>
-                    </v-row>
-                </v-container>
-            </template>
+        <!-- ================= STEP 4: ACTIVITIES & PREFERENCES ================= -->
+        <div v-else-if="step === 4" class="step-content">
+          <div class="text-center mb-8">
+            <div class="editorial-tag text-sand mb-1">STEP 4 OF 4</div>
+            <h2 class="text-h4 font-serif font-weight-bold text-forest mb-2">
+              {{ $t('tellUsYourInterests') || 'What interests you most?' }}
+            </h2>
+            <p class="text-secondary-editorial max-w-prose mx-auto">
+              Select the experiences, culinary styles, and landmark types you wish to prioritize.
+            </p>
+          </div>
 
-            <template v-slot:item.3>
-                <v-container>
-                    <h3 class="text-h6 mb-4">{{ $t('selectOne') }}</h3>
+          <v-row>
+            <v-col
+              v-for="act in activities"
+              :key="act.value"
+              cols="12"
+              sm="6"
+              md="4"
+            >
+              <v-card
+                class="editorial-card pa-4 cursor-pointer d-flex align-center h-100 transition-all"
+                :class="{ 'card-selected': selectedActivities.includes(act.value) }"
+                elevation="0"
+                @click="toggleActivity(act.value)"
+              >
+                <v-icon
+                  size="24"
+                  :color="selectedActivities.includes(act.value) ? '#21866B' : '#173F35'"
+                  class="mr-3"
+                >
+                  {{ selectedActivities.includes(act.value) ? 'mdi-checkbox-marked-circle' : 'mdi-checkbox-blank-circle-outline' }}
+                </v-icon>
+                <span class="font-weight-medium text-forest text-body-2">
+                  {{ act.label }}
+                </span>
+              </v-card>
+            </v-col>
+          </v-row>
 
-                    <v-sheet rounded border class="pa-6">
-                    <v-row>
-                        <v-col cols="12" md="6">
-                        <v-radio-group
-                            v-model="tripType"
-                            row
-                            :label="$t('selectTripType')"
-                        >
-                        <v-radio
-                            v-for="trip in trips"
-                            :key="trip.value"
-                            :label="trip.label"
-                            :value="trip.value"
-                        >
-                            <template #label>
-                            <div class="d-flex align-center">
-                                <v-icon class="me-2">{{ trip.icon }}</v-icon>
-                                <span>{{ trip.label }}</span>
-                            </div>
-                            </template>
-                        </v-radio>
-                        </v-radio-group>
-                        </v-col>
-                    </v-row>
-                    </v-sheet>
+          <div class="text-center mt-10">
+            <v-btn
+              color="#173F35"
+              size="x-large"
+              rounded="pill"
+              class="btn-editorial-primary font-weight-bold px-10 elevation-3"
+              :loading="tripStore.isLoading || isSubmitting"
+              @click="submitTrip"
+            >
+              <v-icon start size="22">mdi-creation</v-icon>
+              {{ $t('confirmAndSubmit') || 'Generate My Custom Itinerary' }}
+            </v-btn>
+            <div class="text-caption text-secondary-editorial mt-3">
+              Touriva AI synthesizes verified local sites, opening schedules, and transit times.
+            </div>
+          </div>
+        </div>
 
-                </v-container>
-            </template>
+        <!-- Stepper Navigation Controls -->
+        <v-divider class="my-8 border-subtle"></v-divider>
 
-            <template v-slot:item.4>
-                <v-container>
-                    <h3 class="text-h6 mb-4">{{ $t('tellUsYourInterests') }}</h3>
-                    <v-sheet rounded border class="pa-6">
-                        <v-row>
-                            <v-col cols="12">
-                                <label>{{ $t('selectActivities') }}</label>
-                                <v-row>
-                                <v-col cols="12" sm="6" v-for="activity in activities" :key="activity.value">
-                                    <v-checkbox
-                                    v-model="selectedActivities"
-                                    :value="activity.value"
-                                    >
-                                    <template #label>
-                                        <div class="d-flex align-center">
-                                        <span v-if="activity.icon" class="me-2">
-                                            <v-icon>{{ activity.icon }}</v-icon>
-                                        </span>
-                                        {{ activity.label }}
-                                        </div>
-                                    </template>
-                                    </v-checkbox>
-                                </v-col>
-                                </v-row>
-                            </v-col>
-                        </v-row>
-                    </v-sheet>
+        <div class="d-flex align-center justify-space-between">
+          <v-btn
+            v-if="step > 1 && !isSubmitting"
+            variant="outlined"
+            rounded="pill"
+            color="#173F35"
+            class="btn-editorial-outline px-6"
+            @click="step--"
+          >
+            <v-icon start size="16">mdi-arrow-left</v-icon>
+            {{ $t('previous') || 'Back' }}
+          </v-btn>
+          <div v-else></div>
 
-                    <div class="text-center mt-6">
-                        <v-btn 
-                            color="next" 
-                            @click="submitTrip" 
-                            rounded 
-                            :loading="tripStore.isLoading"
-                        >
-                            {{ $t('confirmAndSubmit') }}
-                        </v-btn>
-                    </div>
-                </v-container>
-            </template>
-        </v-stepper>
-   
+          <v-btn
+            v-if="step < 4"
+            color="#173F35"
+            rounded="pill"
+            class="btn-editorial-primary px-8 font-weight-bold"
+            :disabled="isNextDisabled"
+            @click="step++"
+          >
+            {{ $t('next') || 'Continue' }}
+            <v-icon end size="16">mdi-arrow-right</v-icon>
+          </v-btn>
+        </div>
+      </v-card>
     </v-container>
+  </div>
 </template>
 
 <script setup>
-    import { ref, computed, onMounted } from 'vue'
-    import { useRouter } from 'vue-router'
-    import { useTripsStore } from '@/stores/trips'
-    import { useRestaurantsStore } from '@/stores/restaurants'
-    import { useHotelsStore } from '@/stores/hotels'
-    import { useSitesStore } from '@/stores/sites'
-    import { useAuthStore } from '@/stores/auth'
-    import { useWilayasStore } from '@/stores/wilaya'
-    
-    const router = useRouter()
-    const tripStore = useTripsStore()
-    const restaurants = useRestaurantsStore()
-    const hotels = useHotelsStore()
-    const sites = useSitesStore()
-    const auth = useAuthStore()
-    const wilayaStore = useWilayasStore()
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useTripsStore } from '@/stores/trips'
+import { useRestaurantsStore } from '@/stores/restaurants'
+import { useHotelsStore } from '@/stores/hotels'
+import { useSitesStore } from '@/stores/sites'
+import { useAuthStore } from '@/stores/auth'
+import { useWilayasStore } from '@/stores/wilaya'
 
-    const step = ref(1)
-    const isSubmitting = ref(false)
+const router = useRouter()
+const tripStore = useTripsStore()
+const restaurants = useRestaurantsStore()
+const hotels = useHotelsStore()
+const sites = useSitesStore()
+const auth = useAuthStore()
+const wilayaStore = useWilayasStore()
 
-    //
-    const debutDate = ref(null)
-    const endDate = ref(null)
-    const pickerOneDate = ref(null)
-    const pickerTwoDate = ref(null)
+const step = ref(1)
+const isSubmitting = ref(false)
 
-    const now = new Date()
+const debutDate = ref(null)
+const endDate = ref(null)
+const pickerOneDate = ref(null)
+const pickerTwoDate = ref(null)
 
-    // TODAY (YYYY-MM-DD)
-    const today = ref(now.toISOString().split('T')[0])
+const now = new Date()
+const today = ref(now.toISOString().split('T')[0])
+const currentMonth = ref(now.getMonth())
+const currentYear = ref(now.getFullYear())
 
-    // current month/year
-    const currentMonth = ref(now.getMonth())
-    const currentYear = ref(now.getFullYear())
+const nextMonth = ref((now.getMonth() + 1) % 12)
+const nextYear = ref(
+  now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear()
+)
 
-    // next month/year
-    const nextMonth = ref((now.getMonth() + 1) % 12)
-    const nextYear = ref(
-        now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear()
-    )
+const numberOfDays = computed(() => {
+  if (!debutDate.value || !endDate.value) return 0
+  const start = new Date(debutDate.value)
+  const end = new Date(endDate.value)
+  if (end <= start) return 0
+  const diffTime = Math.abs(end - start)
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+})
 
-    // Calculate number of days between debut and end dates
-    const numberOfDays = computed(() => {
-        if (!debutDate.value || !endDate.value) return 0
-        
-        const start = new Date(debutDate.value)
-        const end = new Date(endDate.value)
-        
-        if (end <= start) return 0
-        
-        const diffTime = Math.abs(end - start)
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        return diffDays
+const highlightedDates = computed(() => {
+  if (!debutDate.value || !endDate.value) {
+    return debutDate.value ? [debutDate.value] : []
+  }
+  const dates = []
+  const start = new Date(debutDate.value)
+  const end = new Date(endDate.value)
+  const actualStart = start < end ? start : end
+  const actualEnd = start < end ? end : start
+  for (let d = new Date(actualStart); d <= actualEnd; d.setDate(d.getDate() + 1)) {
+    dates.push(d.toISOString().split('T')[0])
+  }
+  return dates
+})
+
+const selectedDates = computed(() => {
+  return debutDate.value && endDate.value && endDate.value > debutDate.value
+    ? [debutDate.value, endDate.value]
+    : []
+})
+
+const items = ref(['Destination', 'Dates', 'Party Type', 'Preferences'])
+
+const selectedState = ref('')
+const tripType = ref('')
+
+const trips = [
+  { label: 'Solo Trip', value: 'SOLO', icon: 'mdi-account' },
+  { label: 'Friends Adventure', value: 'FRIENDS', icon: 'mdi-account-group' },
+  { label: 'Family Journey', value: 'FAMILY', icon: 'mdi-account-multiple' }
+]
+
+const selectedActivities = ref([])
+
+const activities = [
+  { label: 'Must-see Cultural Attractions', value: '1366e1065346f7a8a7105c81378fc5a2' },
+  { label: 'Great Food & Culinary Encounters', value: 'bfcd861aa8f74bf6b2091502e6a2c050' },
+  { label: 'Hidden Desert Gems & Oases', value: '3357cca0e7092e7e4fcd42d9001d7958' },
+  { label: 'Guided Expeditions & Hikes', value: '7569fb4bae5e6d0513eb4c4ee3f428e9' },
+  { label: 'Historical & Roman Ruins', value: 'cb0a104a22264b1019fdd3fa088f47d2' },
+  { label: 'Local Art & Crafts', value: '4dfbcb53b37dd9392568ae020ba1d6b5' },
+  { label: 'Traditional Algerian Gastronomy', value: 'f91a11406a71931e93d1e5932ab102fb' },
+  { label: 'Family-friendly Heritage Museums', value: 'ecce9b7d8c1950db6c115f54f8d2c26a' },
+  { label: 'Artisanal Souks & Markets', value: '2e453480292d139cffc7e37cb15ac30a' },
+  { label: 'Outdoor Adventure & 4x4', value: '7cbcefac00b8ca2b54fcb738d1a28760' },
+  { label: 'Music & Architectural Walks', value: '4f1e0103a9a182f97b7b8d9d21b4c6be' },
+  { label: 'UNESCO World Heritage Exploration', value: '1a86474175f886c1f1a6945d5e19923d' }
+]
+
+const user = ref(null)
+
+const isStep1Valid = computed(() => !!selectedState.value)
+const isStep2Valid = computed(() => selectedDates.value.length > 1)
+const isStep3Valid = computed(() => !!tripType.value)
+
+const isNextDisabled = computed(() => {
+  if (step.value === 1) return !isStep1Valid.value
+  if (step.value === 2) return !isStep2Valid.value
+  if (step.value === 3) return !isStep3Valid.value
+  if (step.value === 4) return true
+  return false
+})
+
+const getDayProps = (date) => {
+  const d = new Date(date).toISOString().split('T')[0]
+  if (d === debutDate.value) return { class: 'range-start' }
+  if (d === endDate.value) return { class: 'range-end' }
+  if (highlightedDates.value.includes(d)) return { class: 'range-middle' }
+  return {}
+}
+
+const toggleActivity = (val) => {
+  const idx = selectedActivities.value.indexOf(val)
+  if (idx > -1) {
+    selectedActivities.value.splice(idx, 1)
+  } else {
+    selectedActivities.value.push(val)
+  }
+}
+
+const submitTrip = async () => {
+  isSubmitting.value = true
+  try {
+    await tripStore.generateTripWithAI({
+      creator: user.value?._id,
+      city: selectedState.value,
+      days: numberOfDays.value || 3,
+      startDate: debutDate.value,
+      endDate: endDate.value,
+      budget: 'medium',
+      preferences: ['hotels', 'restaurants', 'tourist sites'],
+      destination: selectedState.value,
+      hotels: (hotels.normalizeHotelsForIA || []).slice(0, 5),
+      restaurants: (restaurants.normalizeRestaurantsForIA || []).slice(0, 5),
+      sites: (sites.normalizeSitesForIA || []).slice(0, 5)
     })
 
-    // Generate array of dates between debut and end date for highlighting
-    const highlightedDates = computed(() => {
-        if (!debutDate.value || !endDate.value) {
-            return debutDate.value ? [debutDate.value] : []
-        }
-
-        const dates = []
-        const start = new Date(debutDate.value)
-        const end = new Date(endDate.value)
-        
-        // Ensure start is before end
-        const actualStart = start < end ? start : end
-        const actualEnd = start < end ? end : start
-
-        // Generate all dates in range
-        for (let d = new Date(actualStart); d <= actualEnd; d.setDate(d.getDate() + 1)) {
-            dates.push(d.toISOString().split('T')[0])
-        }
-        
-        return dates
-    })
-
-    // Validate that both dates are selected and end > debut
-    const selectedDates = computed(() => {
-        return debutDate.value && endDate.value && endDate.value > debutDate.value
-            ? [debutDate.value, endDate.value]
-            : []
-    })
-
-    //
-    const items = ref([
-            'State',
-            'Dates',
-            'Trip Type',
-            'Activities'
-        ])
-
-    const selectedState = ref('')
-
-    // const today = new Date().toISOString().slice(0, 10)
-
-    // const dateRange = ref([])
-
-    const tripType = ref('')
-
-    const trips = [
-        { label: 'Solo trip', value: 'SOLO', icon: 'mdi-account' },
-        { label: 'Friends trip', value: 'FRIENDS', icon: 'mdi-account-group' },
-        { label: 'Family trip', value: 'FAMILY', icon: 'mdi-account-multiple' }
-    ]
-
-    const selectedActivities = ref([])
-
-    const activities = [
-        { label: 'Must-see Attractions', value: '1366e1065346f7a8a7105c81378fc5a2' },
-        { label: 'Great Food', value: 'bfcd861aa8f74bf6b2091502e6a2c050' },
-        { label: 'Hidden Gems', value: '3357cca0e7092e7e4fcd42d9001d7958' },
-        { label: 'Tours & Experiences', value: '7569fb4bae5e6d0513eb4c4ee3f428e9' },
-        { label: 'Historical Landmarks', value: 'cb0a104a22264b1019fdd3fa088f47d2' },
-        { label: 'Art Galleries', value: '4dfbcb53b37dd9392568ae020ba1d6b5' },
-        { label: 'Algerian Cuisine', value: 'f91a11406a71931e93d1e5932ab102fb' },
-        { label: 'Family-friendly Museums', value: 'ecce9b7d8c1950db6c115f54f8d2c26a' },
-        { label: 'Luxury Shopping', value: '2e453480292d139cffc7e37cb15ac30a' },
-        { label: 'Adventure and Sports', value: '7cbcefac00b8ca2b54fcb738d1a28760' },
-        { label: 'Arts & Theatre', value: '4f1e0103a9a182f97b7b8d9d21b4c6be' },
-        { label: 'Culture', value: '1a86474175f886c1f1a6945d5e19923d' },
-        { label: 'Other', value: 'OTHER', icon: 'mdi-plus' }
-    ]
-
-    
-    const platform = ref('')
-    const user = ref(null)
-
-    // Validations
-    const isStep1Valid = computed(() => selectedState.value)
-    
-    // const isStep2Valid = computed(() => dateRange.value.length > 1)
-    // const isStep2Valid = computed(() => selectedDates.value.length > 0)
-    const isStep2Valid = computed(() => selectedDates.value.length > 1)
-
-    const isStep3Valid = computed(() => {
-        return tripType.value
-    })
-
-    
-    const isNextDisabled = computed(() => {
-        if (step.value === 1) return !isStep1Valid.value
-        if (step.value === 2) return !isStep2Valid.value
-        if (step.value === 3) return !isStep3Valid.value
-        if (step.value === 4) return true 
-        return false
-    })
-
-    const dateRange = computed(() => {
-        return selectedDates.value.length === 2 ? selectedDates.value : []
-    })
-
-    const getDayProps = (date) => {
-        const d = new Date(date).toISOString().split('T')[0]
-        if (d === debutDate.value) return { class: 'range-start' }
-        if (d === endDate.value) return { class: 'range-end' }
-        if (highlightedDates.value.includes(d)) return { class: 'range-middle' }
-        return {}
+    if (tripStore.getCurrentTrip?._id) {
+      router.push({
+        name: 'TripDetail',
+        params: { id: tripStore.getCurrentTrip._id }
+      })
+    } else {
+      router.push('/trips')
     }
+  } catch (err) {
+    console.error('Trip AI generation error:', err)
+  } finally {
+    isSubmitting.value = false
+  }
+}
 
+const setupAutocomplete = async () => {
+  const input = document.getElementById('cityInput')
+  if (!input || typeof google === 'undefined' || !google.maps || !google.maps.places) return
 
-    const submitTrip = async () => {
-        isSubmitting.value = true
-        await tripStore.generateTripWithAI({
-            creator: user.value._id,
-            city: selectedState.value,
-            days: numberOfDays.value,
-            startDate: debutDate.value,
-            endDate: endDate.value,
-            budget: 'medium',
-            preferences: ['hotels', 'restaurants', 'tourist sites'],
-            destination: selectedState.value,
-            hotels: hotels.normalizeHotelsForIA.slice(0, 5),
-            restaurants: restaurants.normalizeRestaurantsForIA.slice(0, 5),
-            sites: sites.normalizeSitesForIA.slice(0, 5)
-        })
+  const options = {
+    types: ['(cities)'],
+    componentRestrictions: { country: 'dz' }
+  }
 
-        router.push({
-            name: 'TripDetail',
-            params: {
-                id: tripStore.getCurrentTrip._id
-            }
-        })
+  const autocomplete = new google.maps.places.Autocomplete(input, options)
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace()
+    if (!place?.geometry) return
+    const location = place.geometry.location
+    restaurants.fetchRestaurants(location.lat(), location.lng())
+    hotels.fetchHotels(location.lat(), location.lng())
+    sites.fetchSites(location.lat(), location.lng())
+  })
+}
 
-    }
+const popularCities = [
+  { name: 'Algiers', lat: 36.7538, lng: 3.0588 },
+  { name: 'Oran', lat: 35.6971, lng: -0.6308 },
+  { name: 'Constantine', lat: 36.3650, lng: 6.6147 },
+  { name: 'Djanet', lat: 24.5533, lng: 9.4853 },
+  { name: 'Taghit', lat: 30.9167, lng: -2.0333 },
+  { name: 'Ghardaïa', lat: 32.4833, lng: 3.6667 }
+]
 
-    const setupAutocomplete = async () => {
-  
-        const input = document.getElementById('cityInput')
-        
-        const options = {
-            types: ['(cities)'],
-            componentRestrictions: { country: 'dz' }
-        }
+const selectCity = (c) => {
+  selectedState.value = c.name
+  restaurants.fetchRestaurants(c.lat, c.lng)
+  hotels.fetchHotels(c.lat, c.lng)
+  sites.fetchSites(c.lat, c.lng)
+}
 
-        const autocomplete = new google.maps.places.Autocomplete(input, options)
+const handlePickerOneSelection = (date) => {
+  if (!date) return
+  if (debutDate.value && endDate.value) {
+    debutDate.value = date
+    endDate.value = null
+  } else if (!debutDate.value) {
+    debutDate.value = date
+  } else if (date > debutDate.value) {
+    endDate.value = date
+  } else if (date < debutDate.value) {
+    endDate.value = debutDate.value
+    debutDate.value = date
+  }
+  pickerOneDate.value = null
+}
 
-        autocomplete.addListener('place_changed', () => {
-            const place = autocomplete.getPlace()
-            if (!place.geometry) {
-            alert("No details available for input: '" + place.name + "'")
-            return
-            }
-            const location = place.geometry.location
-            restaurants.fetchRestaurants(location.lat(), location.lng())
-            hotels.fetchHotels(location.lat(), location.lng())
-            sites.fetchSites(location.lat(), location.lng())
-        })
-    }
+const handlePickerTwoSelection = (date) => {
+  if (!date) return
+  if (debutDate.value && endDate.value) {
+    debutDate.value = date
+    endDate.value = null
+  } else if (!debutDate.value) {
+    debutDate.value = date
+  } else if (date > debutDate.value) {
+    endDate.value = date
+  } else if (date < debutDate.value) {
+    endDate.value = debutDate.value
+    debutDate.value = date
+  }
+  pickerTwoDate.value = null
+}
 
-    const popularCities = [
-        { name: 'Algiers', lat: 36.7538, lng: 3.0588 },
-        { name: 'Oran', lat: 35.6971, lng: -0.6308 },
-        { name: 'Constantine', lat: 36.3650, lng: 6.6147 },
-        { name: 'Annaba', lat: 36.9040, lng: 7.7550 }
-    ]
-
-    const selectCity = (c) => {
-        selectedState.value = c.name
-        restaurants.fetchRestaurants(c.lat, c.lng)
-        hotels.fetchHotels(c.lat, c.lng)
-        sites.fetchSites(c.lat, c.lng)
-    }
-
-    // Handle date selection from picker one
-    const handlePickerOneSelection = (date) => {
-        if (!date) return
-        
-        // If both dates are already selected, reset and start new selection
-        if (debutDate.value && endDate.value) {
-            debutDate.value = date
-            endDate.value = null
-        }
-        // If no debut date yet, set it as debut
-        else if (!debutDate.value) {
-            debutDate.value = date
-        }
-        // If debut exists and this date is after it, set as end date
-        else if (date > debutDate.value) {
-            endDate.value = date
-        }
-        // If this date is before debut, swap them
-        else if (date < debutDate.value) {
-            endDate.value = debutDate.value
-            debutDate.value = date
-        }
-        // Clear picker for next selection
-        pickerOneDate.value = null
-    }
-
-    // Handle date selection from picker two
-    const handlePickerTwoSelection = (date) => {
-        if (!date) return
-        
-        // If both dates are already selected, reset and start new selection
-        if (debutDate.value && endDate.value) {
-            debutDate.value = date
-            endDate.value = null
-        }
-        // If no debut date yet, set it as debut
-        else if (!debutDate.value) {
-            debutDate.value = date
-        }
-        // If debut exists and this date is after it, set as end date
-        else if (date > debutDate.value) {
-            endDate.value = date
-        }
-        // If this date is before debut, swap them
-        else if (date < debutDate.value) {
-            endDate.value = debutDate.value
-            debutDate.value = date
-        }
-        // Clear picker for next selection
-        pickerTwoDate.value = null
-    }
-
-    onMounted(async () => {
-        platform.value = Capacitor.getPlatform()
-        const ls = await auth.getLSUserInfo()
-        user.value = ls?.user
-        wilayaStore.fetchWilayas()
-        setupAutocomplete()
-    })
-    
+onMounted(async () => {
+  const ls = await auth.getLSUserInfo()
+  user.value = ls?.user
+  wilayaStore.fetchWilayas()
+  setupAutocomplete()
+})
 </script>
 
 <style scoped>
-    /* Constrain the container's maximum width */
-    .main-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+.editorial-trip-builder {
+  min-height: 100vh;
+}
 
-    .border-placeholder {
-        border: 2px dashed #ccc;
-        min-height: 200px;
-        background-color: #f9f9f9;
-    }
+.max-w-container {
+  max-width: 1100px;
+}
 
-    /* targets Vuetify 3 header classes and forces zero height */
-    :v-deep .v-stepper-header,
-    :v-deep .v-stepper__header,
-    :v-deep .v-stepper-header[role="tablist"] {
-        display: none !important;
-        height: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
+.max-w-content {
+  max-width: 720px;
+}
 
-    /* also remove any leftover top margin from the stepper root */
-    :v-deep .v-stepper {
-        margin-top: 0 !important;
-    }
+.max-w-prose {
+  max-width: 580px;
+}
 
-   /* ================================ */
-/* VUETIFY 3 RANGE PICKER STYLING   */
-/* CSS ONLY – NO LOGIC CHANGES      */
-/* ================================ */
-::deep(.range-start .v-btn),
-::deep(.range-end .v-btn) {
-  background-color: #1976d2 !important;
-  color: white !important;
+.catalog-hero {
+  background: #FFFFFF;
+}
+
+.border-subtle {
+  border-color: #E7E8E1 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Stepper Indicator */
+.stepper-indicator-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-node {
+  display: flex;
+  align-items: center;
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  background: #FFFFFF;
+  border: 2px solid #E7E8E1;
+  color: #69736E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  transition: all 0.25s ease;
 }
 
-::deep(.range-middle .v-btn) {
-  background-color: rgba(25, 118, 210, 0.25) !important;
-  color: #1976d2 !important;
-  border-radius: 0;
+.step-active .step-circle {
+  background: #173F35;
+  border-color: #173F35;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(23, 63, 53, 0.25);
 }
 
+.step-completed .step-circle {
+  background: #21866B;
+  border-color: #21866B;
+  color: #FFFFFF;
+  cursor: pointer;
+}
 
+.step-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #69736E;
+  letter-spacing: 0.02em;
+}
+
+.step-active .step-label {
+  color: #173F35;
+  font-weight: 700;
+}
+
+.step-connector {
+  width: 32px;
+  height: 2px;
+  background-color: #E7E8E1;
+}
+
+.step-completed .step-connector {
+  background-color: #21866B;
+}
+
+/* Card Selection Highlights */
+.card-selected {
+  border-color: #173F35 !important;
+  background-color: #FAF8F2 !important;
+  box-shadow: 0 8px 24px -4px rgba(23, 63, 53, 0.15) !important;
+}
+
+.category-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.transition-all {
+  transition: all 0.25s ease;
+}
+
+/* Date Picker Range Highlighting */
+:deep(.range-start .v-btn),
+:deep(.range-end .v-btn) {
+  background-color: #173F35 !important;
+  color: #FFFFFF !important;
+  border-radius: 50% !important;
+}
+
+:deep(.range-middle .v-btn) {
+  background-color: rgba(217, 185, 140, 0.35) !important;
+  color: #102D27 !important;
+  border-radius: 0 !important;
+}
 </style>

@@ -20,7 +20,7 @@
             @click:row="editItem"
         >
             <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                <tr style="color: #00366f;">
+                <tr style="color: #102D27;">
                     <template v-for="column in columns" :key="column.key">
                         <td>
                             {{ column.text }}
@@ -320,17 +320,17 @@
     }
     :deep(table > thead > tr:last-child > th) {
         color: white !important;
-        background-color: #00366f !important;
+        background-color: #102D27 !important;
     }
     :deep(.mdi-arrow-up::before) {
         color: white !important;
     }
     .v-card__title {
-        background-color: #00366f;
+        background-color: #102D27;
         color: white;
     }
     .v-card__actions {
-        background-color: #00366f;
+        background-color: #102D27;
     }
     :deep(.style-1) {
         color: white !important;
@@ -340,6 +340,6 @@
         background-color: white !important;
     }
     :deep(.mdi-calculator-variant::before) {
-        color: #00366f !important;
+        color: #102D27 !important;
     }
 </style>

@@ -105,6 +105,7 @@
 </template>
 
 <script>
+    import axios from 'axios'
     import { useBillingsStore } from '@/stores/billings'
     import { mapState, mapActions } from "pinia"
 
@@ -163,32 +164,21 @@
             loading: false,
             err: '',
             editedIndex: -1,
-            editedItem: {
-               
-            },
-            defaultItem: {
-              
-            },
+            editedItem: {},
+            defaultItem: {},
             tab: null,
             loadingTab: true,
             firstLoad: true,
             typeAccount: null,
             announcements: []
-            
         }),
 
         computed: {
-            // ...mapState(useBillingsStore, ["billings", "vehicles", "roles", "loading", "pendingTransportersFiles"]),
-            // ...mapGetters(['vehicles', 'roles']),
             formTitle () {
                 return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
             },
             filterHeaders(){
-                // if(!this.$can('update', 'Billings') && !this.$can('delete', 'Billings')){
-                //     return this.headers.filter((e) => e.text != 'Actions')
-                // }else{
-                    return this.headers
-                // }
+                return this.headers
             }
         },
 
@@ -202,8 +192,7 @@
         },
 
         methods: {
-            ...mapActions(useBillingsStore, ["fetchBillings", "addBilling", "editBillings", "deleteBilling"]),
-            // ...mapActions(['fetchBillings', 'addBillings', 'editBillings', 'deleteBillings', 'fetchVehicles', 'fetchRoles']),
+            ...mapActions(useBillingsStore, ["fetchBillings", "addBillings", "editBillings", "deleteBillings"]),
 
             formatPrice(price){
                 return new Intl.NumberFormat('en-US', {
@@ -221,14 +210,14 @@
             },
 
             getColor(valeur){
-                if (valeur.status == 'pending') return '#FF8C00'
-                else if (valeur.status == 'confirmed') return '#28a74580'
+                if (valeur.status == 'pending') return '#D9943B'
+                else if (valeur.status == 'confirmed') return '#21866B'
             },
 
             async fetchAnnouncements(id){
                 try {
                     const response = await axios.get(`/api/announcements/getAnnouncementsByOwnerId/${id}`);
-                    announcements.value = response.data
+                    this.announcements = response.data
                 } catch (error) {
                     console.error('Error fetching announcements:', error)
                 }
@@ -239,12 +228,8 @@
             },
 
             editItem (e, {item}) {
-                console.log('item', item)
-                console.log('id', item.userId._id)
-                console.log('typeAccount', item.userId.typeAccount)
                 this.$emit("update:modelValue", false)
                 this.$router.push({ name: 'Detail', params: { id: item.userId._id, typeAccount: item.userId.typeAccount }})
-                
             },
 
             closeParentComponentDialog() {
@@ -252,32 +237,29 @@
             },
 
             deleteItem (item) {
-                // this.editedIndex = this.billings.indexOf(item)
                 this.editedIndex = item._id
                 this.editedItem = Object.assign({}, item)
                 this.dialogDelete = true
             },
 
             deleteItemConfirm () {
-                // this.billings.splice(this.editedIndex, 1)
                 this.deleteBillings(this.editedIndex)
-                this.initialize()
                 this.closeDelete()
             },
 
             close () {
                 this.dialog = false
                 this.$nextTick(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
                 })
             },
 
             closeDelete () {
                 this.dialogDelete = false
                 this.$nextTick(() => {
-                this.editedItem = Object.assign({}, this.defaultItem)
-                this.editedIndex = -1
+                    this.editedItem = Object.assign({}, this.defaultItem)
+                    this.editedIndex = -1
                 })
             },
 
@@ -286,30 +268,24 @@
                     await this.addBillings(this.editedItem)
                 } catch (error) {
                     this.err = error
-                    console.log('error create ad', error)
+                    console.log('error create billing', error)
                 }
             },
 
             save () {
                 this.loading = true
                 if (this.editedIndex > -1) {
-                    
-                    this.editBillings(updatedItem).then(() => {
+                    this.editBillings(this.editedItem).then(() => {
                         Object.assign(this.billings[this.editedIndex], this.editedItem)
-                        // this.$store.commit('getPendingTransportersFiles', this.billings)
                         this.loading = false
                         this.close()
-                        this.initialize()
                     })
                 } else {
                     this.createBilling().then(() => {
                         this.close()
                         this.loading = false
-                        this.initialize()
                     })
                 }
-                
-                
             },
         }
     }
@@ -317,30 +293,19 @@
 
 <style scoped>
     .v-data-table {
-        border: 1px solid black;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
     }
     :deep(table > thead > tr:last-child > th) {
-        color: white !important;
-        background-color: #00366f !important;
-    }
-    :deep(.mdi-arrow-up::before) {
-        color: white !important;
+        color: var(--color-forest-green) !important;
+        background-color: var(--color-warm-ivory) !important;
+        font-weight: 700;
     }
     .v-card__title {
-        background-color: #00366f;
+        background-color: var(--color-forest-green);
         color: white;
     }
     .v-card__actions {
-        background-color: #00366f;
-    }
-    :deep(.style-1) {
-        color: white !important;
-        background-color: #DC143C !important;
-    }
-    :deep(.style-2) {
-        background-color: white !important;
-    }
-    :deep(.mdi-calculator-variant::before) {
-        color: #00366f !important;
+        background-color: var(--color-forest-green);
     }
 </style>

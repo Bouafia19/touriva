@@ -1,4 +1,4 @@
-# djawal_shop_seller_admin
+# touriva_shop_seller_admin
 
 This template should help get you started developing with Vue 3 in Vite.
 

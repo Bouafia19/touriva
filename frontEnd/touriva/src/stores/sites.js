@@ -17,11 +17,30 @@ export const useSitesStore = defineStore('sites', {
     },
 
     actions: {
-        
+        async fetchCatalogSites() {
+            this.loading = true
+            this.error = null
+            try {
+                const res = await axios.get('/api/sites')
+                if (Array.isArray(res.data) && res.data.length > 0) {
+                    this.sites = res.data.map(s => ({
+                        ...s,
+                        displayName: { text: s.name },
+                        formattedAddress: s.address,
+                        rating: s.rating || 4.5,
+                        reviews: s.reviews || 24,
+                        photo: s.photo || s.image || null
+                    }))
+                }
+            } catch (err) {
+                console.error('Failed to load catalog sites:', err)
+            } finally {
+                this.loading = false
+            }
+        },
         async fetchSites(lat, lng) {
             this.loading = true
             this.error = null
-
             try {
             
                 const response = await axios.post(

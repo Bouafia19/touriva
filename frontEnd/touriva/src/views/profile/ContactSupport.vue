@@ -1,91 +1,242 @@
 <template>
-  <v-container>
-    <v-row class="mb-6">
-      <v-col cols="12" md="6">
-        <v-card elevation="3" class="pa-4">
-          <v-card-title class="text-h5">Contact Us</v-card-title>
-          <v-card-text>
+  <div class="editorial-catalog bg-warm-ivory min-vh-100 pb-16">
+    <!-- Header Banner -->
+    <div class="catalog-hero py-10 px-4 border-b border-subtle bg-white">
+      <v-container class="max-w-container">
+        <div class="editorial-tag mb-1">TRAVELER ASSISTANCE & INQUIRIES</div>
+        <h1 class="text-h3 font-serif font-weight-bold text-forest mb-2">
+          {{ $t('contactSupport') || 'Contact & Concierge Support' }}
+        </h1>
+        <p class="text-secondary-editorial max-w-prose mb-0">
+          Our dedicated tourism concierge team is here to assist travelers, certified guides, and partner agencies across Algeria.
+        </p>
+      </v-container>
+    </div>
+
+    <v-container class="max-w-container py-8">
+      <v-row>
+        <!-- Contact Form Card -->
+        <v-col cols="12" md="7">
+          <v-card class="editorial-card pa-6 pa-md-8 h-100" elevation="0">
+            <div class="editorial-tag text-sand mb-1">GET IN TOUCH</div>
+            <h2 class="text-h5 font-serif font-weight-bold text-forest mb-4">
+              Send Us a Message
+            </h2>
+            <p class="text-caption text-secondary-editorial mb-6">
+              Have a question about an excursion reservation, landmark accessibility, or guide certification? We typically respond within 24 hours.
+            </p>
+
             <v-form @submit.prevent="submitForm">
-              <v-text-field v-model="form.name" label="Full Name" required></v-text-field>
-              <v-text-field v-model="form.email" label="Email" type="email" required></v-text-field>
-              <v-text-field v-model="form.subject" label="Subject"></v-text-field>
-              <v-textarea v-model="form.message" label="Message" required></v-textarea>
-              <v-btn type="submit" color="next" block>Send Message</v-btn>
+              <div class="mb-4">
+                <div class="text-caption font-weight-bold text-forest mb-1">FULL NAME *</div>
+                <v-text-field
+                  v-model="form.name"
+                  placeholder="e.g. Youcef Boualem"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  required
+                  hide-details
+                />
+              </div>
+
+              <div class="mb-4">
+                <div class="text-caption font-weight-bold text-forest mb-1">EMAIL ADDRESS *</div>
+                <v-text-field
+                  v-model="form.email"
+                  type="email"
+                  placeholder="e.g. youcef@example.com"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  required
+                  hide-details
+                />
+              </div>
+
+              <div class="mb-4">
+                <div class="text-caption font-weight-bold text-forest mb-1">INQUIRY TOPIC</div>
+                <v-select
+                  v-model="form.subject"
+                  :items="topics"
+                  placeholder="Select inquiry category"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  hide-details
+                />
+              </div>
+
+              <div class="mb-6">
+                <div class="text-caption font-weight-bold text-forest mb-1">MESSAGE *</div>
+                <v-textarea
+                  v-model="form.message"
+                  placeholder="Describe your inquiry or question in detail..."
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  rows="4"
+                  required
+                  hide-details
+                />
+              </div>
+
+              <v-btn
+                type="submit"
+                color="#173F35"
+                size="large"
+                rounded="pill"
+                class="btn-editorial-primary font-weight-bold px-8"
+                :loading="submitting"
+              >
+                <v-icon start size="18">mdi-send-outline</v-icon>
+                Send Message
+              </v-btn>
             </v-form>
-          </v-card-text>
-        </v-card>
-      </v-col>
+          </v-card>
+        </v-col>
 
-      <v-col cols="12" md="6">
-        <v-card elevation="3" class="pa-4">
-          <v-card-title class="text-h5">Our Contact Information</v-card-title>
-          <v-card-text>
-            <v-list>
-              <v-list-item>
-                <v-icon color="next" class="mr-2">mdi-map-marker</v-icon>
-                <span>123 Industrial Road, Algiers, Algeria</span>
-              </v-list-item>
-              <v-list-item>
-                <v-icon color="next" class="mr-2">mdi-phone</v-icon>
-                <span>+213 555 123 456</span>
-              </v-list-item>
-              <v-list-item>
-                <v-icon color="next" class="mr-2">mdi-email</v-icon>
-                <span>contact@prolourd.com</span>
-              </v-list-item>
-            </v-list>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+        <!-- Information & Direct Channels -->
+        <v-col cols="12" md="5">
+          <v-card class="editorial-card pa-6 pa-md-8 bg-deep-green text-white mb-6" elevation="0">
+            <div class="editorial-tag text-sand mb-1">OFFICIAL CONTACT</div>
+            <h3 class="text-h5 font-serif font-weight-bold text-white mb-4">
+              Touriva Headquarters
+            </h3>
+            <p class="text-sand-light text-caption mb-6">
+              National tourism platform coordinating excursions, verified boutique stays, and cultural heritage promotion across all 58 Algerian Wilayas.
+            </p>
 
-    <v-row>
-      <v-col cols="12">
-        <v-card elevation="3">
-          <v-card-title class="text-h5 text-center">Find Us on the Map</v-card-title>
-          <v-card-text class="pa-0">
+            <div class="d-flex align-start mb-4">
+              <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-map-marker-outline</v-icon>
+              <div>
+                <div class="text-caption text-sand font-weight-bold">OFFICE LOCATION</div>
+                <div class="text-body-2 text-white">Didouche Mourad Avenue, Algiers, Algeria</div>
+              </div>
+            </div>
+
+            <div class="d-flex align-start mb-4">
+              <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-phone-outline</v-icon>
+              <div>
+                <div class="text-caption text-sand font-weight-bold">DIRECT TELEPHONE</div>
+                <div class="text-body-2 text-white">+213 (0) 550 000 000</div>
+              </div>
+            </div>
+
+            <div class="d-flex align-start mb-6">
+              <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-email-outline</v-icon>
+              <div>
+                <div class="text-caption text-sand font-weight-bold">CONCIERGE INQUIRIES</div>
+                <div class="text-body-2 text-white">support@touriva.com</div>
+              </div>
+            </div>
+
+            <v-divider class="my-4 border-sand-subtle"></v-divider>
+
+            <div class="d-flex align-center justify-space-between">
+              <span class="text-caption text-sand-light">HOURS: Sun - Thu, 08:30 - 17:30</span>
+              <v-chip size="x-small" color="#21866B" variant="flat" class="text-white font-weight-bold">
+                OPERATIONAL
+              </v-chip>
+            </div>
+          </v-card>
+
+          <!-- Map Card -->
+          <v-card class="editorial-card overflow-hidden" elevation="0">
             <iframe
               width="100%"
-              height="300"
+              height="240"
               frameborder="0"
-              style="border:0;"
+              style="border:0; display:block;"
               allowfullscreen
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3234.184003798208!2d3.054999815488522!3d36.75399957995842!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x128fadcac1234abcd%3A0xabcdef1234567890!2sProlourd%20Algeria!5e0!3m2!1sen!2sdz!4v1711123456789"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3196.7937397943564!2d3.056086!3d36.768132!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x128fb2f768b55555%3A0x1234567890abcdef!2sAlgiers%20Centre%2C%20Algeria!5e0!3m2!1sen!2sdz!4v1711123456789"
             ></iframe>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
 
+    <!-- Success Snackbar -->
+    <v-snackbar
+      v-model="snackbar"
+      color="#173F35"
+      location="top"
+      rounded="pill"
+      :timeout="4000"
+    >
+      <div class="d-flex align-center">
+        <v-icon color="#D9B98C" class="mr-2">mdi-check-decagram</v-icon>
+        <span class="font-weight-bold">Your message has been received! Our concierge team will reach out shortly.</span>
+      </div>
+    </v-snackbar>
+  </div>
 </template>
 
-<script>
-import { ref } from "vue";
+<script setup>
+import { ref } from 'vue'
 
-export default {
-  setup() {
-    const form = ref({
-      name: "",
-      email: "",
-      subject: "",
-      message: "",
-    });
+const form = ref({
+  name: '',
+  email: '',
+  subject: 'Excursion Booking Inquiry',
+  message: ''
+})
 
-    const submitForm = () => {
-      console.log("Form submitted", form.value);
-      alert("Your message has been sent!");
-    };
+const submitting = ref(false)
+const snackbar = ref(false)
 
-    return { form, submitForm };
-  },
-};
+const topics = [
+  'Excursion Booking Inquiry',
+  'Certified Guide Partnership',
+  'Hotel or Restaurant Listing',
+  'Technical Platform Support',
+  'Custom Saharan Expedition Planning'
+]
+
+const submitForm = () => {
+  if (!form.value.name || !form.value.email || !form.value.message) return
+  submitting.value = true
+  setTimeout(() => {
+    submitting.value = false
+    snackbar.value = true
+    form.value = {
+      name: '',
+      email: '',
+      subject: 'Excursion Booking Inquiry',
+      message: ''
+    }
+  }, 600)
+}
 </script>
 
 <style scoped>
-iframe {
-  border-radius: 10px;
+.editorial-catalog {
+  min-height: 100vh;
+}
+
+.max-w-container {
+  max-width: 1200px;
+}
+
+.max-w-prose {
+  max-width: 600px;
+}
+
+.catalog-hero {
+  background: #FFFFFF;
+}
+
+.border-subtle {
+  border-color: #E7E8E1 !important;
+}
+
+.border-sand-subtle {
+  border-color: rgba(217, 185, 140, 0.2) !important;
 }
 </style>

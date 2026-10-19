@@ -132,7 +132,7 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
-          path: '/billing:id/:typeAccount?',
+          path: '/billing/:id/:typeAccount?',
           name: 'Detail',
           component: () => import('@/views/Billing/detail.vue'),
           meta: { requiresAuth: true },
@@ -154,18 +154,21 @@ const router = createRouter({
         { 
           path: '/admin/categories', 
           name: 'AdminCategories', 
-          component: AdminCategoryList 
+          component: AdminCategoryList,
+          meta: { requiresAuth: true }
         },
         { 
           path: '/admin/category/add', 
           name: 'AddCategory', 
-          component: AdminCategoryForm 
+          component: AdminCategoryForm,
+          meta: { requiresAuth: true }
         },
         { 
           path: '/admin/category/edit/:categoryId', 
           name: 'EditCategory', 
           component: AdminCategoryForm, 
-          props: true 
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
           path: '/forbidden',

@@ -1,215 +1,214 @@
 <template>
-    <v-container 
-      fluid 
-      :class="[platform === 'web' ? 'px-0 main-container' : '']"
-    >
-        <Advertising />
+  <v-container
+    fluid
+    :class="[platform === 'web' ? 'px-4 main-container' : 'px-2']"
+    class="py-6"
+  >
+    <Advertising />
 
-         <v-row>
-            <v-col class="d-flex justify-start">
-                <v-btn 
-                    color="next"
-                    @click="returnTo"
-                    variant="text"
-                    prepend-icon="mdi-arrow-left"
-                >
-                    {{ $t('Return') }}
-                </v-btn>
-            </v-col>
-        </v-row>
+    <!-- Return button & breadcrumbs -->
+    <div class="d-flex align-center justify-space-between mb-6">
+      <v-btn
+        variant="text"
+        color="forestGreen"
+        class="font-weight-bold px-0"
+        @click="returnTo"
+      >
+        <v-icon start size="18">mdi-arrow-left</v-icon>
+        {{ $t('Return') || 'Back' }}
+      </v-btn>
 
-        <h2 class="pa-4 text-uppercase">
-            {{ categories.getCategoryName || child[0]?.parent?.name }}
-        </h2>
+      <span class="editorial-tag text-sand-dark">
+        {{ $t('Subcategories') }}
+      </span>
+    </div>
 
-        <h3 
-            class="pa-4 text-uppercase text-center"
+    <!-- Header Section -->
+    <div class="mb-8">
+      <span class="editorial-tag text-sand-dark d-block mb-1">COLLECTION DIRECTORY</span>
+      <h1 class="editorial-heading text-h4 text-md-h3 font-weight-bold text-forest">
+        {{ categories.getCategoryName || child[0]?.parent?.name || 'Subcategories' }}
+      </h1>
+      <p class="text-body-2 text-secondary-editorial mt-1 max-w-600">
+        Choose a subcollection to view specialized items, artisan variants, and regional crafts.
+      </p>
+    </div>
+
+    <!-- Subcategories Grid -->
+    <v-row v-if="child.length > 0 && !getLoading">
+      <v-col
+        v-for="category in child"
+        :key="category._id"
+        cols="6"
+        sm="4"
+        md="3"
+        lg="3"
+        class="pa-2 pa-sm-3"
+      >
+        <v-card
+          class="editorial-card cursor-pointer h-100 d-flex flex-column"
+          @click="filterChild(category)"
         >
-            {{ $t('Subcategories') }}
-        </h3>
-
-        <v-row 
-            v-if="child.length > 0 && !getLoading" 
-            class="d-flex justify-center"
-        >
-            <v-col       
-                cols="auto"
-                v-for="category in child" 
-                :key="category._id"
-            >      
-                <v-card
-                    class="mx-auto"
-                    :width="cardWidth"
-                    @click="filterChild(category)"
-                >
-                    <v-img
-                        class="align-end text-white"
-                        height="200"
-                        :src="category.img"
-                        cover
-                        
-                    >
-                        <template v-slot:placeholder>
-                            <v-row
-                                align="center"
-                                class="fill-height ma-0"
-                                justify="center"
-                            >
-                                <v-progress-circular
-                                    color="grey-lighten-5"
-                                    indeterminate
-                                ></v-progress-circular>
-                            </v-row>
-                        </template>
-                    </v-img>
-                    
-                    <v-card-title
-                        class="subtitle-2 text-center break-word d-flex justify-center align-center"
-                        :style="{ fontSize: fontSize, height: '50px'}"
-                    >
-                        {{ category.name }}
-                    </v-card-title>
-            
-                </v-card>
-            </v-col>
-        </v-row>
-
-        <v-row
-            v-else
-            class="d-flex justify-center"
-        >
-            <v-col
-                v-if="child.length === 0 && !getLoading"
+          <!-- Image -->
+          <div class="position-relative overflow-hidden category-img-wrapper">
+            <v-img
+              :src="category.img || fallbackImage"
+              cover
+              class="img-editorial-zoom h-100"
             >
-                <v-alert type="info">No categories found.</v-alert>
-            </v-col>
+              <template #placeholder>
+                <div class="d-flex align-center justify-center fill-height bg-warm-ivory">
+                  <v-progress-circular color="forestGreen" indeterminate size="24" />
+                </div>
+              </template>
+            </v-img>
 
-            <v-col 
-                cols="auto"
-                v-for="(cat, index) in 10" 
-                :key="index" 
-                v-else
-            >
-                <v-skeleton-loader
-                    class="mx-auto"
-                    :width="cardWidth"
-                    :height="cardHeight"
-                    type="card"
-                ></v-skeleton-loader>
-            </v-col>
+            <div class="category-overlay d-flex align-end pa-3">
+              <span class="editorial-chip px-2 py-0-5 text-caption">
+                {{ category.hasChild ? 'SUBCOLLECTION' : 'VIEW ITEMS' }}
+              </span>
+            </div>
+          </div>
 
-        </v-row>
-           
-             
-    </v-container>
+          <!-- Title -->
+          <v-card-text class="pa-4 d-flex align-center justify-space-between flex-grow-1">
+            <h3 class="text-subtitle-1 font-weight-bold text-forest text-truncate">
+              {{ category.name }}
+            </h3>
+            <v-icon color="sand-dark" size="18">mdi-arrow-right</v-icon>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Skeleton Loaders -->
+    <v-row v-else-if="getLoading">
+      <v-col
+        v-for="index in 8"
+        :key="index"
+        cols="6"
+        sm="4"
+        md="3"
+        class="pa-2 pa-sm-3"
+      >
+        <v-skeleton-loader
+          type="image, article"
+          class="rounded-xl border-editorial bg-white pa-2"
+        />
+      </v-col>
+    </v-row>
+
+    <!-- Empty State -->
+    <div v-else class="shop-empty-state my-8">
+      <v-avatar size="64" color="sandLight" class="mb-3">
+        <v-icon size="32" color="deepGreen">mdi-package-variant-closed</v-icon>
+      </v-avatar>
+      <h3 class="editorial-heading text-h6 font-weight-bold text-forest mb-2">
+        {{ $t('Npfitc') || 'No subcategories found' }}
+      </h3>
+      <p class="text-body-2 text-secondary-editorial mb-4">
+        Explore our main catalogue to find more artisan products.
+      </p>
+      <v-btn
+        class="btn-editorial-primary px-6"
+        size="small"
+        @click="$router.push('/products')"
+      >
+        {{ $t('ViewCatalog') || 'View All Products' }}
+      </v-btn>
+    </div>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted, computed, watch, onActivated, onDeactivated } from 'vue'
-    import { Capacitor } from '@capacitor/core'
-    import { useDisplay } from "vuetify"
-    import { useCategoriesStore } from '@/stores/categories'
-    import Advertising from '@/components/Advertising.vue'
-    import { useRouter, useRoute } from 'vue-router'
-    import { storeToRefs } from 'pinia'
+  import { ref, onMounted, watch, onActivated } from 'vue'
+  import { Capacitor } from '@capacitor/core'
+  import { useCategoriesStore } from '@/stores/categories'
+  import Advertising from '@/components/Advertising.vue'
+  import { useRouter, useRoute } from 'vue-router'
+  import { storeToRefs } from 'pinia'
 
-    const categories = useCategoriesStore()
-    const { getChildsLocal, getLoading } = storeToRefs(categories)
-    const display = useDisplay()
-    const router = useRouter()
-    const route = useRoute()
+  const categories = useCategoriesStore()
+  const { getChildsLocal, getLoading } = storeToRefs(categories)
+  const router = useRouter()
+  const route = useRoute()
 
-    let id = route.params.id
-    let platform = ref(null),
-        child = ref([])
+  let id = route.params.id
+  const platform = ref(null)
+  const child = ref([])
+  const fallbackImage = ref(new URL('@/assets/online-shop.png', import.meta.url).href)
 
-    watch(() => route.fullPath, (newPath, oldPath) => {
-            categories.fetchChildNoImages({ id: route.params.id })
-        }
-    )
+  watch(() => route.fullPath, () => {
+    categories.fetchChildNoImages({ id: route.params.id })
+  })
 
-    watch(() => categories.childsLocal, (newVal) => {
-            child.value = [...newVal]
-        },
-        { deep: true }
-    )
+  watch(() => categories.childsLocal, (newVal) => {
+    child.value = [...(newVal || [])]
+  }, { deep: true })
 
-    const cardWidth = computed(() => {
-        const { xs, sm, md, lg } = display
-        if (xs.value) return "170px"
-        if (sm.value) return "170px"
-        if (md.value) return "170px"
-        if (lg.value) return "344"
-        return "200"
-    })
-
-    const cardHeight = computed(() => {
-        const { xs, sm, md, lg } = display
-        if (xs.value) return "150px"
-        if (sm.value) return "250px"
-        if (md.value) return "250px"
-        if (lg.value) return "250px"
-        return "250px"
-    })
-
-    const fontSize = computed(() => {
-        const { xs, sm, md, lg } = display
-        if (xs.value) return "12px"
-        if (sm.value) return "16px"
-        if (md.value) return "16px"
-        if (lg.value) return "16px"
-        return "18px"
-    })
-
-    const filterChild = (cat) => {
-        categories.categoryName = cat.name
-        if(cat.hasChild){
-            router.push({ name: 'Subcategories', params: { id: cat._id } })
-        }else{
-            router.push({ name: 'Products', params: { id: cat._id } })
-        }
+  const filterChild = (cat) => {
+    categories.categoryName = cat.name
+    if (cat.hasChild) {
+      router.push({ name: 'Subcategories', params: { id: cat._id } })
+    } else {
+      router.push({ name: 'Products', params: { id: cat._id } })
     }
+  }
 
-    const returnTo = () => {
-        categories.categoryName = ''
-        categories.loading = true
-        router.go(-1)
+  const returnTo = () => {
+    categories.categoryName = ''
+    categories.loading = true
+    router.go(-1)
+  }
+
+  onMounted(async () => {
+    platform.value = Capacitor.getPlatform()
+    if (!child.value.length) {
+      await categories.fetchChildNoImages({ id })
+      child.value = getChildsLocal.value || []
     }
+  })
 
-    onMounted(async () => {
-        platform.value = Capacitor.getPlatform()
-        if (!child.value.length) {
-            await categories.fetchChildNoImages({ id })
-            child.value = getChildsLocal.value
-        }
-    })
-
-    onActivated(() => {
-        if(child.value.length){
-            categories.loading = false
-        }
-    })
-
+  onActivated(() => {
+    if (child.value.length) {
+      categories.loading = false
+    }
+  })
 </script>
 
 <script>
-    export default {
-        name: 'Subcategories'
-    }
+  export default {
+    name: 'Subcategories'
+  }
 </script>
 
 <style scoped>
+  .main-container {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 
-    .main-container {
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-    }
+  .max-w-600 {
+    max-width: 600px;
+  }
 
-    .break-word {
-        word-break: break-word;
-        overflow-wrap: break-word;
-        white-space: normal;
-    }
+  .category-img-wrapper {
+    height: 180px;
+    background-color: var(--color-warm-ivory);
+  }
 
+  .category-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(0deg, rgba(16, 45, 39, 0.4) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
 </style>

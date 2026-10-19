@@ -1,335 +1,349 @@
 <template>
-  <div>
-        <v-container>
+  <v-container class="py-8 max-w-1200">
+    <!-- Page Header -->
+    <div class="mb-6">
+      <span class="editorial-tag text-sand-dark d-block mb-1">CUSTOMER ACCOUNT • TRANSACTIONS</span>
+      <h1 class="editorial-heading text-h4 text-md-h3 font-weight-bold text-forest">
+        {{ $t('Orders') || 'My Orders & Purchases' }}
+      </h1>
+      <p class="text-body-2 text-secondary-editorial mt-1">
+        Track your recent purchases, order fulfillment, and transaction history.
+      </p>
+    </div>
 
-            <!-- <invoice
-                :trips="trips"
-                ref="report"
-                v-show="false"
-                :transporter="transporter"
-                :company="company"
-            /> -->
+    <!-- Summary Metrics Cards -->
+    <v-row class="mb-6" v-if="ordersList && ordersList.length > 0">
+      <v-col cols="12" sm="4">
+        <v-card class="editorial-card pa-4 d-flex align-center">
+          <v-avatar color="sandLight" size="48" class="mr-4">
+            <v-icon color="deepGreen" size="24">mdi-package-variant</v-icon>
+          </v-avatar>
+          <div>
+            <div class="text-caption text-secondary-editorial font-weight-bold text-uppercase">Total Orders</div>
+            <div class="editorial-heading text-h5 font-weight-bold text-forest">
+              {{ ordersList.length }}
+            </div>
+          </div>
+        </v-card>
+      </v-col>
 
-            <!--<v-row>
-                <v-col class="d-inline-flex align-center">
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        outlined
-                        rounded
-                        text
-                        color="primary"
-                        @click="orderForSellerAccount"
-                        :loading="loadingNewOrder"
-                    >
-                        <v-icon>
-                          mdi-plus
-                        </v-icon>
-                    </v-btn>
-                </v-col>
-            </v-row>-->
+      <v-col cols="12" sm="4">
+        <v-card class="editorial-card pa-4 d-flex align-center">
+          <v-avatar color="sandLight" size="48" class="mr-4">
+            <v-icon color="warning" size="24">mdi-clock-outline</v-icon>
+          </v-avatar>
+          <div>
+            <div class="text-caption text-secondary-editorial font-weight-bold text-uppercase">Pending</div>
+            <div class="editorial-heading text-h5 font-weight-bold text-forest">
+              {{ pendingCount }}
+            </div>
+          </div>
+        </v-card>
+      </v-col>
 
-            <!--<NewOrder 
-                v-on:reloadProducts="confirmOrder" 
-                v-model="sheet" 
-                :id="id"
-                :total="total"
-                :products="products.getProductsByOwnerIdNotPaid"
-                class="mb-1"
-            />-->
+      <v-col cols="12" sm="4">
+        <v-card class="editorial-card pa-4 d-flex align-center">
+          <v-avatar color="sandLight" size="48" class="mr-4">
+            <v-icon color="emerald" size="24">mdi-check-circle-outline</v-icon>
+          </v-avatar>
+          <div>
+            <div class="text-caption text-secondary-editorial font-weight-bold text-uppercase">Confirmed</div>
+            <div class="editorial-heading text-h5 font-weight-bold text-forest">
+              {{ confirmedCount }}
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
 
-            <!--<NewPlan 
-                @updateSheet="planSheet = !planSheet"
-                @selectPlan="selectPlan($event)"
-                v-model="planSheet" 
-                :plans="plans"
-                class="mb-1"
-            />-->
+    <!-- Orders Data Table Card -->
+    <v-card class="editorial-card overflow-hidden">
+      <v-data-table
+        :headers="headers"
+        :items="ordersList"
+        :loading="loadingOrders"
+        :search="search"
+        class="shop-orders-table"
+        disable-sort
+        hide-default-footer
+      >
+        <!-- Table Top Header -->
+        <template #top>
+          <div class="pa-4 pa-sm-6 d-flex align-center justify-space-between flex-wrap ga-3 border-b-editorial">
+            <div class="d-flex align-center">
+              <v-icon color="forestGreen" size="24" class="mr-2">mdi-receipt-text-outline</v-icon>
+              <h2 class="editorial-heading text-h6 font-weight-bold text-forest">
+                Order Activity
+              </h2>
+            </div>
 
-            <!-- <v-card
-                class="mx-auto"
-                outlined
+            <v-text-field
+              v-if="ordersList && ordersList.length > 3"
+              v-model="search"
+              prepend-inner-icon="mdi-magnify"
+              placeholder="Search orders..."
+              variant="outlined"
+              density="compact"
+              hide-details
+              rounded="pill"
+              style="max-width: 260px;"
+            />
+          </div>
+        </template>
+
+        <!-- Custom Table Header Row -->
+        <template #headers="{ columns }">
+          <tr class="table-header-row bg-warm-ivory">
+            <th
+              v-for="col in columns"
+              :key="col.key || col.value"
+              class="editorial-tag text-sand-dark py-3 px-4 font-weight-bold"
             >
-                <v-list-item three-line>
-                    <v-list-item-content>
-                        <div class="text-overline mb-4">
-                            {{ $t('total') + ': ' + formatNumber(subTotal) }}
-                        </div>
-                        <v-list-item-title class="text-h5 mb-1">
-                            {{ $t('net') + ': ' + formatNumber(total) }}
-                        </v-list-item-title>
-                    </v-list-item-content>
-                </v-list-item>
-            </v-card> -->
+              {{ col.text || col.title }}
+            </th>
+          </tr>
+        </template>
 
-            
+        <!-- Product / Item Code Column -->
+        <template #item.productId.code="{ item }">
+          <div class="d-flex align-center py-2">
+            <v-avatar size="40" rounded="lg" color="sandLight" class="mr-3 border-editorial">
+              <v-icon color="deepGreen" size="20">mdi-tag-outline</v-icon>
+            </v-avatar>
+            <div>
+              <span class="editorial-chip px-2 py-0-5 text-caption font-weight-bold">
+                {{ item.productId?.code || item.productId || 'TOU-ITEM' }}
+              </span>
+            </div>
+          </div>
+        </template>
 
-            <v-data-table
-                :headers="headers"
-                :items="orders.getOrders"
-                :loading="!orders.getOrders"
-                :search="search"
-                class="mt-4"
-                disable-sort
-                hide-default-footer
+        <!-- Date Column -->
+        <template #item.date="{ item }">
+          <span class="text-body-2 text-secondary-editorial font-weight-medium">
+            {{ formatDate(item.date) }}
+          </span>
+        </template>
+
+        <!-- Description Column -->
+        <template #item.description="{ item }">
+          <span class="text-body-2 text-forest">
+            {{ item.description || 'Standard Order Purchase' }}
+          </span>
+        </template>
+
+        <!-- Amount Column -->
+        <template #item.amount="{ item }">
+          <span class="shop-price-tag font-weight-bold">
+            {{ formatNumber(item.amount) }}
+          </span>
+        </template>
+
+        <!-- Status Column -->
+        <template #item.status="{ item }">
+          <v-chip
+            size="small"
+            rounded="pill"
+            class="font-weight-bold px-3"
+            :color="item.status === 'confirmed' ? 'emerald' : 'warning'"
+            variant="tonal"
+          >
+            <v-icon start size="14">
+              {{ item.status === 'confirmed' ? 'mdi-check-circle' : 'mdi-clock-outline' }}
+            </v-icon>
+            <span class="text-capitalize">{{ item.status || 'pending' }}</span>
+          </v-chip>
+        </template>
+
+        <!-- Empty State -->
+        <template #no-data>
+          <div class="shop-empty-state my-6 pa-8">
+            <v-avatar size="64" color="sandLight" class="mb-3">
+              <v-icon size="32" color="deepGreen">mdi-package-variant-closed</v-icon>
+            </v-avatar>
+            <h3 class="editorial-heading text-h6 font-weight-bold text-forest mb-2">
+              {{ $t('noRecords') || 'No Orders Placed Yet' }}
+            </h3>
+            <p class="text-body-2 text-secondary-editorial mb-4 max-w-400 mx-auto">
+              You haven't placed any orders yet. Discover our curated collection of artisan goods and travel essentials.
+            </p>
+            <v-btn
+              class="btn-editorial-primary px-6"
+              size="default"
+              rounded="pill"
+              @click="$router.push('/products')"
             >
-                <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                    <tr style="color: #00366f;">
-                        <template v-for="column in columns" :key="column.key">
-                            <td>
-                                {{ column.text }}
-                            </td>
-                        </template>
-                    </tr>
-                </template>
-
-                <!-- <template v-slot:[`item.name`]="{ item }">
-                    {{ item.firstName + ' ' + item.lastName }}
-                </template> -->
-
-                <template v-slot:[`item.amount`]="{ item }">
-                    {{ formatNumber(item.amount) }}
-                </template>
-
-                <template v-slot:[`item.date`]="{ item }">
-                    {{ formatDate(item.date) }}
-                </template>
-
-                <template v-slot:[`item.status`]="{ item }">
-                    <v-chip
-                        :color="getColor(item)"
-                        dark
-                    >
-                        <div v-if="item.status == 'pending'">
-                            {{ $t('pendingOrder') }}
-                        </div>
-                        <div v-else-if="item.status == 'confirmed'">
-                            {{ $t('confirmed') }}
-                        </div>
-                    </v-chip>
-                </template>
-
-                <template v-slot:top>
-                    <v-toolbar
-                        flat
-                    >
-                        <v-toolbar-title>{{ $t('Orders')}}</v-toolbar-title>
-
-                        <!-- <v-divider
-                            class="mx-4"
-                            inset
-                            vertical
-                        ></v-divider> -->
-
-                        <!-- <v-text-field
-                            v-model="search"
-                            append-icon="mdi-magnify"
-                            :label="$t('Search')"
-                            single-line
-                            hide-details
-                            class="shrink mx-4"
-                            rounded
-                            outlined
-                            dense
-                        ></v-text-field> -->
-
-                        <!-- <v-spacer></v-spacer> -->
-                    </v-toolbar>
-                </template>
-                <template v-slot:[`item.actions`]="{ item }">
-                    <v-btn
-                        small
-                        class="mr-2"
-                        @click="printItem(item)"
-                        color="primary"
-                        text
-                        :loading="loading"
-                    >
-                        {{ $t('Download')}}
-                    </v-btn>
-                </template>
-                <template v-slot:no-data>
-                    <v-btn
-                        color="primary"
-                        @click="initialize"
-                        text
-                    >
-                        {{ $t('noRecords')}}
-                    </v-btn>
-                </template>
-            </v-data-table>
-        </v-container>
-  </div>
+              <v-icon start size="18">mdi-shopping-outline</v-icon>
+              Explore Shop
+            </v-btn>
+          </div>
+        </template>
+      </v-data-table>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import { useOrdersStore } from '@/stores/orders'
-    import { useAuthStore } from '@/stores/auth'
-    import { useUsersStore } from '@/stores/users'
-    import { useProductsStore } from '@/stores/products'
-    import { useI18n } from 'vue-i18n'
-    import axios from 'axios'
-    // import NewOrder from '@/components/NewOrder.vue'
-    // import NewPlan from '@/components/NewPlan.vue'
+  import { ref, onMounted, computed } from 'vue'
+  import { useOrdersStore } from '@/stores/orders'
+  import { useAuthStore } from '@/stores/auth'
+  import { useUsersStore } from '@/stores/users'
+  import { useProductsStore } from '@/stores/products'
+  import { useI18n } from 'vue-i18n'
 
-    const orders = useOrdersStore()
-    const auth = useAuthStore()
-    const users = useUsersStore()
-    const products = useProductsStore()
-    
-    const { locale } = useI18n()
+  const orders = useOrdersStore()
+  const auth = useAuthStore()
+  const users = useUsersStore()
+  const products = useProductsStore()
+  const { locale } = useI18n()
 
-    let headers = ref([
-            {
-                text: 'Code',
-                align: 'start',
-                sortable: false,
-                value: 'productId.code',
-            },
-            {
-                text: 'Date',
-                align: 'start',
-                sortable: false,
-                value: 'date',
-            },
-            { text: 'Description', value: 'description' },
-            { text: 'Amount', value: 'amount' },
-            { text: 'Status', value: 'status' }
-            // { text: '', value: 'actions', sortable: false }
-        ]),
-        productByUserIdheaders = ref([
-            {
-                text: 'Name',
-                align: 'start',
-                sortable: false,
-                value: 'name',
-            },
-            // {
-            //     text: 'from',
-            //     align: 'start',
-            //     sortable: false,
-            //     value: 'from',
-            // },
-            // { text: 'to', value: 'to' },
-            // { text: 'Price', value: 'price' },
-            { text: 'Published', value: 'published' }
-            
-        ]),
-        search = ref(''),
-        searchTripsByUserId = ref(''),
-        total = ref(null),
-        transporter = ref(undefined),
-        loading = ref(false),
-        loadingNewOrder = ref(false),
-        subTotal = ref(0),
-        id = ref(undefined),
-        sheet = ref(false),
-        user = ref(undefined),
-        plans = ref([]),
-        planSheet = ref(false),
-        plan = ref({})
+  const headers = ref([
+    { text: 'Reference', title: 'Reference', align: 'start', sortable: false, value: 'productId.code', key: 'productId.code' },
+    { text: 'Date', title: 'Date', align: 'start', sortable: false, value: 'date', key: 'date' },
+    { text: 'Description', title: 'Description', value: 'description', key: 'description' },
+    { text: 'Amount', title: 'Amount', value: 'amount', key: 'amount' },
+    { text: 'Status', title: 'Status', value: 'status', key: 'status' }
+  ])
 
-        onMounted(() => {
-            initialize()
+  const search = ref('')
+  const loadingOrders = ref(false)
+  const user = ref(undefined)
+  const id = ref(undefined)
+  const total = ref(null)
+  const sheet = ref(false)
+  const plans = ref([])
+  const planSheet = ref(false)
+  const loadingNewOrder = ref(false)
+
+  const ordersList = computed(() => {
+    return Array.isArray(orders.getOrders) ? orders.getOrders : []
+  })
+
+  const pendingCount = computed(() => {
+    return ordersList.value.filter((o) => o.status === 'pending').length
+  })
+
+  const confirmedCount = computed(() => {
+    return ordersList.value.filter((o) => o.status === 'confirmed').length
+  })
+
+  const initialize = () => {
+    loadingOrders.value = true
+    auth.getLSUserInfo().then((ls) => {
+      if (ls && ls.user) {
+        user.value = ls.user
+        id.value = ls.user._id
+        orders.fetchOrdersByUserId().finally(() => {
+          loadingOrders.value = false
         })
+      } else {
+        loadingOrders.value = false
+      }
+    }).catch(() => {
+      loadingOrders.value = false
+    })
+  }
 
-        const confirmOrder = async () => {
-            products.fetchProductsByOwner(user.value._id)
-            await users.updateUserProfile(user.value)
-            
-        }
+  const formatNumber = (value) => {
+    if (value === undefined || value === null) return '0 DZD'
+    return new Intl.NumberFormat(locale.value || 'en', {
+      style: 'currency',
+      currency: 'DZD'
+    }).format(value)
+  }
 
-        const selectPlan = async (plan) =>{
-            const currentDate = new Date();
-            currentDate.setMonth(currentDate.getMonth() + plan.duration); 
-            currentDate.toISOString().split("T")[0]; 
+  const formatDate = (date) => {
+    if (!date) return '—'
+    return new Date(date).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    })
+  }
 
-            products.getProductsByOwnerIdNotPaid.forEach((item) => {
-                item.planId = plan._id
-                item.expirationOfSubscription = currentDate
-            })
-            total.value = item.plan.price
-            sheet.value = true
-            user.value.expirationOfSubscription = currentDate
-        }
+  const confirmOrder = async () => {
+    if (user.value?._id) {
+      products.fetchProductsByOwner(user.value._id)
+      await users.updateUserProfile(user.value)
+    }
+  }
 
-        // const updated = () => {
-        //     if(trips.tripsByUserId){
+  const selectPlan = async (plan) => {
+    const currentDate = new Date()
+    currentDate.setMonth(currentDate.getMonth() + plan.duration)
 
-        //         subTotal.value = trips.tripsByUserId.reduce((prev, cur) => {
-        //             return prev + cur.price;
-        //         }, 0)
+    products.getProductsByOwnerIdNotPaid.forEach((item) => {
+      item.planId = plan._id
+      item.expirationOfSubscription = currentDate
+    })
+    total.value = plan.price
+    sheet.value = true
+    if (user.value) {
+      user.value.expirationOfSubscription = currentDate
+    }
+  }
 
-        //         total.value = parseFloat(subTotal.value * 5 / 100).toFixed(2)
-        //     }
-        // }
+  const orderForSellerAccount = () => {
+    if (!user.value?.expirationOfSubscription) {
+      planSheet.value = true
+      return
+    }
+    const inputTimestamp = new Date(user.value.expirationOfSubscription).getTime()
+    const currentTimestamp = new Date().getTime()
+    if (currentTimestamp >= inputTimestamp) {
+      planSheet.value = true
+    }
+  }
 
-        /*const fetchPlans = async () => {
-            try {
-                const response = await axios.get('/api/plans');
-                plans.value = response.data
-            } catch (error) {
-                console.error('Error fetching categories:', error);
-            }
-        }*/
+  const newOrder = (e, { item }) => {
+    if (user.value?.typeAccount === 'seller') {
+      orderForSellerAccount()
+      return
+    }
+    loadingNewOrder.value = true
+    sheet.value = true
+    loadingNewOrder.value = false
+    total.value = item.planId?.price || 0
+    products.productsByOwnerIdNotPaid = [item]
+  }
 
-        const initialize = () => {
-            auth.getLSUserInfo().then((ls) => {
-                user.value = ls.user
-                id.value = ls.user._id
-                orders.fetchOrdersByUserId()
-                //products.fetchProductsByOwner()
-                
-            })
-            //fetchPlans()
-        }
+  const getColor = (valeur) => {
+    if (valeur.status === 'pending') return '#D9943B'
+    else if (valeur.status === 'confirmed') return '#21866B'
+    return '#173F35'
+  }
 
-        const orderForSellerAccount = () => {
-            const inputTimestamp = new Date(user.value.expirationOfSubscription).getTime()
-            const currentTimestamp = new Date().getTime()
-            if(currentTimestamp >= inputTimestamp){
-                planSheet.value = true
-            }else if (currentTimestamp < inputTimestamp){
-                console.log('Your Plan is valid to: ', user.value.expirationOfSubscription)
-            }
-        }
+  const getPublishedColor = (valeur) => {
+    if (valeur.published) return '#21866B'
+    else return '#D9943B'
+  }
 
-        const newOrder = (e, {item, index}) => {
-            console.log('item order', item)
-            if(user.value.typeAccount === 'seller'){
-                orderForSellerAccount()
-                return
-            }
-            loadingNewOrder.value = true
-            sheet.value = true
-            loadingNewOrder.value = false
-            total.value = item.planId.price
-            products.productsByOwnerIdNotPaid = [item]
-        }
-
-        const formatNumber = (value) => {
-            return new Intl.NumberFormat(locale.value, { style: 'currency', currency: 'DZD' }).format(value)
-        }
-
-        const formatDate = (date) => {
-            return new Date(date).toLocaleDateString('en-GB', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-            })
-        }
-
-        const sheetUpdate = (value) => {
-            sheet.value = value
-        }
-
-        const getColor = (valeur) => {
-            if (valeur.status == 'pending') return '#FF8C00'
-            else if (valeur.status == 'confirmed') return '#28a74580'
-        }
-
-        const getPublishedColor = (valeur) => {
-            if (valeur.published) return '#28a74580'
-            else return '#FF8C00'
-        }
+  onMounted(() => {
+    initialize()
+  })
 </script>
+
+<style scoped>
+  .max-w-1200 {
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .max-w-400 {
+    max-width: 400px;
+  }
+
+  .border-b-editorial {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .shop-orders-table {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table-header-row th {
+    border-bottom: 1px solid var(--color-border) !important;
+  }
+</style>

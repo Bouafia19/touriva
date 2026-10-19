@@ -6,6 +6,7 @@ import { createPinia } from 'pinia'
 // Vuetify
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
+import './styles/editorial.css'
 import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import * as components from 'vuetify/components'
@@ -31,27 +32,64 @@ const vuetify = createVuetify({
                 dark: false,
                 variables: {},
                 colors: {
-                    primary: '#0f766e',
-                    secondary: '#0f172a',
-                    accent: '#f59e0b',
-                    error: '#ef4444',
-                    info: '#0284c7',
-                    success: '#10b981',
-                    warning: '#f59e0b',
-                    next: '#0f766e',
-                    touriva: '#0f766e',
-                    tourivaGold: '#f59e0b',
+                    primary: '#173F35',
+                    secondary: '#102D27',
+                    accent: '#21866B',
+                    forestGreen: '#173F35',
+                    deepGreen: '#102D27',
+                    emerald: '#21866B',
+                    warmIvory: '#FAF8F2',
+                    sand: '#D9B98C',
+                    sandLight: '#F5EDE0',
+                    sandDark: '#B89564',
+                    error: '#C24545',
+                    info: '#2A6F85',
+                    success: '#21866B',
+                    warning: '#D9943B',
+                    next: '#173F35',
+                    touriva: '#173F35',
+                    tourivaGold: '#D9B98C',
+                    tourivaSand: '#D9B98C',
                     surface: '#ffffff',
-                    background: '#f8fafc',
+                    background: '#FAF8F2',
                 } 
             }
         },
     },
+    defaults: {
+        VImg: {
+            eager: true,
+        },
+    },
 })
 
-// Dynamic API Base URL from environment variable or proxy fallback
-const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000/'
+// Dynamic API Base URL from environment variable, LAN IP, or localhost fallback
+let rawApiBase = import.meta.env.VITE_API_BASE_URL || 'http://172.20.10.3:4004/'
+if (rawApiBase && !rawApiBase.startsWith('http://') && !rawApiBase.startsWith('https://')) {
+    rawApiBase = `https://${rawApiBase}`
+}
+const apiBase = rawApiBase
 axios.defaults.baseURL = apiBase.endsWith('/') ? apiBase : `${apiBase}/`
+
+// Automatic fallback between host LAN IP and localhost (for adb reverse over USB)
+axios.interceptors.response.use(
+    response => response,
+    async error => {
+        const config = error.config
+        if (!config || config.__isRetry) return Promise.reject(error)
+        if (error.code === 'ERR_NETWORK' || !error.response) {
+            config.__isRetry = true
+            if (config.baseURL && config.baseURL.includes('172.20.10.3')) {
+                config.baseURL = 'http://localhost:4004/'
+                return axios(config)
+            } else if (config.baseURL && config.baseURL.includes('localhost')) {
+                config.baseURL = 'http://172.20.10.3:4004/'
+                return axios(config)
+            }
+        }
+        return Promise.reject(error)
+    }
+)
 
 const app = createApp(App)
 const pinia = createPinia()

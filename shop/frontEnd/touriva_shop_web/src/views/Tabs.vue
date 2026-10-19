@@ -3,54 +3,39 @@
     <div class="text-center" v-if="loading">
       <v-row 
         class="d-flex justify-center align-center"  
-        style="height: 100vh;"
+        style="height: 80vh;"
       >
         <v-progress-circular
           indeterminate
-          color="next"
+          color="forestGreen"
+          size="48"
         ></v-progress-circular>
       </v-row>
     </div>
     <div v-else>
-      <div class="text-center ma-2" v-if="err">
+      <div class="text-center ma-4" v-if="err">
         <v-row 
           class="d-flex justify-center align-center"  
-          style="height: 100vh;"
+          style="min-height: 50vh;"
         >
-          <v-col>
-            <div>
-              <v-alert
-                dense
-                rounded
-                type="error"
-                outlined
-              >
-                {{ $t('cgu') }}
-                
-              </v-alert>
-            </div>
-            <div>
-              <v-btn
-                :loading="loadingP"
-                :disabled="loadingP"
-                color="blue-grey"
-                class="ma-2 white--text"
-                @click="loadingPage"
-              >
-                Upload
-                <v-icon
-                  right
-                  dark
-                >
-                  mdi-cloud-upload
-                </v-icon>
-                <template v-slot:loader>
-                  <span class="custom-loader">
-                    <v-icon light>mdi-cached</v-icon>
-                  </span>
-                </template>
-              </v-btn>
-            </div>
+          <v-col cols="12" sm="8" md="6">
+            <v-alert
+              type="error"
+              variant="tonal"
+              rounded="lg"
+              class="mb-4"
+            >
+              {{ $t('cgu') || 'Unable to load content' }}
+            </v-alert>
+            <v-btn
+              :loading="loadingP"
+              :disabled="loadingP"
+              class="btn-editorial-primary px-6"
+              @click="loadingPage"
+            >
+              {{ $t('tryAgain') || 'Reload' }}
+              <v-icon end>mdi-refresh</v-icon>
+            </v-btn>
           </v-col>
         </v-row>
       </div>
@@ -62,38 +47,39 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { ref, onMounted } from 'vue'
   import Accueil from '@/views/Accueil.vue'
   import { Capacitor } from '@capacitor/core'
   import { useUsersStore } from '@/stores/users'
-  import { onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-
 
   const { locale } = useI18n()
   const users = useUsersStore()
   const router = useRouter()
 
-  let err = ref(''),
-      loadingP = ref(false),
-      loading = ref(true)
-    
-    const loadingPage = () => {
-      loadingP.value = true
-      router.go()
-    }
+  const err = ref('')
+  const loadingP = ref(false)
+  const loading = ref(true)
 
-    onMounted(() => {
-      users.loadUser().then((res) => {
+  const loadingPage = () => {
+    loadingP.value = true
+    router.go()
+  }
+
+  onMounted(() => {
+    users.loadUser().then((res) => {
+      if (users.getUser?.language) {
         locale.value = users.getUser.language
-        loading.value = res
-      })
-      users.fetchUser()
-      if (Capacitor.isNativePlatform()) {
-        
-      }else{
-        loading.value = false
       }
+      loading.value = !!res
+    }).catch(() => {
+      loading.value = false
     })
+
+    users.fetchUser()
+    if (!Capacitor.isNativePlatform()) {
+      loading.value = false
+    }
+  })
 </script>

@@ -1,78 +1,153 @@
 <template>
-  <v-container fluid>
-    <v-row class="justify-center">
+  <v-container fluid class="px-4 px-md-8 py-6">
+    <!-- Header -->
+    <div class="editorial-page-header">
+      <div>
+        <div class="editorial-tag mb-1">Administrative Center</div>
+        <h1 class="editorial-page-title">Management Hub</h1>
+        <p class="editorial-page-subtitle">Access all commerce, catalog, marketing, and system administrative modules.</p>
+      </div>
+    </div>
+
+    <!-- Hub Modules Grid -->
+    <v-row>
       <v-col
-        cols="auto"
         v-for="item in items"
         :key="item.title"
-      >      
+        cols="12"
+        sm="6"
+        md="4"
+        lg="3"
+      >
         <v-card
-          class="mx-auto"
-          width="344"
-          height="150"
-          :subtitle="$t(item.model)"
-          :title="$t(item.title)"
+          class="editorial-card h-100 pa-5 d-flex flex-column justify-space-between"
+          :to="item.to"
+          link
         >
-          <template v-slot:prepend>
-            <v-avatar size="x-large">
-              <v-img :src="item.img"></v-img>
-            </v-avatar>
-          </template>
-          
-          <v-card-text>{{ $t(item.description) }}</v-card-text>
+          <div>
+            <div class="d-flex align-center justify-space-between mb-3">
+              <v-avatar size="48" class="bg-sand-light border-editorial">
+                <v-icon :icon="item.icon" color="forestGreen" size="26"></v-icon>
+              </v-avatar>
+              <span class="editorial-tag">{{ item.section || 'MODULE' }}</span>
+            </div>
+            <h3 class="font-serif text-h6 font-weight-bold text-deep-green mb-1">
+              {{ $t(item.title) }}
+            </h3>
+            <p class="text-caption text-editorial-secondary mb-0">
+              {{ item.description ? $t(item.description) : item.defaultDesc }}
+            </p>
+          </div>
+
+          <div class="pt-4 mt-2 border-t d-flex align-center justify-space-between">
+            <span class="text-caption font-weight-bold text-forest">Open Module</span>
+            <v-icon icon="mdi-arrow-right" size="18" color="forestGreen"></v-icon>
+          </div>
         </v-card>
-        <!-- <v-card
-          class="mx-auto"
-          width="344"
-          outlined
-        >
-          <v-list-item class="align-center justify-center">
-            <v-list-img size="60" color="white">
-              <v-img :src="item.img"></v-img>
-            </v-list-img>
-
-            <v-list-item-title class="text-h6">
-                {{ $t(item.title) }}
-              </v-list-item-title>
-              <v-list-item-subtitle>{{ $t(item.model) }}</v-list-item-subtitle>
-            <v-list-item-subtitle>{{ $t(item.description) }}</v-list-item-subtitle>
-          </v-list-item>
-
-          <v-card-actions class="pt-0">
-            <v-spacer></v-spacer>
-            <v-btn
-              outlined
-              rounded
-              
-              :to="item.to"
-              :disabled="item.title === 'Home'"
-              color="teal accent-4"
-            >
-              {{ $t('More') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>        -->
       </v-col>
-    </v-row> 
+    </v-row>
   </v-container>
 </template>
 
-<script>
-  export default {
-    data: () => ({ 
-      items: [
-          { title: 'Home', img: new URL('@/assets/icons/couleur/home.png', import.meta.url).href, to: '/', model: 'component', description: 'CompHome' },
-          { title: 'Dashboard', img: new URL('@/assets/icons/couleur/dashboard.png', import.meta.url).href, to: '/dashboard', model: 'component', description: 'CompDash' },
-          // { title: 'Trips', img: new URL('@/assets/icons/couleur/route.png', import.meta.url).href, to: '/trips', model: 'trip', description: 'ModTrip' },
-          // { title: 'Vehicles', img: new URL('@/assets/icons/couleur/fast-delivery.png', import.meta.url).href, to: '/vehicles', model: 'Vehicle', description: 'ModVehicle' },
-          { title: 'Users', img: new URL('@/assets/icons/couleur/group.png', import.meta.url).href, to: '/users', model: 'User', description: 'ModUser' },
-          { title: 'Billing', img: new URL('@/assets/icons/couleur/receipt.png', import.meta.url).href, to: '/billing', model: 'Billing', description: 'ModBilling' },
-          { title: 'Notifications', img: new URL('@/assets/icons/couleur/chat.png', import.meta.url).href, to: '/notifications', model: 'Notification', description: 'ModNotification' },
-          { title: 'TermsConditions', img: new URL('@/assets/icons/couleur/agreement.png', import.meta.url).href, to: '/terms&conditions', model: 'Term', description: 'ModTerm' },
-          { title: 'Roles', img: new URL('@/assets/icons/couleur/shield.png', import.meta.url).href, to: '/roles', model: 'Roles', description: 'ModRole' },
-          { title: 'Settings', img: new URL('@/assets/icons/couleur/settings.png', import.meta.url).href, to: '/setting', model: 'component', description: 'CompSetting' },
-          { title: 'About', img: new URL('@/assets/icons/couleur/information.png', import.meta.url).href, to: '/about', model: 'component', description: '' },
-        ],
-      }),
+<script setup>
+import { ref } from 'vue'
+
+const items = ref([
+  {
+    title: 'Dashboard',
+    icon: 'mdi-view-dashboard-outline',
+    to: '/dashboard',
+    section: 'Analytics',
+    description: 'CompDash',
+    defaultDesc: 'Real-time sales, order fulfillment, and KPI performance.'
+  },
+  {
+    title: 'Products',
+    icon: 'mdi-package-variant-closed',
+    to: '/products',
+    section: 'Catalog',
+    description: '',
+    defaultDesc: 'Manage inventory items, pricing, photos, and descriptions.'
+  },
+  {
+    title: 'Categories',
+    icon: 'mdi-format-list-bulleted-type',
+    to: '/admin/categories',
+    section: 'Catalog',
+    description: '',
+    defaultDesc: 'Organize category tree hierarchies and nested classifications.'
+  },
+  {
+    title: 'Brands',
+    icon: 'mdi-tag-outline',
+    to: '/brands',
+    section: 'Catalog',
+    description: '',
+    defaultDesc: 'Partner vendor brands, labels, and product lines.'
+  },
+  {
+    title: 'Orders',
+    icon: 'mdi-receipt-text-outline',
+    to: '/orders',
+    section: 'Commerce',
+    description: '',
+    defaultDesc: 'Track client purchases, fulfillment statuses, and order totals.'
+  },
+  {
+    title: 'Users',
+    icon: 'mdi-account-group-outline',
+    to: '/users',
+    section: 'Accounts',
+    description: 'ModUser',
+    defaultDesc: 'Administrators, partner vendors, and registered clients.'
+  },
+  {
+    title: 'Billing',
+    icon: 'mdi-credit-card-outline',
+    to: '/billing',
+    section: 'Finance',
+    description: 'ModBilling',
+    defaultDesc: 'Merchant billing, subscriptions, invoices, and payments.'
+  },
+  {
+    title: 'Ads',
+    icon: 'mdi-bullhorn-outline',
+    to: '/ads',
+    section: 'Marketing',
+    description: '',
+    defaultDesc: 'Curated banner placements, sponsorships, and campaigns.'
+  },
+  {
+    title: 'Notifications',
+    icon: 'mdi-bell-outline',
+    to: '/notifications',
+    section: 'Comms',
+    description: 'ModNotification',
+    defaultDesc: 'Broadcast notices, updates, and customer communications.'
+  },
+  {
+    title: 'TermsConditions',
+    icon: 'mdi-file-document-outline',
+    to: '/terms&conditions',
+    section: 'Legal',
+    description: 'ModTerm',
+    defaultDesc: 'Platform compliance, seller agreements, and legal policies.'
+  },
+  {
+    title: 'Roles',
+    icon: 'mdi-shield-account-outline',
+    to: '/roles',
+    section: 'Security',
+    description: 'ModRole',
+    defaultDesc: 'Administrative access control and granular role permissions.'
+  },
+  {
+    title: 'Settings',
+    icon: 'mdi-cog-outline',
+    to: '/setting',
+    section: 'System',
+    description: 'CompSetting',
+    defaultDesc: 'General store configurations, localization, and preferences.'
   }
+])
 </script>

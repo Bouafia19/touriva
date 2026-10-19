@@ -96,7 +96,7 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
-          path: '/billing:id/:typeAccount?',
+          path: '/billing/:id/:typeAccount?',
           name: 'Detail',
           component: () => import('@/views/Billing/detail.vue'),
           meta: { requiresAuth: true },
@@ -118,18 +118,21 @@ const router = createRouter({
         { 
           path: '/admin/categories', 
           name: 'AdminCategories', 
-          component: AdminCategoryList 
+          component: AdminCategoryList,
+          meta: { requiresAuth: true }
         },
         { 
           path: '/admin/category/add', 
           name: 'AddCategory', 
-          component: AdminCategoryForm 
+          component: AdminCategoryForm,
+          meta: { requiresAuth: true }
         },
         { 
           path: '/admin/category/edit/:categoryId', 
           name: 'EditCategory', 
           component: AdminCategoryForm, 
-          props: true 
+          props: true,
+          meta: { requiresAuth: true }
         },
         {
           path: '/products',
@@ -144,7 +147,7 @@ const router = createRouter({
           meta: { requiresAuth: true }
         },
         {
-          path: '/order:id/:client?',
+          path: '/order/:id/:client?',
           name: 'OrderDetail',
           component: () => import('@/views/Order/detail.vue'),
           meta: { requiresAuth: true },
@@ -168,6 +171,10 @@ const router = createRouter({
       path: '/login',
       name: 'Login',
       component: () => import('@/views/auth/Login.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
     }
   ]
 })

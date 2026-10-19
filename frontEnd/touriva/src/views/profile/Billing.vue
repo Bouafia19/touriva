@@ -353,7 +353,7 @@
                 item.planId = plan._id
                 item.expirationOfSubscription = currentDate
             })
-            total.value = item.plan.price
+            total.value = plan.price
             sheet.value = true
             user.value.expirationOfSubscription = currentDate
         }

@@ -1,257 +1,177 @@
 <template>
-    <div>
-        <v-container fluid >
-            <!-- <v-row>
-                <v-col>
-                    <div class="d-flex justify-end">
-                        <v-switch
-                            v-model="users.user.status"
-                            inset
-                            :label="users.user.status ? $t('availabe') : $t('notAvailable')"
-                            color="success"
-                        ></v-switch>
-                    </div>
-                </v-col>
-            </v-row> -->
-            <v-row
-                class="d-flex justify-center"
-                style="height: 90vh;"
-            >
-                <v-col
-                    cols="12"
-                    sm="6"
-                    md="4"
+  <div class="editorial-catalog bg-warm-ivory min-vh-100 py-10 px-4">
+    <v-container class="max-w-container">
+      <v-row justify="center">
+        <v-col cols="12" sm="10" md="7" lg="6">
+          <v-card class="editorial-card pa-8 pa-md-10" elevation="0">
+            <div class="text-center mb-6">
+              <div class="editorial-tag text-sand mb-1">ACCOUNT SETTINGS</div>
+              <h1 class="text-h4 font-serif font-weight-bold text-forest mb-2">
+                {{ $t('profile') || 'User Profile & Preferences' }}
+              </h1>
+              <p class="text-caption text-secondary-editorial max-w-prose mx-auto">
+                Manage your personal details, language preference, and platform credentials.
+              </p>
+            </div>
+
+            <!-- Avatar Section -->
+            <div class="text-center mb-8">
+              <div class="position-relative d-inline-block">
+                <v-avatar size="110" color="#F5EDE0" class="border-sand elevation-2">
+                  <v-img :src="photo || avatar" cover />
+                </v-avatar>
+                <div class="mt-2">
+                  <use-camera v-on:cameraUpload="uploadImage($event)" pageTitle="ProfileUpdate" />
+                </div>
+              </div>
+            </div>
+
+            <v-alert v-if="err" type="error" variant="tonal" class="mb-4 rounded-lg">
+              {{ $t(err) || err }}
+            </v-alert>
+
+            <v-alert v-if="info" type="success" variant="tonal" class="mb-4 rounded-lg">
+              {{ $t(info) || info }}
+            </v-alert>
+
+            <form @submit.prevent="submit" v-if="users.getUser">
+              <div class="mb-4">
+                <div class="text-caption font-weight-bold text-forest mb-1">FIRST NAME *</div>
+                <v-text-field
+                  v-model="users.user.firstName"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  hide-details
+                  required
+                />
+              </div>
+
+              <div class="mb-4">
+                <div class="text-caption font-weight-bold text-forest mb-1">LAST NAME *</div>
+                <v-text-field
+                  v-model="users.user.lastName"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  hide-details
+                  required
+                />
+              </div>
+
+              <div class="mb-4">
+                <div class="text-caption font-weight-bold text-forest mb-1">EMAIL ADDRESS *</div>
+                <v-text-field
+                  v-model="users.user.email"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  type="email"
+                  hide-details
+                  required
+                />
+              </div>
+
+              <div class="mb-6">
+                <div class="text-caption font-weight-bold text-forest mb-1">PREFERRED LANGUAGE</div>
+                <v-select
+                  v-model="$i18n.locale"
+                  :items="locals"
+                  item-title="title"
+                  item-value="value"
+                  variant="outlined"
+                  density="comfortable"
+                  rounded="lg"
+                  color="#173F35"
+                  hide-details
                 >
-                    
-                
-                <form @submit.prevent="submit" v-if="users.getUser">
-                    
-                    <div class="d-flex flex-column justify-space-between align-center mb-2">
-                        <v-avatar 
-                            size="200"
-                            rounded="lg"
-                        >
-                            <v-img 
-                                :src="photo"
-                                contain
-                                width="100px"
-                                style="float: right; border: 1px solid;"
-                                alt="Profile Image"
-                                eager
-                            >  
-                                <use-camera v-on:cameraUpload="uploadImage($event)" pageTitle="ProfileUpdate"/>
-                            </v-img> 
-                        </v-avatar>
-                    </div>
-        
-                    <div class="d-flex justify-center mt-4">
-                       
-                            <v-select
-                                v-model="$i18n.locale"
-                                :items="locals"
-                                bg-color="#00366F"
-                                flat
-                                :label="$t('cl')"
-                                max-width="200"
-                                cover
-                            >
-                                <template v-slot:item="{ props, item }">
-                                    <v-list-item v-bind="props" :title="$t(item.raw.title)"></v-list-item>
-                                </template>
-                                <template v-slot:selection="{ item }">
-                                    <span>
-                                    {{ $t(item.title) }}
-                                    </span>
-                                </template>
-                            </v-select>
-                      
-                    </div>
-                   
-                   
-                        <v-text-field
-                            v-model="users.user.firstName"
-                            
-                            :label="$t('firstName')"
-                            required
-                            outlined
-                            dense
-                            
-                        ></v-text-field>
-                    
-                        <v-text-field
-                            v-model="users.user.lastName"
-                            
-                            :label="$t('lastName')"
-                            required
-                            outlined
-                            dense
-                            
-                        ></v-text-field>
-                   
-                        <v-text-field
-                        v-model="users.user.email"
-                        
-                        :label="$t('email')"
-                        required
-                        outlined
-                        dense
-                        
-                        ></v-text-field>
-                    
-                    <!-- <validation-provider
-                        v-slot="{ errors }"
-                        name="password"
-                        rules="required|confirmed:password"  
-                    >
-                        <v-text-field
-                        v-model="password"
-                        :error-messages="errors"
-                        :label="$t('password')"
-                        required
-                        outlined
-                        dense
-                        type="password"
-                        ></v-text-field>
-                    </validation-provider>
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item v-bind="props" :title="$t(item.raw.title)"></v-list-item>
+                  </template>
+                  <template v-slot:selection="{ item }">
+                    <span>{{ $t(item.title) }}</span>
+                  </template>
+                </v-select>
+              </div>
 
-                    <validation-provider
-                        v-slot="{ errors }"
-                        name="passwordConfirmation"
-                        rules="required"
-                        vid="password"
-                    >
-                        <v-text-field
-                            v-model="passwordConfirmation"
-                            :error-messages="errors"
-                            :label="$t('passwordConfirmation')"
-                            required
-                            outlined
-                            dense
-                            type="password"
-                        >
-                        </v-text-field>
-                    </validation-provider> -->
-
-                    <div class="ma-2">
-                        <v-alert
-                            dense
-                            outlined
-                            type="error"
-                            v-if="err"
-                        >
-                            {{ $t(err) }}
-                        </v-alert>
-                    </div>
-
-                    <div class="ma-2">
-                        <v-alert
-                            dense
-                            outlined
-                            type="success"
-                            v-if="info"
-                        >
-                            {{ $t(info) }}
-                        </v-alert>
-                    </div>
-
-                    <div class="text-center">
-                        <v-btn
-                            type="submit"
-                            block
-                            color="next"
-                            dark
-                            :loading="loading"
-                        >
-                            {{ $t('update') }}
-                        </v-btn>
-                    </div>
-                
-                </form>
-          
-                </v-col>
-            </v-row>
-        </v-container>
-       
-    </div>
+              <v-btn
+                type="submit"
+                block
+                color="#173F35"
+                size="large"
+                rounded="pill"
+                class="btn-editorial-primary font-weight-bold"
+                :loading="loading"
+              >
+                {{ $t('update') || 'Save Profile Changes' }}
+              </v-btn>
+            </form>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import { useI18n } from 'vue-i18n'
-    import { useLocale } from 'vuetify'
-    import { useUsersStore } from '@/stores/users'
-    import UseCamera from '@/components/UseCamera.vue'
-    
-    const { current } = useLocale()
-    const { locale } = useI18n()
-    const users = useUsersStore()
+import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useUsersStore } from '@/stores/users'
+import UseCamera from '@/components/UseCamera.vue'
 
-    let password = ref(''),
-        passwordConfirmation = ref(''),
-        err = ref(''),
-        info = ref(''),
-        loading = ref(false),
-        image = ref(undefined),
-        photo = ref(null),
-        locals = ref([
-        {
-            value: "ar",
-            title: "arabic"
-        }, 
-        {
-            value: "fr",
-            title: "french"
-        }, 
-        {
-            value: "en",
-            title: "english"
-        }])
+const { t, locale } = useI18n()
+const users = useUsersStore()
 
-        let userObj = {}
+const locals = ref([
+  { value: 'ar', title: 'arabic' },
+  { value: 'fr', title: 'french' },
+  { value: 'en', title: 'english' }
+])
 
-        const updateUser = () => {
-            userObj.language = locale.value
-            userObj.firstName = users.user.firstName
-            userObj.lastName = users.user.lastName
-            userObj.email = users.user.email
-                try {
-                    users.updateUserProfile(userObj).then(() => {
-                        loading.value = false
-                        info.value = 'User updated successfully'
-                        setTimeout(() => {
-                            info.value = ''
-                        }, "5000")
-                    })
-                } catch (error) {
-                    err.value = error.message
-                    console.log('error user Information', error)
-                }
-            }
-            
-            const uploadImage = (value) => {
-                photo.value = value
-            }
+const photo = ref(null)
+const avatar = ref(new URL('@/assets/avatar.png', import.meta.url).href)
+const err = ref('')
+const info = ref('')
+const loading = ref(false)
 
-            const submit = () => {
-                loading.value = true
-                updateUser() 
-            }
+const uploadImage = (imageData) => {
+  photo.value = imageData
+  if (users.user) {
+    users.user.photo = imageData
+  }
+}
 
-            onMounted(() => {
-                users.loadUser()
-            })
+const submit = async () => {
+  loading.value = true
+  err.value = ''
+  info.value = ''
+  try {
+    await users.updateUserProfile(users.user)
+    info.value = 'Profile updated successfully'
+  } catch (e) {
+    err.value = e.message || 'Failed to update profile'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  await users.loadUser()
+  if (users.user?.photo) {
+    photo.value = users.user.photo
+  }
+})
 </script>
 
 <style scoped>
-    :deep(.v-input__control .v-text-field__details) {
-        margin-bottom: 0;
-    }
-    :deep(.v-file-input) {
-        position:relative; 
-        left: 170px;
-        top: 150px;
-    }
-    :deep(.v-file-input .v-icon) {
-        color: #00366f !important;
-    }
+.max-w-container {
+  max-width: 1000px;
+}
+
+.max-w-prose {
+  max-width: 500px;
+}
 </style>

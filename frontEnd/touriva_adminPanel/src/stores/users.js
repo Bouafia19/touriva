@@ -45,6 +45,10 @@ export const useUsersStore = defineStore('users', {
             }
         },
 
+        async createUser(params){
+            return this.addUsers(params)
+        },
+
         //fetch single User
         async fetchUser(id){
             const user = JSON.parse(localStorage.getItem('userInfo'))

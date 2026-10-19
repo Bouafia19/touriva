@@ -59,7 +59,7 @@
                     </v-row> -->
 
                     <v-row 
-                        v-if="prevRoute.fullPath != '/tabs'"
+                        v-if="prevRoute?.fullPath && prevRoute?.fullPath !== '/tabs'"
                         class="d-flex align-center justify-center"
                     >
                         <v-col

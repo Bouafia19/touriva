@@ -41,7 +41,7 @@
     >
       <v-card-title class="justify-center">
         
-            <h3 class="text-uppercase" style="color: #00366f;">{{$t('User')}}</h3>
+            <h3 class="text-uppercase" style="color: #102D27;">{{$t('User')}}</h3>
 
             <v-spacer></v-spacer>
 
@@ -245,6 +245,6 @@
 
 <style scoped>
   .v-card__actions {
-    background-color: #00366f;
+    background-color: #102D27;
   }
 </style> -->

@@ -1,60 +1,98 @@
 <template>
-  <div>
-    <h2 class="d-flex justify-center">{{ categoryId ? 'Edit' : 'Add' }} Category</h2>
-    <v-container>
-      <v-row
-        justify="center"
-      >
-        <v-col
-          cols="12"
-          md="4"
+  <v-container fluid class="px-4 px-md-8 py-6">
+    <!-- Editorial Page Header -->
+    <div class="editorial-page-header">
+      <div>
+        <div class="editorial-tag mb-1">Catalog Structure</div>
+        <h1 class="editorial-page-title">{{ categoryId ? 'Edit Category' : 'Add New Category' }}</h1>
+        <p class="editorial-page-subtitle">Configure category taxonomy, parent inheritance, and visual badge icon.</p>
+      </div>
+
+      <div class="d-flex align-center gap-2">
+        <v-btn
+          variant="outlined"
+          class="btn-editorial-outline px-4"
+          prepend-icon="mdi-arrow-left"
+          to="/admin/categories"
         >
+          Back to List
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <v-row justify="center">
+      <v-col cols="12" md="8" lg="6">
+        <v-card class="editorial-card pa-6">
           <form @submit.prevent="saveCategory">
-            <v-text-field
-              v-model="category.name"
-              label="Category Name"
-              required
-            ></v-text-field>
+            <div class="mb-4">
+              <label class="text-caption font-weight-bold text-deep-green d-block mb-1">Category Name</label>
+              <v-text-field
+                v-model="category.name"
+                placeholder="e.g. Leather Goods, Travel Gear, Apparel"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+                required
+              ></v-text-field>
+            </div>
             
-            <div>
-              <select v-model="category.parent" class="select-box">
-                <option :value="null">Root Category</option>
+            <div class="mb-4">
+              <label class="text-caption font-weight-bold text-deep-green d-block mb-1">Parent Hierarchy</label>
+              <select v-model="category.parent" class="editorial-select-box">
+                <option :value="null">Root Category (No Parent)</option>
                 <CategoryOption v-for="cat in categories" :key="cat._id" :category="cat" />
               </select>
             </div>
-            <div>
+
+            <div class="mb-5">
+              <label class="text-caption font-weight-bold text-deep-green d-block mb-1">Category Banner / Image</label>
               <v-file-input 
-                v-model="category.img" 
-                type="file" 
-                :label="$t('appPhoto')"
-                outlined
-                prepend-icon="mdi-camera"
-                dense
+                v-model="imageFile" 
+                accept="image/*"
+                :label="$t('Photo') || 'Choose Image File'"
+                variant="outlined"
+                density="comfortable"
+                prepend-icon=""
+                prepend-inner-icon="mdi-camera"
+                class="editorial-input"
                 @change="onImageChange"
-                class="mt-4"
               />   
-              <v-row justify="center" class="ma-2">
-              <v-avatar 
-                size="300"
-                rounded="lg"
-              >
-                <v-img 
-                  :src="category.img"
-                  cover
-                  style="float: center; border: 1px solid;"
-                  alt=""
-                ></v-img> 
-              </v-avatar>
-            </v-row>
+
+              <div v-if="category.img" class="mt-3 text-center">
+                <div class="pa-3 bg-warm-ivory border-editorial rounded-lg d-inline-block">
+                  <v-img 
+                    :src="category.img"
+                    height="180"
+                    width="260"
+                    contain
+                    class="rounded-lg"
+                    alt="Category visual"
+                  ></v-img> 
+                </div>
+              </div>
             </div>
-            <v-row justify="center" class="ma-2">
-              <v-btn color="next" type="submit">Add Category</v-btn>
-            </v-row>
+
+            <div class="pt-4 border-t d-flex justify-end gap-2">
+              <v-btn
+                to="/admin/categories"
+                class="btn-editorial-ghost px-4 me-2"
+              >
+                Cancel
+              </v-btn>
+              <v-btn
+                type="submit"
+                class="btn-editorial-primary px-6"
+                :loading="saving"
+              >
+                {{ categoryId ? 'Update Category' : 'Save Category' }}
+              </v-btn>
+            </div>
           </form>
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -68,7 +106,8 @@ export default {
     return {
       category: { name: '', parent: null, img: '' },
       categories: [],
-      items: ['rented', 'seller']
+      imageFile: null,
+      saving: false,
     };
   },
   async created() {
@@ -81,35 +120,23 @@ export default {
     async fetchCategories() {
       try {
         const response = await axios.post('/api/categories/nested');
-        this.categories = response.data;
+        this.categories = response.data || [];
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
     },
-    // async addCategory() {
-    //   try {
-    //     await axios.post('/api/categories/add', this.category);
-    //     alert('Category added successfully!');
-    //     this.category.name = '';
-    //     this.category.parent = null;
-    //     await this.fetchCategories();
-    //   } catch (error) {
-    //     console.error('Error adding category:', error);
-    //   }
-    // },
 
-    saveImage(file){
+    saveImage(file) {
       const reader = new FileReader();
       reader.onload = (e) => {
         this.category.img = e.target.result;
       };
-      reader.readAsDataURL(this.category.img);
+      reader.readAsDataURL(file);
     },
 
-    onImageChange(file){
-      if (!file) {
-        return;
-      }
+    onImageChange(e) {
+      const file = this.imageFile?.[0] || this.imageFile;
+      if (!file) return;
       this.saveImage(file);
     },
 
@@ -123,6 +150,7 @@ export default {
     },
 
     async saveCategory() {
+      this.saving = true;
       try {
         if (this.categoryId) {
           await axios.patch(`/api/categories/${this.categoryId}`, this.category);
@@ -132,6 +160,8 @@ export default {
         this.$router.push('/admin/categories');
       } catch (error) {
         console.error('Error saving category:', error);
+      } finally {
+        this.saving = false;
       }
     },
   }
@@ -139,39 +169,28 @@ export default {
 </script>
 
 <style scoped>
-/* Basic styling for the select box */
-.select-box {
-  appearance: none; /* Remove default styles */
+.editorial-select-box {
+  appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  background-color: #f3f3f3;
-  border-bottom: 1px solid #ccc;
-  /* border-radius: 4px; */
-  padding: 10px;
-  font-size: 16px;
-  color: #333;
+  background-color: #FFFFFF;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  color: var(--color-text-primary);
   width: 100%;
-  height: 56px;
-  /* max-width: 300px; */
+  height: 48px;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.3s ease;
-  position: relative;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  transition: border-color 0.2s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23173F35'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 10px top 50%;
-  background-size: 16px;
+  background-position: right 12px center;
+  background-size: 18px;
 }
 
-/* Hover and focus effects */
-.select-box:hover {
-  border-color: #888;
+.editorial-select-box:focus {
+  border-color: var(--color-emerald);
 }
-
-.select-box:focus {
-  border-color: #555;
-  box-shadow: 0 0 5px rgba(85, 85, 85, 0.5);
-}
-
-
 </style>

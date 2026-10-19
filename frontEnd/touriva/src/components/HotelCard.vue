@@ -1,92 +1,169 @@
 <template>
   <v-card
-    class="rounded-xl overflow-hidden hover:scale-105 transition-transform duration-200 mx-2"
-    elevation="4"
+    class="editorial-card h-100 d-flex flex-column"
+    elevation="0"
+    @click="goToDetails"
   >
-    <!-- Hotel image -->
-    <v-img
-      :src="getPhotoUrl(hotel)"
-      height="200"
-      cover
-      class="cursor-pointer"
-    >
-      <template #placeholder>
-        <v-row class="fill-height ma-0 align-center justify-center">
-          <v-progress-circular indeterminate color="primary" />
-        </v-row>
-      </template>
-    </v-img>
-
-    <!-- Card content -->
-    <v-card-title class="text-h6 font-weight-bold">
-      {{ hotel.displayName?.text || hotel.name }}
-    </v-card-title>
-
-    <v-card-subtitle>
-      <v-icon icon="mdi-map-marker" size="small" color="primary" />
-      {{ hotel.formattedAddress || hotel.address }}
-    </v-card-subtitle>
-
-    <v-card-text class="text-body-2">
-      <div class="d-flex align-center mb-1">
-        <v-icon icon="mdi-star" color="amber" size="small" />
-        <span class="ml-1">{{ hotel.rating }}</span>
-        <span class="ml-2 text-grey">({{ hotel.reviews }} reviews)</span>
-      </div>
-      <p class="text-grey mt-2">{{ hotel.description }}</p>
-    </v-card-text>
-
-    <!-- Action -->
-    <v-card-actions class="justify-center">
-      <v-btn
-        color="next"
-        variant="flat"
-        @click="goToDetails"
+    <div class="position-relative overflow-hidden">
+      <v-img
+        :src="imageUrl"
+        height="220"
+        cover
+        eager
+        class="img-editorial-zoom cursor-pointer"
       >
-        Details
-      </v-btn>
-    </v-card-actions>
+        <template #placeholder>
+          <div class="d-flex fill-height align-center justify-center bg-grey-lighten-4">
+            <v-progress-circular indeterminate color="#21866B" size="28" />
+          </div>
+        </template>
+      </v-img>
+
+      <div class="editorial-scrim"></div>
+
+      <!-- Rating Badge -->
+      <div class="position-absolute top-0 right-0 pa-3" v-if="hotel.rating">
+        <span class="editorial-badge">
+          <v-icon size="14" color="#D9B98C" class="mr-1">mdi-star</v-icon>
+          {{ Number(hotel.rating).toFixed(1) }}
+        </span>
+      </div>
+
+      <!-- Category Tag -->
+      <div class="position-absolute top-0 left-0 pa-3">
+        <span class="editorial-stay-badge">
+          <v-icon size="13" color="#FAF8F2" class="mr-1">mdi-bed-outline</v-icon>
+          {{ $t('Accommodations') || 'Stay' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="pa-4 flex-grow-1 d-flex flex-column justify-space-between">
+      <div>
+        <h3 class="text-h6 font-weight-bold text-forest mb-1 line-clamp-1">
+          {{ hotelName }}
+        </h3>
+        <div class="d-flex align-center text-caption text-secondary-editorial mb-2">
+          <v-icon size="15" color="#21866B" class="mr-1">mdi-map-marker</v-icon>
+          <span class="text-truncate">{{ hotelAddress }}</span>
+        </div>
+        <p v-if="hotel.description" class="text-caption text-secondary-editorial line-clamp-2 mb-3">
+          {{ hotel.description }}
+        </p>
+      </div>
+
+      <div class="mt-auto pt-2">
+        <v-btn
+          block
+          variant="outlined"
+          color="#173F35"
+          size="small"
+          rounded="pill"
+          class="btn-editorial-outline text-capitalize font-weight-bold"
+        >
+          {{ $t('ViewDetails') || 'View Property' }}
+          <v-icon end size="16">mdi-arrow-right</v-icon>
+        </v-btn>
+      </div>
+    </div>
   </v-card>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePlacesStore } from '@/stores/places'
-  const placesStore = usePlacesStore()
+import { getResolvedImage } from '@/config/curatedImages'
+
+const placesStore = usePlacesStore()
 const router = useRouter()
 
 const props = defineProps({
   hotel: {
     type: Object,
-    required: true,
-  },
+    required: true
+  }
+})
+
+const hotelName = computed(() => {
+  return props.hotel.displayName?.text || props.hotel.name || 'Boutique Hotel & Resort'
+})
+
+const hotelAddress = computed(() => {
+  return props.hotel.formattedAddress || props.hotel.address || props.hotel.wilayaId?.name || 'Algeria'
+})
+
+const imageUrl = computed(() => {
+  return getResolvedImage(props.hotel, 'hotel')
 })
 
 const goToDetails = () => {
-  console.log("Navigating to place:", props.hotel);
   placesStore.setTrip(props.hotel)
+  const placeId = props.hotel.name?.includes('places/') 
+    ? props.hotel.name.replace('places/', '') 
+    : (props.hotel._id || props.hotel.name || 'detail')
+
   router.push({
     name: 'PlaceDetail',
-    params: {
-      placeId: props.hotel.name.replace('places/', '')
-    }
+    params: { placeId }
   })
 }
-
-const API_KEY = "AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4"
-
-  const getPhotoUrl = (hotel) => {
-    // local image from your database
-    if (hotel.photo) {
-      return hotel.photo
-    }
-
-    if (!hotel || !hotel.photos || hotel.photos.length === 0) {
-      return "/no-image.png"
-    }
-
-    const photoName = hotel.photos[0].name // e.g. "places/xxxx/photos/yyyy"
-
-    return `https://places.googleapis.com/v1/${photoName}/media?key=${API_KEY}&maxWidthPx=800`
-  }
 </script>
+
+<style scoped>
+.editorial-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 45, 39, 0.45) 0%,
+    transparent 50%,
+    rgba(16, 45, 39, 0.75) 100%
+  );
+  pointer-events: none;
+}
+
+.editorial-badge {
+  background: rgba(16, 45, 39, 0.85);
+  backdrop-filter: blur(6px);
+  color: #FAF8F2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(217, 185, 140, 0.3);
+  display: inline-flex;
+  align-items: center;
+}
+
+.editorial-stay-badge {
+  background: rgba(23, 63, 53, 0.9);
+  backdrop-filter: blur(6px);
+  color: #FAF8F2;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>

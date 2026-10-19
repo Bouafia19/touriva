@@ -16,6 +16,7 @@ export const usePlacesStore = defineStore('places', {
         p => p.name === `places/${placeId}`
       )
     },
+    getCurrentPlace: (state) => state.currentPlace,
     getCuurrentPlace: (state) => state.currentPlace
   },
 
@@ -27,6 +28,7 @@ export const usePlacesStore = defineStore('places', {
     async fetchNearby(type, lat, lng) {
       this.loading = true
       try {
+        const apiKey = import.meta.env.VITE_GOOGLE_API_KEY || 'AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4'
         const res = await axios.post(
           'https://places.googleapis.com/v1/places:searchNearby',
           {
@@ -42,7 +44,7 @@ export const usePlacesStore = defineStore('places', {
           {
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-Api-Key': process.env.GOOGLE_API_KEY,
+              'X-Goog-Api-Key': apiKey,
               'X-Goog-FieldMask': `
                 places.name,
                 places.displayName,

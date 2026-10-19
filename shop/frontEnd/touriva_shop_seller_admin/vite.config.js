@@ -8,7 +8,6 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig({
   plugins: [
     vue(),
-    vueDevTools(),
   ],
   resolve: {
     alias: {
@@ -16,7 +15,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 2022,
+    port: 2024,
   },
   build: {
     rollupOptions: {

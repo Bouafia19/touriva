@@ -13,11 +13,17 @@ import * as directives from 'vuetify/directives'
 import * as labs from 'vuetify/labs/components'
 
 
+// Editorial styles
+import './styles/admin-editorial.css'
+
 import App from './App.vue'
 import router from './router'
 
 const vuetify = createVuetify({
-    components,
+    components: {
+        ...components,
+        ...labs,
+    },
     directives,
     icons: {
         defaultSet: 'mdi',
@@ -33,17 +39,24 @@ const vuetify = createVuetify({
                 dark: false,
                 variables: {},
                 colors: {
-                    primary: '#0f766e',
-                    secondary: '#0f172a',
-                    accent: '#f59e0b',
-                    error: '#ef4444',
-                    info: '#0284c7',
-                    success: '#10b981',
-                    warning: '#f59e0b',
-                    next: '#0f766e',
-                    touriva: '#0f766e',
+                    primary: '#173F35',
+                    secondary: '#102D27',
+                    accent: '#21866B',
+                    forestGreen: '#173F35',
+                    deepGreen: '#102D27',
+                    emerald: '#21866B',
+                    warmIvory: '#FAF8F2',
+                    sand: '#D9B98C',
+                    sandLight: '#F5EDE0',
+                    sandDark: '#B89564',
+                    error: '#C24545',
+                    info: '#2A6F85',
+                    success: '#21866B',
+                    warning: '#D9943B',
                     surface: '#ffffff',
-                    background: '#f8fafc',
+                    background: '#FAF8F2',
+                    next: '#173F35',
+                    touriva: '#173F35',
                 } 
             }
         },

@@ -15,6 +15,7 @@ export const useNotificationsStore = defineStore('notifications', {
     actions: {
         //notifications component
         async subscribeToNotifications(params){
+            const auth = useAuthStore()
             auth.getLSUserInfo().then(async (ls) => {
                 try {
                     const response = await axios.post('/api/notifications/subscribe',params, {

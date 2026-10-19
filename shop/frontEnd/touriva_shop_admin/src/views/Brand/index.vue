@@ -1,290 +1,276 @@
 <template>
-    <v-container>
-        <div class="ma-2">
-            <v-alert
-                dense
-                outlined
-                type="error"
-                v-if="err"
-            >
-                {{ $t(err) }}
-            </v-alert>
-        </div>
-        
-        <v-data-table
-            :headers="headers"
-            :items="brands.getBrands"
-            :loading="!brands.getBrands"
-            :search="search"
+  <v-container fluid class="px-4 px-md-8 py-6">
+    <!-- Editorial Page Header -->
+    <div class="editorial-page-header">
+      <div>
+        <div class="editorial-tag mb-1">Catalog Structure</div>
+        <h1 class="editorial-page-title">Brand Directory</h1>
+        <p class="editorial-page-subtitle">Manage partner labels, manufacturer brands, and vendor collections.</p>
+      </div>
+
+      <div class="d-flex align-center gap-2">
+        <v-btn
+          class="btn-editorial-primary px-5"
+          prepend-icon="mdi-plus"
+          @click="openNewDialog"
         >
-            <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                <tr style="color: #00366f;">
-                <template v-for="column in columns" :key="column.key">
-                    <td>
-                    {{ $t(column.text) }}
-                    </td>
-                </template>
-                </tr>
-            </template>
+          {{ $t('New') || 'New Brand' }}
+        </v-btn>
+      </div>
+    </div>
 
-            <template v-slot:top>
-            <v-toolbar
-                flat
-            >
-                <v-toolbar-title>{{ $t('Brands') }}</v-toolbar-title>
-                <v-divider
-                class="mx-4"
-                inset
-                vertical
-                ></v-divider>
+    <!-- Alert -->
+    <v-alert
+      v-if="err"
+      type="error"
+      variant="tonal"
+      closable
+      class="mb-4 rounded-lg"
+      @click:close="err = ''"
+    >
+      {{ $t(err) || err }}
+    </v-alert>
 
-                 <v-text-field
-                    v-model="search"
-                    append-icon="mdi-magnify"
-                    :label="$t('Search')"
-                    single-line
-                    hide-details
-                    class="shrink mx-4"
-                    dense
-                ></v-text-field>
-                
-                <v-spacer></v-spacer>
+    <!-- Table Container -->
+    <div class="editorial-table-container">
+      <div class="pa-4 bg-white d-flex align-center justify-space-between flex-wrap gap-3 border-b">
+        <v-text-field
+          v-model="search"
+          prepend-inner-icon="mdi-magnify"
+          :placeholder="$t('Search') + ' brands...'"
+          variant="outlined"
+          density="compact"
+          hide-details
+          rounded="pill"
+          style="min-width: 280px; max-width: 400px;"
+          class="editorial-search-input"
+        ></v-text-field>
 
-                <v-dialog
-                    v-model="dialog"
-                    :max-width="'500px'"
-                >
+        <v-btn
+          icon="mdi-refresh"
+          variant="text"
+          density="comfortable"
+          color="forestGreen"
+          @click="initialize"
+          title="Refresh"
+        ></v-btn>
+      </div>
 
-                <template v-slot:activator="{ props: activatorProps }">
-                    <v-btn
-                    color="next"
-                    dark
-                    class="mb-2"
-                    v-bind="activatorProps"
-                    icon
-                    size="x-large"
-                    >
-                        <v-icon large>
-                            mdi-plus-circle
-                        </v-icon>
-                    </v-btn>
-                </template>
-                <v-card>
-                    <v-card-title>
-                    <span class="text-h5">{{ formTitle }}</span>
-                    </v-card-title>
+      <v-data-table
+        :headers="headers"
+        :items="brands.getBrands || []"
+        :loading="!brands.getBrands"
+        :search="search"
+        class="editorial-table"
+      >
+        <template v-slot:[`item.name`]="{ item }">
+          <div class="d-flex align-center py-2">
+            <v-avatar size="36" class="me-3 bg-sand-light border-editorial flex-shrink-0">
+              <v-icon icon="mdi-tag-outline" color="forestGreen" size="18"></v-icon>
+            </v-avatar>
+            <span class="font-weight-bold text-deep-green">{{ item.name }}</span>
+          </div>
+        </template>
 
-                    <v-card-text>
-                    <v-container>
-                        <v-row justify="center">
-                            <v-col
-                                :cols="'4'"
-                            >
-                                <v-text-field
-                                    v-model="editedItem.name"
-                                    label="Name"
-                                    type="text"
-                                ></v-text-field>
-                            </v-col>
-                        </v-row>
-                    </v-container>
-                    </v-card-text>
-
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        color="error"
-                        text
-                        @click="close"
-                    >
-                        Cancel
-                    </v-btn>
-                    <v-btn
-                        color="success"
-                        text
-                        @click="save"
-                        :loading="loading"
-                    >
-                        Save
-                    </v-btn>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-                <v-dialog v-model="dialogDelete" max-width="500px">
-                <v-card>
-                    <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="error" text @click="closeDelete">Cancel</v-btn>
-                    <v-btn 
-                        color="success" 
-                        text 
-                        @click="deleteItemConfirm"
-                        :loading="loadingDelete"
-                    >
-                        OK
-                    </v-btn>
-                    <v-spacer></v-spacer>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-            </v-toolbar>
-            </template>
-            <template v-slot:[`item.actions`]="{ item }">
-            <v-icon
-                small
-                class="mr-2"
-                @click="editItem(item)"
-                color="primary"
-            >
-                mdi-pencil
-            </v-icon>
-            <v-icon
-                small
-                @click="deleteItem(item)"
-                color="error"
-            >
-                mdi-delete
-            </v-icon> 
-            </template>
-            <template v-slot:no-data>
+        <template v-slot:[`item.actions`]="{ item }">
+          <div class="d-flex align-center justify-end gap-1">
             <v-btn
-                color="primary"
-                @click="initialize"
-            >
-                Reset
+              icon="mdi-pencil-outline"
+              size="small"
+              variant="text"
+              color="forestGreen"
+              @click="editItem(item)"
+              title="Edit brand"
+            ></v-btn>
+            <v-btn
+              icon="mdi-delete-outline"
+              size="small"
+              variant="text"
+              color="error"
+              @click="deleteItem(item)"
+              title="Delete brand"
+            ></v-btn>
+          </div>
+        </template>
+
+        <template v-slot:no-data>
+          <div class="text-center py-12 px-4">
+            <v-icon icon="mdi-tag-outline" size="48" color="sand" class="mb-2"></v-icon>
+            <div class="text-subtitle-1 font-weight-medium text-deep-green">No Brands Configured</div>
+            <p class="text-caption text-editorial-secondary mb-3">Add merchandise labels to associate with catalog items.</p>
+            <v-btn class="btn-editorial-primary px-4" size="small" @click="openNewDialog">
+              Add First Brand
             </v-btn>
-            </template>
-        </v-data-table>
-    </v-container>
+          </div>
+        </template>
+      </v-data-table>
+    </div>
+
+    <!-- Edit / Add Brand Modal -->
+    <v-dialog v-model="dialog" max-width="500px">
+      <v-card class="editorial-dialog-card">
+        <div class="editorial-dialog-header">
+          <span class="dialog-title font-serif">{{ formTitle }}</span>
+          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="close"></v-btn>
+        </div>
+
+        <v-card-text class="pa-5">
+          <div class="mb-3">
+            <label class="text-caption font-weight-bold text-deep-green d-block mb-1">Brand Name</label>
+            <v-text-field
+              v-model="editedItem.name"
+              placeholder="e.g. Saharan Heritage, Atlas Crafts"
+              variant="outlined"
+              density="comfortable"
+              class="editorial-input"
+              required
+            ></v-text-field>
+          </div>
+        </v-card-text>
+
+        <div class="editorial-dialog-actions d-flex justify-end gap-2">
+          <v-btn class="btn-editorial-ghost px-4" @click="close">Cancel</v-btn>
+          <v-btn class="btn-editorial-primary px-6" :loading="loading" @click="save">Save Brand</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Modal -->
+    <v-dialog v-model="dialogDelete" max-width="450px">
+      <v-card class="editorial-dialog-card">
+        <div class="editorial-dialog-header">
+          <span class="dialog-title font-serif">Confirm Deletion</span>
+          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="closeDelete"></v-btn>
+        </div>
+        <v-card-text class="pa-5 text-center">
+          <v-icon icon="mdi-alert-circle-outline" color="warning" size="48" class="mb-3"></v-icon>
+          <div class="text-body-1 font-weight-medium">Are you sure you want to delete this brand?</div>
+          <div class="text-caption text-editorial-secondary mt-1">Products linked to this brand will need reassignment.</div>
+        </v-card-text>
+        <div class="editorial-dialog-actions d-flex justify-end gap-2">
+          <v-btn class="btn-editorial-ghost px-4" @click="closeDelete">Cancel</v-btn>
+          <v-btn color="error" variant="flat" rounded="pill" class="px-5" :loading="loadingDelete" @click="deleteItemConfirm">
+            Delete
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted, nextTick, computed, watch } from 'vue'
-    import { useBrandsStore } from '@/stores/brands'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { useBrandsStore } from '@/stores/brands'
 
-    const brands = useBrandsStore()
+const brands = useBrandsStore()
 
-    let search = ref(''),
-        dialog = ref(false),
-        dialogDelete = ref(false),
-        loadingDelete = ref(false),
-        headers = ref([
-            {
-            text: 'Name',
-            align: 'start',
-            sortable: false,
-            value: 'name',
-            },
-            { text: 'Actions', value: 'actions', sortable: false },
-        ]),
-        loading = ref(false),
-        err = ref(''),
-        editedIndex = ref(-1),
-        deleteId = ref(-1),
-        editedItem = ref({
-            name: ''
-        }),
-        defaultItem = ref({
-            name: ''
-        }),
-        tab = ref(null),
-        loadingTab = ref(true),
-        firstLoad = ref(true)
+const search = ref('')
+const dialog = ref(false)
+const dialogDelete = ref(false)
+const loading = ref(false)
+const loadingDelete = ref(false)
+const err = ref('')
+const editedIndex = ref(-1)
+const deleteId = ref(null)
 
-        const formTitle = computed(() => {
-            return editedIndex.value === -1 ? 'New Item' : 'Edit Item'
-        })
+const headers = ref([
+  { title: 'Brand Name', key: 'name', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
+])
 
-        const filterHeaders = computed(() => {
-           
-            return headers.value
-           
-        })
+const defaultItem = {
+  name: ''
+}
 
-        watch(dialog, (diaNew, diaOld) => {
-            diaNew || close()
-        })
+const editedItem = ref(Object.assign({}, defaultItem))
 
-        watch(dialogDelete, (dialogDelNew, dialogDelOld) => {
-            dialogDelNew || closeDelete()
-        })
+const formTitle = computed(() => {
+  return editedIndex.value === -1 ? 'Add New Brand' : 'Edit Brand'
+})
 
-        onMounted(()=>{
-            initialize()
-        })
+watch(dialog, (val) => {
+  if (!val) close()
+})
 
-        const initialize = () => {
-            brands.fetchBrands()
-        }
+watch(dialogDelete, (val) => {
+  if (!val) closeDelete()
+})
 
-        const editItem = (item) => {
-            editedIndex.value = brands.getBrands.indexOf(item)
-            editedItem.value = Object.assign({}, item)
-            dialog.value = true
-        }
+const initialize = () => {
+  brands.fetchBrands()
+}
 
-        const deleteItem = (item) => {
-            editedIndex.value = brands.getBrands.indexOf(item)
-            deleteId.value = item._id
-            editedItem.value = Object.assign({}, item)
-            dialogDelete.value = true
-        }
+const openNewDialog = () => {
+  editedIndex.value = -1
+  editedItem.value = Object.assign({}, defaultItem)
+  dialog.value = true
+}
 
-        const deleteItemConfirm = () => {
-            loadingDelete.value = true
-            brands.deleteBrands(deleteId.value).then(() => {
-                brands.getBrands.splice(editedIndex.value, 1)
-                initialize()
-                loadingDelete.value = false
-                closeDelete()
-            })
-        }
+const editItem = (item) => {
+  const list = brands.getBrands || []
+  editedIndex.value = list.indexOf(item)
+  editedItem.value = JSON.parse(JSON.stringify(item))
+  dialog.value = true
+}
 
-        const close = () => {
-            dialog.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItem = (item) => {
+  deleteId.value = item._id
+  dialogDelete.value = true
+}
 
-        const closeDelete = () => {
-            dialogDelete.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItemConfirm = () => {
+  loadingDelete.value = true
+  brands.deleteBrands(deleteId.value).then(() => {
+    initialize()
+    loadingDelete.value = false
+    closeDelete()
+  }).catch((e) => {
+    loadingDelete.value = false
+    err.value = e.message || 'Error deleting brand'
+    closeDelete()
+  })
+}
 
-        const save = () => {
-            console.log('editedItem', editedItem.value)
-            loading.value = true
-            if (editedIndex.value > -1) {
-                
-                brands.editBrands(editedItem.value).then(() => {
-                    Object.assign(brands.brands[editedIndex.value], editedItem.value)
-                   
-                    loading.value = false
-                    close()
-                    initialize()
-                })
-            } else {
-                brands.addBrands(editedItem.value).then(() => {
-                    close()
-                    loading.value = false
-                    initialize()
-                })
-            }   
-        }
+const close = () => {
+  dialog.value = false
+  nextTick(() => {
+    editedItem.value = Object.assign({}, defaultItem)
+    editedIndex.value = -1
+  })
+}
+
+const closeDelete = () => {
+  dialogDelete.value = false
+  nextTick(() => {
+    deleteId.value = null
+  })
+}
+
+const save = () => {
+  loading.value = true
+  err.value = ''
+  if (editedIndex.value > -1) {
+    brands.editBrands(editedItem.value).then(() => {
+      loading.value = false
+      close()
+      initialize()
+    }).catch((e) => {
+      loading.value = false
+      err.value = e.message || 'Error updating brand'
+    })
+  } else {
+    brands.addBrands(editedItem.value).then(() => {
+      loading.value = false
+      close()
+      initialize()
+    }).catch((e) => {
+      loading.value = false
+      err.value = e.message || 'Error adding brand'
+    })
+  }
+}
+
+onMounted(() => {
+  initialize()
+})
 </script>
-
-<style scoped>
-:deep(.v-card .v-card-title) {
-    background-color: #00366f;
-    color: white;
-}
-:deep(.v-card-actions) {
-    background-color: #00366f;
-}
-</style>

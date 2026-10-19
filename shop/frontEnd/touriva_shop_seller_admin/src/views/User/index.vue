@@ -1,670 +1,488 @@
 <template>
-    <v-container>
-        <div class="ma-2">
-            <v-alert
-                dense
-                outlined
-                type="error"
-                v-if="err"
-            >
-                {{ $t(err) }}
-            </v-alert>
-        </div>
-        <!-- <v-skeleton-loader v-if="firstLoad" :loading="loadingTab" type="table" height="100%"></v-skeleton-loader> -->
-        <v-data-table
-            :headers="headers"
-            :items="users.getUsers"
-            :item-class="itemRowBackground"
-            :loading="!users.getUsers"
-            :search="search"
+  <v-container fluid class="px-4 px-md-8 py-6">
+    <!-- Editorial Page Header -->
+    <div class="editorial-page-header">
+      <div>
+        <div class="editorial-tag mb-1">Access & Identity</div>
+        <h1 class="editorial-page-title">User Accounts</h1>
+        <p class="editorial-page-subtitle">Manage system administrators, merchant partners, and registered client accounts.</p>
+      </div>
+
+      <div class="d-flex align-center gap-2 flex-wrap">
+        <v-btn
+          class="btn-editorial-primary px-5"
+          prepend-icon="mdi-account-plus"
+          @click="openNewDialog"
         >
-            <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-                <tr style="color: #00366f;">
-                <template v-for="column in columns" :key="column.key">
-                    <td>
-                    {{ $t(column.text) }}
-                    </td>
-                </template>
-                </tr>
-            </template>
-            <!-- <template v-for="header in headers" v-slot:[`header.${header.value}`]="{ header }">
-                {{ $t(header.text) }}
-            </template> -->
+          {{ $t('New') || 'New User' }}
+        </v-btn>
+      </div>
+    </div>
 
-            <template v-slot:[`item.name`]="{ item }">
-                {{ item.firstName + ' ' + item.lastName }}
-            </template>
+    <!-- Alert Message -->
+    <v-alert
+      v-if="err"
+      type="error"
+      variant="tonal"
+      closable
+      class="mb-4 rounded-lg"
+      @click:close="err = ''"
+    >
+      {{ $t(err) || err }}
+    </v-alert>
 
-            <template v-slot:[`item.authorizationIds`]="{ item }">
-                <v-chip-group
-                    column
-                    v-if="item.authorizationIds.length > 0"
-                >
-                    <v-chip
-                        v-for="(auth, index) in item.authorizationIds" :key="index"
-                        color="next"
-                        dark
-                    >
-                        {{ auth.name }}
-                    </v-chip>
-                </v-chip-group>
-            </template>
+    <!-- Table Container -->
+    <div class="editorial-table-container">
+      <!-- Search & Role Filter Bar -->
+      <div class="pa-4 bg-white d-flex align-center justify-space-between flex-wrap gap-3 border-b">
+        <div class="d-flex align-center gap-3 flex-wrap flex-grow-1">
+          <v-text-field
+            v-model="search"
+            prepend-inner-icon="mdi-magnify"
+            :placeholder="$t('Search') + ' users by email, name or company...'"
+            variant="outlined"
+            density="compact"
+            hide-details
+            rounded="pill"
+            style="min-width: 280px; max-width: 380px;"
+            class="editorial-search-input"
+          ></v-text-field>
 
-            <template v-slot:top>
-            <v-toolbar
-                flat
-            >
-                <v-toolbar-title>{{ $t('Users') }}</v-toolbar-title>
-                <v-divider
-                class="mx-4"
-                inset
-                vertical
-                ></v-divider>
+          <v-chip-group
+            v-model="selectedRole"
+            selected-class="chip-active-editorial"
+            density="compact"
+          >
+            <v-chip value="all" filter variant="tonal" rounded="pill">All Users</v-chip>
+            <v-chip value="administrator" filter variant="tonal" rounded="pill">Admins</v-chip>
+            <v-chip value="partner" filter variant="tonal" rounded="pill">Partners</v-chip>
+            <v-chip value="client" filter variant="tonal" rounded="pill">Clients</v-chip>
+          </v-chip-group>
+        </div>
 
-                 <v-text-field
-                    v-model="search"
-                    append-icon="mdi-magnify"
-                    :label="$t('Search')"
-                    single-line
-                    hide-details
-                    class="shrink mx-4"
-                    
-                    dense
-                ></v-text-field>
-                
-                <v-spacer></v-spacer>
-                <v-dialog
-                    v-model="dialog"
-                    :max-width="'500px'"
-                >
+        <div class="d-flex align-center gap-2">
+          <v-btn
+            icon="mdi-refresh"
+            variant="text"
+            density="comfortable"
+            color="forestGreen"
+            @click="initialize"
+            title="Refresh"
+          ></v-btn>
+        </div>
+      </div>
 
-                <template v-slot:[`group.header`]="{items, isOpen, toggle}">
-                    <td :colspan="headers.length">
-                    <v-icon color="next" @click="toggle">
-                        {{ isOpen ? 'mdi-minus' : 'mdi-plus' }}
-                    </v-icon>
-                    <span>{{  $t('Role') + ': ' + items[0].role }}</span>
-                    </td>
-                </template>
+      <!-- V-Data-Table -->
+      <v-data-table
+        :headers="headers"
+        :items="filteredUsers"
+        :loading="!users.getUsers"
+        class="editorial-table"
+      >
+        <!-- User Identity / Name -->
+        <template v-slot:[`item.name`]="{ item }">
+          <div class="d-flex align-center py-1">
+            <v-avatar size="36" class="me-2 bg-sand-light border-editorial flex-shrink-0">
+              <v-icon :icon="getUserIcon(item.role)" color="forestGreen" size="18"></v-icon>
+            </v-avatar>
+            <div>
+              <div class="font-weight-semibold text-deep-green">{{ getUserDisplayName(item) }}</div>
+              <div class="text-caption text-editorial-secondary">{{ item.email }}</div>
+            </div>
+          </div>
+        </template>
 
-                <!-- <template v-slot:[`item.vehicleId.photo`]="{ item }">
-                    <v-img :src="item.vehicleId.photo" style="width: 100px; height: 100px"/>
-                </template> -->
+        <!-- Company Name -->
+        <template v-slot:[`item.companyName`]="{ item }">
+          <span class="text-caption font-weight-medium">
+            {{ item.companyName || '—' }}
+          </span>
+        </template>
 
-                <template v-slot:activator="{ props: activatorProps }">
-                    <v-btn
-                    color="next"
-                    dark
-                    class="mb-2"
-                    v-bind="activatorProps"
-                    icon
-                    size="x-large"
-                    >
-                        <v-icon large>
-                            mdi-plus-circle
-                        </v-icon>
-                    </v-btn>
-                </template>
-                <v-card>
-                    <v-card-title>
-                    <span class="text-h5">{{ formTitle }}</span>
-                    </v-card-title>
+        <!-- Phone -->
+        <template v-slot:[`item.phone`]="{ item }">
+          <span class="text-caption">
+            {{ item.phone || '—' }}
+          </span>
+        </template>
 
-                    <v-card-text>
-                    <v-container>
-                        <v-row justify="center">
-                            <v-col
-                                :cols="auto"
-                            >
-                                <v-text-field
-                                    v-model="editedItem.email"
-                                    label="Email"
-                                    type="text"
-                                ></v-text-field>
+        <!-- Role Badge -->
+        <template v-slot:[`item.role`]="{ item }">
+          <span :class="['status-badge', getRoleBadgeClass(item.role)]">
+            <span class="status-badge-dot"></span>
+            {{ item.role || 'client' }}
+          </span>
+        </template>
 
-                                <!--<v-text-field
-                                    v-model="editedItem.companyName"
-                                    label="RaisonSocial"
-                                    type="text"
-                                ></v-text-field>-->
-                    
-                                <v-text-field
-                                    v-model="editedItem.firstName"
-                                    label="firstName"
-                                    type="text"
-                                    readonly
-                                    v-if="editedItem.role === 'client'"
-                                ></v-text-field>
+        <!-- Account Status / Activation -->
+        <template v-slot:[`item.activated`]="{ item }">
+          <span :class="['status-badge', item.activated !== false ? 'status-badge-success' : 'status-badge-error']">
+            <span class="status-badge-dot"></span>
+            {{ item.activated !== false ? 'Active' : 'Locked' }}
+          </span>
+        </template>
 
-                                <v-text-field
-                                    v-model="editedItem.lastName"
-                                    label="lastName"
-                                    type="text"
-                                    readonly
-                                    v-if="editedItem.role === 'client'"
-                                ></v-text-field>
-
-                                <v-text-field
-                                    v-model="editedItem.phone"
-                                    label="phone"
-                                    type="text"
-                                    readonly
-                                    v-if="editedItem.role != 'administrator'"
-                                ></v-text-field>
-
-                                <!--<v-select
-                                    :items="items"
-                                    v-model="editedItem.role"
-                                    item-value="value"
-                                    item-title="label"
-                                    :label="$t('roles')"
-                                    disabled
-                                ></v-select>-->
-
-                                <!--<v-select
-                                    :items="sectorActivityItems"
-                                    v-model="editedItem.sectorActivity"
-                                    type="text"
-                                    :label="$t('sectorActivity')"
-                                    
-                                ></v-select>
-
-                                <v-select
-                                    :items="roles"
-                                    v-model="editedItem.authorizationIds"
-                                    item-value="_id"
-                                    item-text="name"
-                                    :label="$t('authorization')"
-                                    multiple
-                                    chips
-                                    attach
-                                    v-if="editedItem.role === 'administrator'"
-                                ></v-select>-->
-
-                                <!-- <v-select
-                                    :items="vehicles"
-                                    :label="$t('Vehicles')"
-                                    item-value="_id"
-                                    item-text="name"
-                                    v-model="editedItem.vehicleId"
-                                    v-if="editedItem.role === 'partner'"
-                                >
-                                    <template slot="selection" slot-scope="data">
-                                        <v-avatar rounded="lg">
-                                            <v-img class="mr-2" contain :src="data.item.photo"></v-img>
-                                        </v-avatar> 
-                                        {{ data.item.name }}
-                                    </template>
-
-                                    <template slot="item" slot-scope="data">
-                                        <v-avatar rounded="lg">
-                                            <v-img class="mr-2" contain :src="data.item.photo"></v-img>
-                                        </v-avatar> 
-                                        {{ data.item.name }}
-                                    </template>
-                                </v-select> -->
-
-                                <!--<v-checkbox
-                                    v-model="editedItem.status"
-                                    :label="$t('actif')"
-                                    v-if="editedItem.typeAccount != 'ordinary' && editedItem.role != 'administrator'"
-                                ></v-checkbox>
-
-                                <v-select
-                                    :items="fileStatus"
-                                    :label="$t('fileStatus')"
-                                    item-value="name"
-                                    item-title="name"
-                                    v-model="editedItem.fileStatus"
-                                    v-if="editedItem.typeAccount != 'ordinary'"
-                                >
-                                    <template slot="selection" slot-scope="data">
-                                        {{ $t(data.item.name) }}
-                                    </template>
-
-                                    <template slot="item" slot-scope="data">
-                                        {{ $t(data.item.name) }}
-                                    </template>
-                                </v-select>-->
-
-
-                                <!-- <v-text-field
-                                    v-model="editedItem.code"
-                                    label="Code"
-                                    append-icon="mdi-calculator-variant"
-                                    @click:append="generateCode"
-                                    :disabled="editedItem.code != '' ? true : false"
-                                    v-if="editedItem.role === 'partner'"
-                                ></v-text-field> -->
-                        
-                                <!-- <v-text-field
-                                    v-model="editedItem.password"
-                                    label="Password"
-                                    type="password"
-                                    outlined
-                                    dense
-                                    rounded
-                                ></v-text-field> -->
-                            </v-col>
-                            <!--<v-col
-                                cols="8"
-                                v-if="editedItem.typeAccount != 'ordinary' && editedItem.role != 'administrator'"
-                            >
-                                <v-card>
-                                    <v-toolbar
-                                        flat
-                                        color="next"
-                                        dark
-                                    >
-                                        <v-toolbar-title>{{ $t('Documents') }}</v-toolbar-title>
-                                    </v-toolbar>
-
-                                    <v-tabs
-                                        v-model="tab"
-                                        
-                                        
-                                    >
-                                        <v-tab
-                                            v-for="(item, index) in documents"
-                                            :key="index"
-                                            :value="index"
-                                        >
-                                            {{ item.title }}
-                                            <v-icon :color="item.done ? 'success': 'error'">{{ item.done ? 'mdi-checkbox-marked-circle' : 'mdi-minus-circle' }}</v-icon>
-                                        </v-tab>
-                                    </v-tabs>
-
-                                    <v-card-text>
-                                    <v-tabs-window 
-                                        v-model="tab"
-                                    >
-                                        
-                                        <v-tabs-window-item 
-                                            v-for="(item, index) in documents"
-                                            :key="index"
-                                            :value="index"
-                                        >
-                                            <v-img
-                                                :src="editedItem[item.title]"
-                                                height="400"
-                                                cover
-                                            ></v-img>
-                                        </v-tabs-window-item>
-                                    </v-tabs-window>
-                                    </v-card-text>
-                                </v-card>
-                                
-                            </v-col>-->
-                        </v-row>
-                    </v-container>
-                    </v-card-text>
-
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn
-                        color="error"
-                        text
-                        @click="close"
-                    >
-                        Cancel
-                    </v-btn>
-                    <v-btn
-                        color="success"
-                        text
-                        @click="save"
-                        :loading="loading"
-                    >
-                        Save
-                    </v-btn>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-                <v-dialog v-model="dialogDelete" max-width="500px">
-                <v-card>
-                    <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-                    <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="error" text @click="closeDelete">Cancel</v-btn>
-                    <v-btn 
-                        color="success" 
-                        text 
-                        @click="deleteItemConfirm"
-                        :loading="loadingDelete"
-                    >
-                        OK
-                    </v-btn>
-                    <v-spacer></v-spacer>
-                    </v-card-actions>
-                </v-card>
-                </v-dialog>
-            </v-toolbar>
-            </template>
-            <template v-slot:[`item.actions`]="{ item }">
-            <v-icon
-                small
-                class="mr-2"
-                @click="editItem(item)"
-                color="primary"
-                
-            >
-                mdi-pencil
-            </v-icon>
-            <v-icon
-                small
-                class="mr-2"
-                @click="activateItem(item)"
-                color="warning"
-                :loading="loading"
-               
-            >
-                {{ item.activated ? 'mdi-lock-open' : 'mdi-lock' }}
-            </v-icon>
-            <v-icon
-                small
-                @click="deleteItem(item)"
-                color="error"
-               
-            >
-                mdi-delete
-            </v-icon> 
-            </template>
-            <template v-slot:no-data>
+        <!-- Actions -->
+        <template v-slot:[`item.actions`]="{ item }">
+          <div class="d-flex align-center justify-end gap-1">
             <v-btn
-                color="primary"
-                @click="initialize"
-            >
-                Reset
+              icon="mdi-pencil-outline"
+              size="small"
+              variant="text"
+              color="forestGreen"
+              @click="editItem(item)"
+              title="Edit account"
+            ></v-btn>
+            <v-btn
+              :icon="item.activated !== false ? 'mdi-lock-outline' : 'mdi-lock-open-variant-outline'"
+              size="small"
+              variant="text"
+              :color="item.activated !== false ? 'warning' : 'success'"
+              :loading="loadingToggleId === item._id"
+              @click="activateItem(item)"
+              :title="item.activated !== false ? 'Lock account' : 'Unlock account'"
+            ></v-btn>
+            <v-btn
+              icon="mdi-delete-outline"
+              size="small"
+              variant="text"
+              color="error"
+              @click="deleteItem(item)"
+              title="Delete account"
+            ></v-btn>
+          </div>
+        </template>
+
+        <!-- Empty State -->
+        <template v-slot:no-data>
+          <div class="text-center py-12 px-4">
+            <v-icon icon="mdi-account-group-outline" size="48" color="sand" class="mb-2"></v-icon>
+            <div class="text-subtitle-1 font-weight-medium text-deep-green">No User Accounts Found</div>
+            <p class="text-caption text-editorial-secondary mb-3">Add team members or client accounts to get started.</p>
+            <v-btn class="btn-editorial-primary px-4" size="small" @click="openNewDialog">
+              Create New User
             </v-btn>
-            </template>
-        </v-data-table>
-    </v-container>
+          </div>
+        </template>
+      </v-data-table>
+    </div>
+
+    <!-- User Create / Edit Dialog -->
+    <v-dialog v-model="dialog" max-width="650px">
+      <v-card class="editorial-dialog-card">
+        <div class="editorial-dialog-header">
+          <span class="dialog-title font-serif">{{ formTitle }}</span>
+          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="close"></v-btn>
+        </div>
+
+        <v-card-text class="pa-5">
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="editedItem.email"
+                label="Email Address"
+                type="email"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-select
+                v-model="editedItem.role"
+                :items="roleOptions"
+                label="Account Role"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-select>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="editedItem.firstName"
+                label="First Name"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="editedItem.lastName"
+                label="Last Name"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="editedItem.companyName"
+                label="Company / Raison Sociale"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="editedItem.phone"
+                label="Phone Number"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6" v-if="editedIndex === -1">
+              <v-text-field
+                v-model="editedItem.password"
+                label="Initial Password"
+                type="password"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="12" sm="6">
+              <v-switch
+                v-model="editedItem.activated"
+                color="forestGreen"
+                label="Account Activated"
+                hide-details
+                inset
+              ></v-switch>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <div class="editorial-dialog-actions d-flex justify-end gap-2">
+          <v-btn class="btn-editorial-ghost px-4" @click="close">Cancel</v-btn>
+          <v-btn class="btn-editorial-primary px-6" :loading="loading" @click="save">Save User</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Modal -->
+    <v-dialog v-model="dialogDelete" max-width="450px">
+      <v-card class="editorial-dialog-card">
+        <div class="editorial-dialog-header">
+          <span class="dialog-title font-serif">Confirm Deletion</span>
+          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="closeDelete"></v-btn>
+        </div>
+        <v-card-text class="pa-5 text-center">
+          <v-icon icon="mdi-alert-circle-outline" color="warning" size="48" class="mb-3"></v-icon>
+          <div class="text-body-1 font-weight-medium">Are you sure you want to delete this user?</div>
+          <div class="text-caption text-editorial-secondary mt-1">This user will lose access to the portal.</div>
+        </v-card-text>
+        <div class="editorial-dialog-actions d-flex justify-end gap-2">
+          <v-btn class="btn-editorial-ghost px-4" @click="closeDelete">Cancel</v-btn>
+          <v-btn color="error" variant="flat" rounded="pill" class="px-5" :loading="loadingDelete" @click="deleteItemConfirm">
+            Delete
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
-    import { ref, onMounted, nextTick, computed, watch } from 'vue'
-    import { useUsersStore } from '@/stores/users'
+import { ref, onMounted, computed, watch, nextTick } from 'vue'
+import { useUsersStore } from '@/stores/users'
 
-    const users = useUsersStore()
+const users = useUsersStore()
 
-    let search = ref(''),
-        dialog = ref(false),
-        dialogDelete = ref(false),
-        loadingDelete = ref(false),
-        headers = ref([
-            {
-            text: 'Email',
-            align: 'start',
-            sortable: false,
-            value: 'email',
-            },
-            { text: 'RaisonSocial', value: 'companyName' },
-            // { text: 'lastName', value: 'lastName' },
-            { text: 'Phone', value: 'phone' },
-            { text: 'role', value: 'role' },
-            { text: 'Account Type', value: 'typeAccount' },
-            { text: 'Expiration', value: 'expirationOfSubscription' },
-           
-            { text: 'Actions', value: 'actions', sortable: false },
-        ]),
-        items = ref([
-            { label: 'administrator', value: 'administrator'},
-            { label: 'client', value: 'client'},
-            { label: 'partner', value: 'partner'}
-        ]),
-        sectorActivityItems = ref(['BTPH', 'Agricole', 'Industriel', 'Autre']),
-        loading = ref(false),
-        err = ref(''),
-        editedIndex = ref(-1),
-        deleteId = ref(-1),
-        editedItem = ref({
-            email: '',
-            firstName: '',
-            lastName: '',
-            phone: '',
-            password: '12345678',
-            role: 'administrator',
-            vehicleId: null,
-            complete: false,
-            activated: false,
-            code: ''
-        }),
-        defaultItem = ref({
-            email: '',
-            firstName: '',
-            lastName: '',
-            phone: '',
-            password: '',
-            role: 'administrator',
-            vehicleId: null,
-            complete: false,
-            activated: false,
-            code: ''
-        }),
-        tab = ref(null),
-        documents = ref([
-            { id: 1, title: 'nisDoc', done: false },
-            { id: 2, title: 'commercialRegister', done: false },
-            { id: 3, title: 'nifDoc', done: false },
-            { id: 4, title: 'id', done: false },
-            // { id: 5, title: 'id', done: false }
-        ]),
-        loadingTab = ref(true),
-        firstLoad = ref(true),
-        partners = ref([]),
-        fileStatus = ref([
-            { name: 'created' },
-            { name: 'pending' },
-            { name: 'confirmed' },
-            
-        ])
+const search = ref('')
+const selectedRole = ref('all')
+const dialog = ref(false)
+const dialogDelete = ref(false)
+const loading = ref(false)
+const loadingDelete = ref(false)
+const loadingToggleId = ref(null)
+const err = ref('')
+const editedIndex = ref(-1)
+const deleteId = ref(null)
 
-        const formTitle = computed(() => {
-            return editedIndex.value === -1 ? 'New Item' : 'Edit Item'
-        })
+const roleOptions = ref(['administrator', 'partner', 'client'])
 
-        const filterHeaders = computed(() => {
-            return headers.value
-        })
+const headers = ref([
+  { title: 'User / Identity', key: 'name', sortable: true },
+  { title: 'Company / Business', key: 'companyName', sortable: true },
+  { title: 'Phone', key: 'phone', sortable: false },
+  { title: 'Role', key: 'role', sortable: true },
+  { title: 'Status', key: 'activated', sortable: true },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
+])
 
-        watch(dialog, (diaNew, diaOld) => {
-            diaNew || close()
-        })
+const defaultItem = {
+  email: '',
+  firstName: '',
+  lastName: '',
+  companyName: '',
+  phone: '',
+  password: 'Password123!',
+  role: 'client',
+  activated: true
+}
 
-        watch(dialogDelete, (dialogDelNew, dialogDelOld) => {
-            dialogDelNew || closeDelete()
-        })
+const editedItem = ref(Object.assign({}, defaultItem))
 
-        onMounted(()=>{
-            initialize()
-        })
+const formTitle = computed(() => {
+  return editedIndex.value === -1 ? 'Create User Account' : 'Edit User Account'
+})
 
-        const generateCode = () => {
-            editedItem.value.code = getId()
-        }
+const filteredUsers = computed(() => {
+  let list = users.getUsers || []
+  if (selectedRole.value && selectedRole.value !== 'all') {
+    list = list.filter(u => u.role === selectedRole.value)
+  }
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    list = list.filter(u => {
+      const email = String(u.email || '').toLowerCase()
+      const name = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase()
+      const comp = String(u.companyName || '').toLowerCase()
+      return email.includes(q) || name.includes(q) || comp.includes(q)
+    })
+  }
+  return list
+})
 
-        // generate a unique id
-        const getId = () => {
-            const limit = 100; // max tries to create unique id
-            let attempts = 0; // how many attempts
-            let id = false;
-            while(!id && attempts < limit) {
-                id = randomId(); // create id
-                if(!checkId(id)) { // check unique
-                    id = false; // reset id
-                    attempts++; // record failed attempt
-                }
-            }
-            return id; // the id or false if did not get unique after max attempts
-        }
+watch(dialog, (val) => {
+  if (!val) close()
+})
 
-        const checkId = (id) => {
-            partners.value = users.getUsers.filter((item) => item.role === 'partner')
-            let match = partners.value.find((item) => {
-                console.log('code', item.code)
-                return item.code === id;
-            });
-            return match ? false : true;
-        }
+watch(dialogDelete, (val) => {
+  if (!val) closeDelete()
+})
 
-        // short random string for ids - not guaranteed to be unique
-        const randomId = () => {
-            return Math.random().toString(36).substring(2, 6 + 2)
-        }
+const getUserDisplayName = (u) => {
+  if (u.firstName || u.lastName) {
+    return `${u.firstName || ''} ${u.lastName || ''}`.trim()
+  }
+  if (u.companyName) return u.companyName
+  return u.email?.split('@')[0] || 'User'
+}
 
-        const itemRowBackground = (item) => {
-            return item.activated === false ? 'style-1' : 'style-2'
-        }
+const getUserIcon = (role) => {
+  if (role === 'administrator') return 'mdi-shield-crown-outline'
+  if (role === 'partner') return 'mdi-store-outline'
+  return 'mdi-account-outline'
+}
 
-        const initialize = () => {
-            users.fetchUsers()
-        }
+const getRoleBadgeClass = (role) => {
+  if (role === 'administrator') return 'status-badge-success'
+  if (role === 'partner') return 'status-badge-sand'
+  return 'status-badge-info'
+}
 
-        const editItem = (item) => {
-            editedIndex.value = users.getUsers.indexOf(item)
-            editedItem.value = Object.assign({}, item)
-            console.log('item', item)
-            const userKeys = Object.keys(item)
-                userKeys.forEach(key => {
-                    documents.value.forEach(e => {
-                        if(key === e.title){
-                            e.done = true
-                        }
-                    });
-                });
-            dialog.value = true
-        }
+const initialize = () => {
+  users.fetchUsers()
+}
 
-        const activateItem = async (item) => {
-            loading.value = true
-            item.activated = !item.activated
-            try {
-                await users.editUsers(item)
-            } catch (error) {
-                err.value = error
-                console.log('error update user', error)
-            }
-            loading.value = false
-        }
+const openNewDialog = () => {
+  editedIndex.value = -1
+  editedItem.value = Object.assign({}, defaultItem)
+  dialog.value = true
+}
 
-        const deleteItem = (item) => {
-            editedIndex.value = users.getUsers.indexOf(item)
-            deleteId.value = item._id
-            editedItem.value = Object.assign({}, item)
-            dialogDelete.value = true
-        }
+const editItem = (item) => {
+  const list = users.getUsers || []
+  editedIndex.value = list.indexOf(item)
+  editedItem.value = JSON.parse(JSON.stringify(item))
+  dialog.value = true
+}
 
-        const deleteItemConfirm = () => {
-            loadingDelete.value = true
-            users.deleteUsers(deleteId.value).then(() => {
-                users.users.splice(editedIndex.value, 1)
-                initialize()
-                loadingDelete.value = false
-                closeDelete()
-            })
-            
-        }
+const activateItem = async (item) => {
+  loadingToggleId.value = item._id
+  const updatedStatus = item.activated === false ? true : false
+  try {
+    await users.editUsers({
+      _id: item._id,
+      activated: updatedStatus
+    })
+    item.activated = updatedStatus
+  } catch (error) {
+    err.value = error.message || 'Error updating user status'
+  } finally {
+    loadingToggleId.value = null
+  }
+}
 
-        const close = () => {
-            dialog.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItem = (item) => {
+  const list = users.getUsers || []
+  editedIndex.value = list.indexOf(item)
+  deleteId.value = item._id
+  dialogDelete.value = true
+}
 
-        const closeDelete = () => {
-            dialogDelete.value = false
-            nextTick(() => {
-                editedItem.value = Object.assign({}, defaultItem.value)
-                editedIndex.value = -1
-            })
-        }
+const deleteItemConfirm = () => {
+  loadingDelete.value = true
+  users.deleteUsers(deleteId.value).then(() => {
+    initialize()
+    loadingDelete.value = false
+    closeDelete()
+  }).catch((e) => {
+    loadingDelete.value = false
+    err.value = e.message || 'Error deleting user'
+    closeDelete()
+  })
+}
 
-        const createUser = async () => {
-            try {
-                await users.addUsers(editedItem.value)
-            } catch (error) {
-                err.value = error
-                console.log('error create user', error)
-            }
-        }
+const close = () => {
+  dialog.value = false
+  nextTick(() => {
+    editedItem.value = Object.assign({}, defaultItem)
+    editedIndex.value = -1
+  })
+}
 
-        const fileProcessing = () => {
-            editedItem.value.complete = true
-            
-            let array = documents.value.filter(e => !e.done)
-           
-            let counter = 0
-            array.forEach(e => {
-                if(e.title === "commercialRegister" || e.title === "transportCard"){
-                    counter = counter + 1
-                }
-            })
-            
-            if(counter === 2){
-                editedItem.value.legal = false
-            }
+const closeDelete = () => {
+  dialogDelete.value = false
+  nextTick(() => {
+    deleteId.value = null
+  })
+}
 
-            if(array.length === 0){
-                editedItem.value.legal = true
-            }
-        }
+const save = () => {
+  loading.value = true
+  err.value = ''
+  if (editedIndex.value > -1) {
+    users.editUsers(editedItem.value).then(() => {
+      loading.value = false
+      close()
+      initialize()
+    }).catch((e) => {
+      loading.value = false
+      err.value = e.message || 'Error updating user'
+    })
+  } else {
+    // Audit fix: Call users.addUsers() instead of non-existent users.createUser()
+    users.addUsers(editedItem.value).then(() => {
+      loading.value = false
+      close()
+      initialize()
+    }).catch((e) => {
+      loading.value = false
+      err.value = e.message || 'Error creating user'
+    })
+  }
+}
 
-        const save = () => {
-            loading.value = true
-            if (editedIndex.value > -1) {
-                switch (editedItem.value.fileStatus) {
-                    case 'confirmed':
-                        fileProcessing()
-                        editedItem.value.status = true
-                        break;
-                    case 'created':
-                        editedItem.value.complete = false
-                        editedItem.value.status = false
-                        break;
-                    case 'pending':
-                        editedItem.value.complete = false
-                        editedItem.value.status = false
-                        break;
-                    default:
-                        break;
-                }
-                
-                let updatedItem = {
-                    _id: editedItem.value._id,
-                    fileStatus: editedItem.value.fileStatus,
-                    vehicleId: editedItem.value.vehicleId,
-                    complete: editedItem.value.complete,
-                    code: editedItem.value.code,
-                    status: editedItem.value.status,
-                    legal: editedItem.value.legal,
-                    sectorActivity: editedItem.value.sectorActivity
-                }
-                
-                users.editUsers(updatedItem).then(() => {
-                    Object.assign(users.users[editedIndex.value], editedItem.value)
-                    // this.$store.commit('setUsers', users.users)
-                    // this.$store.commit('getPendingTransportersFiles', this.users)
-                    loading.value = false
-                    close()
-                    initialize()
-                })
-            } else {
-                users.createUser().then(() => {
-                    close()
-                    loading.value = false
-                    initialize()
-                })
-            }   
-        }
+onMounted(() => {
+  initialize()
+})
 </script>
 
 <style scoped>
-:deep(.v-card .v-card-title) {
-    background-color: #00366f;
-    color: white;
-}
-:deep(.v-card-actions) {
-    background-color: #00366f;
+.chip-active-editorial {
+  background-color: var(--color-forest-green) !important;
+  color: #FFFFFF !important;
 }
 </style>
