@@ -49,6 +49,11 @@ describe('Touriva Shop Endpoints', () => {
     expect(res.body.name).toBe('Artisan Ceramic Tagine')
   })
 
+  it('GET /api/orders rejects unauthenticated requests with 401', async () => {
+    const res = await request(app).get('/api/orders')
+    expect(res.status).toBe(401)
+  })
+
   it('POST /api/orders rejects unauthenticated requests with 401', async () => {
     const res = await request(app)
       .post('/api/orders')

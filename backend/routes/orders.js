@@ -14,11 +14,11 @@ const {
     getOrdersByUserId } = require('../controllers/ordersController')
 
 
-// GET all orders
-router.get('/', getOrders)
-
 // require auth for all routes
 router.use(requireAuth)
+
+// GET all orders
+router.get('/', getOrders)
 
 // GET a single order
 router.get('/:id', getOrder)

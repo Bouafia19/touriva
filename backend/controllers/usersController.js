@@ -21,7 +21,7 @@ const sendOtpEmail = async (to, otp) => {
   })
 }
 const createToken = (_id) => {
-    return jwt.sign({_id}, process.env.SECRET)
+    return jwt.sign({_id}, process.env.SECRET, { expiresIn: '7d' })
 }
 
 // login user via web
