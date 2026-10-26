@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,16 @@ const {
     deleteActivity,
     updateActivity } = require('../controllers/activitiesController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
+// Public routes
 // GET all activities
 router.get('/', getActivities)
 
 // GET a single Activity
 router.get('/:id', getActivity)
-  
-// POST a new Activity
-router.post('/', createActivity)
 
-// DELETE a Activity
-router.delete('/:id', deleteActivity)
-
-// UPDATE a Activity
-router.patch('/:id', updateActivity)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createActivity)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteActivity)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateActivity)
 
 module.exports = router

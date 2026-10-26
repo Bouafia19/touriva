@@ -307,50 +307,61 @@ const verifyCode = async (req, res) => {
 }
 
 // GET all users
+// GET all users (ADMIN ONLY)
 const getUsers = async (req, res) => {
-    const users = await User.find().sort({ createdAt: -1}).populate("categoryId").populate("authorizationIds")
+    if (!req.user || req.user.role !== 'administrator') {
+        return res.status(403).json({ error: 'Access forbidden: Administrator privileges required' })
+    }
+    const users = await User.find().sort({ createdAt: -1}).select('-password').populate("categoryId").populate("authorizationIds")
     res.status(200).json(users)
 }
 
-// GET a single user
+// GET a single user (Self or Admin only)
 const getUser = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-    const item = await User.findById(id)
+
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot view another user\'s profile' })
+    }
+
+    const item = await User.findById(id).select('-password')
     
     if(!item){
         return res.status(404).json({error: 'no such user'})
     }
 
-    
-        let user = {
-            _id: item._id,
-            email: item.email,
-            firstName: item.firstName,
-            lastName: item.lastName,
-            language: item.language,
-            phone: item.phone,
-            role: item.role,
-            complete: item.complete,
-            status: item.status,
-            fileStatus: item.fileStatus,
-            companyName: item.companyName,
-            typeAccount: item.typeAccount,
-            categoryId: item.categoryId,
-            expirationOfSubscription: item.expirationOfSubscription,
-            sectorActivity: item.sectorActivity
-        }
-        res.status(200).json(user)
-
+    let user = {
+        _id: item._id,
+        email: item.email,
+        firstName: item.firstName,
+        lastName: item.lastName,
+        language: item.language,
+        phone: item.phone,
+        role: item.role,
+        complete: item.complete,
+        status: item.status,
+        fileStatus: item.fileStatus,
+        companyName: item.companyName,
+        typeAccount: item.typeAccount,
+        categoryId: item.categoryId,
+        expirationOfSubscription: item.expirationOfSubscription,
+        sectorActivity: item.sectorActivity
+    }
+    res.status(200).json(user)
 }
 
-// POST a new user
+// POST a new user (ADMIN ONLY)
 const createUser = async (req, res) => {
+    if (!req.user || req.user.role !== 'administrator') {
+        return res.status(403).json({ error: 'Access forbidden: Administrator privileges required' })
+    }
     const { 
         password,
-        
     } = req.body
     
     try {
@@ -361,13 +372,19 @@ const createUser = async (req, res) => {
             ...req.body,
             password: hash
         })
-        res.status(200).json(user)
+        const sanitized = user.toObject()
+        delete sanitized.password
+        res.status(200).json(sanitized)
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
 }
-// DELETE a user
+
+// DELETE a user (ADMIN ONLY)
 const deleteUser = async (req, res) => {
+    if (!req.user || req.user.role !== 'administrator') {
+        return res.status(403).json({ error: 'Access forbidden: Administrator privileges required' })
+    }
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
@@ -378,22 +395,39 @@ const deleteUser = async (req, res) => {
         return res.status(404).json({error: 'no such user'})
     }
 
-    res.status(200).json(user)
+    res.status(200).json({ message: 'User deleted successfully', _id: id })
 }
 
-// UPDATE a user
+// UPDATE a user (Self or Admin only, strictly prevents privilege escalation)
 const updateUser = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
+
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot modify another user' })
+    }
+
+    const updates = { ...req.body }
+    if (!isAdmin) {
+        delete updates.role
+        delete updates.authorizationIds
+        delete updates.activated
+        delete updates.status
+        delete updates.fileStatus
+        delete updates.expirationOfSubscription
+    }
+
+    if (updates.password) {
+        const salt = await bcrypt.genSalt(10)
+        updates.password = await bcrypt.hash(updates.password, salt)
+    }
     
-    const user = await User.findOneAndUpdate({_id: id},{
-        ...req.body
-    },
-    {
-        new: true
-    }).select('email firstName lastName language phone role complete status fileStatus typeAccount companyName expirationOfSubscription sectorActivity')
+    const user = await User.findOneAndUpdate({_id: id}, updates, { new: true })
+        .select('email firstName lastName language phone role complete status fileStatus typeAccount companyName expirationOfSubscription sectorActivity')
     
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -402,24 +436,35 @@ const updateUser = async (req, res) => {
     res.status(200).json(user)
 }
 
-// update existing user
+// update existing user (Self or Admin only, strictly prevents privilege escalation)
 const update_existing_user = async (req, res) => {
     const { id } = req.params
-    // let { password } = req.body
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-    
-    if(req.body.password){
-        const salt = await bcrypt.genSalt(10)
-        const hash = await bcrypt.hash(req.body.password, salt)
 
-        req.body.password = hash
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot modify another user' })
+    }
+
+    const updates = { ...req.body }
+    if (!isAdmin) {
+        delete updates.role
+        delete updates.authorizationIds
+        delete updates.activated
+        delete updates.status
+        delete updates.fileStatus
+        delete updates.expirationOfSubscription
     }
     
-    const user = await User.findOneAndUpdate({_id: id},{
-        ...req.body
-    })
+    if(updates.password){
+        const salt = await bcrypt.genSalt(10)
+        updates.password = await bcrypt.hash(updates.password, salt)
+    }
+    
+    const user = await User.findOneAndUpdate({_id: id}, updates, { new: true }).select('-password')
 
     if(!user){
         return res.status(404).json({error: 'no such user'})

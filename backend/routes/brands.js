@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,13 @@ const {
     deleteBrand,
     updateBrand } = require('../controllers/brandsController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all brands
+// Public routes
 router.get('/', getBrands)
-
-// GET a single Brand
 router.get('/:id', getBrand)
-  
-// POST a new Brand
-router.post('/', createBrand)
 
-// DELETE a Brand
-router.delete('/:id', deleteBrand)
-
-// UPDATE a Brand
-router.patch('/:id', updateBrand)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createBrand)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteBrand)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateBrand)
 
 module.exports = router

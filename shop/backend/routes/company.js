@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 
 const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -11,21 +12,19 @@ const {
     updateCompany,
     getAppImage } = require('../controllers/companyController')
     
-// GET 
+// Public endpoint
 router.get('/getAppImage', getAppImage)
 
-// require auth for all routes
-router.use(requireAuth)
+// Require administrator role for all management routes
+router.use(requireAuth, requireRole('administrator'))
 
 // GET a single company
 router.get('/', getCompany)
-
 
 // POST a new company
 router.post('/', createCompany)
 
 // UPDATE a company
 router.patch('/:id', updateCompany)
-
 
 module.exports = router

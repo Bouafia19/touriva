@@ -43,11 +43,11 @@ router.post('/verifyPhone', verifyPhone)
 // verify user
 router.post('/verifyUser', verifyUser)
 
-// update existing user
-router.patch('/update_existing_user/:id', update_existing_user)
-
 // require auth for all routes
 router.use(requireAuth)
+
+// update existing user (AUTH REQUIRED: Self or Admin)
+router.patch('/update_existing_user/:id', update_existing_user)
 
 // GET all users
 router.get('/', getUsers)

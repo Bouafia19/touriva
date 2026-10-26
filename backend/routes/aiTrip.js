@@ -7,6 +7,8 @@ const requireAuth = require('../middleware/requireAuth')
 const { 
     createTripWithAI } = require('../controllers/aiTripController')
 
-router.post('/generate', createTripWithAI)
+// Protected AI trip generation
+router.post('/generate', requireAuth, createTripWithAI)
 
 module.exports = router
+

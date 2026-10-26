@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,13 @@ const {
     deleteCommune,
     updateCommune } = require('../controllers/communesController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all communes
+// Public routes
 router.get('/', getCommunes)
-
-// GET a single Commune
 router.get('/:id', getCommune)
-  
-// POST a new Commune
-router.post('/', createCommune)
 
-// DELETE a Commune
-router.delete('/:id', deleteCommune)
-
-// UPDATE a Commune
-router.patch('/:id', updateCommune)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createCommune)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteCommune)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateCommune)
 
 module.exports = router

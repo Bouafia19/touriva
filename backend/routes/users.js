@@ -46,19 +46,19 @@ router.post('/verifyPhone', verifyPhone)
 // verify user
 router.post('/verifyUser', verifyUser)
 
-// update existing user
-router.patch('/update_existing_user/:id', update_existing_user)
-
 // verify OTP route
 router.post('/verifyOTP', verifyOTP)
 
 // check OTP route
 router.post('/checkOTP', checkOTP)
 
-// require auth for all routes
+// require auth for all subsequent routes
 router.use(requireAuth)
 
-// GET all users
+// update existing user (AUTH REQUIRED: Self or Admin)
+router.patch('/update_existing_user/:id', update_existing_user)
+
+// GET all users (ADMIN ONLY)
 router.get('/', getUsers)
 
 // GET a single user

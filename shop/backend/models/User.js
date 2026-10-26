@@ -18,7 +18,8 @@ const UserSchema = new mongoose.Schema({
     default: 'fr'
   },
   password: {
-    type: String
+    type: String,
+    select: false
   },
   phone: {
     type: String
@@ -217,12 +218,12 @@ UserSchema.statics.loginPhone = async function( phone, password, role) {
   let user = null
   let user0 = null
   if(role === 'client'){
-    user = await this.findOne({ phone, role: 'client', activated: true })
-    user0 = await this.findOne({ phoneWith0, role: 'client', activated: true })
+    user = await this.findOne({ phone, role: 'client', activated: true }).select('+password')
+    user0 = await this.findOne({ phoneWith0, role: 'client', activated: true }).select('+password')
     
   }else if(role === 'partner'){
-    user = await this.findOne({ phone, role: 'partner', activated: true })
-    user0 = await this.findOne({ phoneWith0, role: 'partner', activated: true })
+    user = await this.findOne({ phone, role: 'partner', activated: true }).select('+password')
+    user0 = await this.findOne({ phoneWith0, role: 'partner', activated: true }).select('+password')
   }
   
   if(!user && !user0){
@@ -248,7 +249,7 @@ UserSchema.statics.loginEmail = async function( email, password ) {
   if(!email || !password){
     throw Error('All field must be filled')
   }
-  const user = await this.findOne({ email, role: 'administrator' }).populate("authorizationIds")
+  const user = await this.findOne({ email, role: 'administrator' }).select('+password').populate("authorizationIds")
   if(!user){
     throw Error('ie')
   }

@@ -31,10 +31,64 @@ const orderRouters = require('./routes/orders')
 // express app
 const app = express()
 
-// middleware
-app.use(cors({ origin: '*' }))
+// CORS configuration - explicit production and development allowlist
+const defaultAllowedOrigins = [
+  'https://touriva-web.onrender.com',
+  'https://touriva-admin.onrender.com',
+  'https://touriva-shop-web.onrender.com',
+  'https://touriva-shop-admin.onrender.com',
+  'https://touriva-shop-seller-admin.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:2020',
+  'http://localhost:2021',
+  'http://localhost:2022',
+  'http://localhost:2023',
+  'http://localhost:2024',
+  'http://localhost:3000',
+  'capacitor://localhost',
+  'http://localhost'
+]
 
-app.use(express.json({limit: '50mb'}))
+const envOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim()).filter(o => o && o !== '*')
+  : []
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envOrigins]))
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true)
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin)
+    }
+    return callback(null, false)
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}))
+
+// Body parser - Hardened against payload exhaustion DoS
+const defaultBodyLimit = '2mb'
+const uploadBodyLimit = '15mb'
+
+const uploadRoutes = [
+  '/api/users/uploadPartnerImages',
+  '/api/products',
+  '/api/advertising',
+  '/api/announcements'
+]
+
+uploadRoutes.forEach(route => {
+  app.use(route, express.json({ limit: uploadBodyLimit }))
+  app.use(route, express.urlencoded({ extended: true, limit: uploadBodyLimit }))
+})
+
+app.use(express.json({ limit: defaultBodyLimit }))
+app.use(express.urlencoded({ extended: true, limit: defaultBodyLimit }))
 
 
 // health check

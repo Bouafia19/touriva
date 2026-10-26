@@ -587,7 +587,7 @@ const itemsForSelectedType = computed(() => {
 })
 
 
-const API_KEY = "AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4"
+const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
 
 const getPhotoUrl = (restaurant) => {
   // local image from your database

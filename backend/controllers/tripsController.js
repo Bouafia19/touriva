@@ -38,7 +38,11 @@ const getTripById = async (req, res) => {
 // CREATE trip
 const createTrip = async (req, res) => {
   try {
-    const trip = await Trip.create(req.body)
+    const tripPayload = {
+      ...req.body,
+      creator: req.user.role === 'administrator' && req.body.creator ? req.body.creator : req.user._id
+    }
+    const trip = await Trip.create(tripPayload)
     res.status(201).json(trip)
   } catch (error) {
     res.status(400).json({ message: 'Trip creation failed', error: error.message })
@@ -49,15 +53,23 @@ const updateTrip = async (req, res) => {
   try {
     const { id } = req.params
 
+    const existingTrip = await Trip.findById(id)
+    if (!existingTrip) {
+      return res.status(404).json({ message: 'Trip not found' })
+    }
+
+    // Ownership check: must be trip creator or administrator
+    const isOwner = existingTrip.creator && existingTrip.creator.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === 'administrator'
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Unauthorized: You can only update your own trips' })
+    }
+
     const updatedTrip = await Trip.findByIdAndUpdate(
       id,
       req.body,
       { new: true, runValidators: true }
     )
-
-    if (!updatedTrip) {
-      return res.status(404).json({ message: 'Trip not found' })
-    }
 
     res.json(updatedTrip)
   } catch (error) {
@@ -69,6 +81,12 @@ const updateTrip = async (req, res) => {
 const getTripsByUser = async (req, res) => {
   try {
     const { userId } = req.params
+
+    const isSelf = req.user._id.toString() === userId
+    const isAdmin = req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+      return res.status(403).json({ error: 'Unauthorized: Access to user trips restricted' })
+    }
 
     const trips = await Trip.find({ creator: userId })
       .populate({
@@ -89,12 +107,19 @@ const deleteTrip = async (req, res) => {
   try {
     const { id } = req.params
 
-    const deletedTrip = await Trip.findByIdAndDelete(id)
-
-    if (!deletedTrip) {
+    const existingTrip = await Trip.findById(id)
+    if (!existingTrip) {
       return res.status(404).json({ message: 'Trip not found' })
     }
 
+    // Ownership check: must be trip creator or administrator
+    const isOwner = existingTrip.creator && existingTrip.creator.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === 'administrator'
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Unauthorized: You can only delete your own trips' })
+    }
+
+    await Trip.findByIdAndDelete(id)
     res.json({ message: 'Trip deleted successfully' })
   } catch (error) {
     console.error('Delete trip error:', error)

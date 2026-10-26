@@ -1,6 +1,7 @@
 const TripSubscription = require('../models/TripSubscription')
+const Trip = require('../models/Trip')
 
-// CREATE subscription
+// CREATE subscription (traveler reservation)
 const subscribeToTrip = async (req, res) => {
   try {
     const { tripId, fullName, phone } = req.body
@@ -9,10 +10,16 @@ const subscribeToTrip = async (req, res) => {
       return res.status(400).json({ message: 'tripId, fullName and phone are required' })
     }
 
+    // Verify trip exists before creating subscription
+    const trip = await Trip.findById(tripId)
+    if (!trip) {
+      return res.status(404).json({ message: 'Trip not found' })
+    }
+
     const subscription = await TripSubscription.create({
       trip: tripId,
-      fullName,
-      phone
+      fullName: String(fullName).trim(),
+      phone: String(phone).trim()
     })
 
     res.status(201).json(subscription)
@@ -75,9 +82,21 @@ const getAllSubscriptions = async (req, res) => {
   }
 }
 
+// GET subscriptions by trip ID (Owner or Admin only to prevent IDOR)
 const getTripSubscriptions = async (req, res) => {
   try {
     const { tripId } = req.params
+
+    const trip = await Trip.findById(tripId)
+    if (!trip) {
+      return res.status(404).json({ message: 'Trip not found' })
+    }
+
+    const isCreator = trip.creator && trip.creator.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === 'administrator'
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ error: 'Unauthorized: You can only view subscriptions for your own trips' })
+    }
 
     const subscriptions = await TripSubscription.find({ trip: tripId })
       .populate('trip', 'name')

@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -15,30 +16,16 @@ const {
     getProductsByCategoryNoImages,
     getProductsNoImages } = require('../controllers/productsController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all products
+// Public catalog routes
 router.get('/', getProducts)
-
-// GET a single Product
 router.get('/:id', getProduct)
-  
-// POST a new Product
-router.post('/', createProduct)
-
-// DELETE a Product
-router.delete('/:id', deleteProduct)
-
-// UPDATE a Product
-router.patch('/:id', updateProduct)
-
 router.post('/noImages', getProductsNoImages)
-
-// GET a products by category
 router.get('/getProductsByCategory/:categoryId', getProductsByCategory)
-
-// GET a product by category no images
 router.get('/getProductsByCategoryNoImages/:categoryId', getProductsByCategoryNoImages)
+
+// Protected partner (seller) & administrator mutation routes
+router.post('/', requireAuth, requireRole('partner', 'administrator'), createProduct)
+router.delete('/:id', requireAuth, requireRole('partner', 'administrator'), deleteProduct)
+router.patch('/:id', requireAuth, requireRole('partner', 'administrator'), updateProduct)
 
 module.exports = router

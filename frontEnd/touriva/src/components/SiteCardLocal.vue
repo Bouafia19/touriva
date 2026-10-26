@@ -54,7 +54,7 @@
   import { useRouter } from 'vue-router'
   const router = useRouter()
 
-  const API_KEY = "AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4"
+  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
 
 
   const props = defineProps({

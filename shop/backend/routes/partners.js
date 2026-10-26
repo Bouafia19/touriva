@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,13 @@ const {
     deletePartner,
     updatePartner } = require('../controllers/partnersController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all partners
+// Public routes
 router.get('/', getPartners)
-
-// GET a single Partner
 router.get('/:id', getPartner)
-  
-// POST a new Partner
-router.post('/', createPartner)
 
-// DELETE a Partner
-router.delete('/:id', deletePartner)
-
-// UPDATE a Partner
-router.patch('/:id', updatePartner)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createPartner)
+router.delete('/:id', requireAuth, requireRole('administrator'), deletePartner)
+router.patch('/:id', requireAuth, requireRole('administrator'), updatePartner)
 
 module.exports = router

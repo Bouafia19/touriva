@@ -1,14 +1,21 @@
 const request = require('supertest')
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
 const app = require('../server')
+const User = require('../models/User')
 
 describe('Touriva Trips & Booking Subscriptions API', () => {
   let sampleTripId = null
+  let adminToken = null
 
   beforeAll(async () => {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/touriva'
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(mongoUri)
+    }
+    const adminUser = await User.findOne({ role: 'administrator' })
+    if (adminUser) {
+      adminToken = jwt.sign({ _id: adminUser._id }, process.env.SECRET, { expiresIn: '1h' })
     }
   })
 
@@ -74,6 +81,7 @@ describe('Touriva Trips & Booking Subscriptions API', () => {
   it('GET /api/tripSubscriptions retrieves grouped subscriptions for admin', async () => {
     const res = await request(app)
       .get('/api/tripSubscriptions')
+      .set('Authorization', `Bearer ${adminToken}`)
       .expect(200)
 
     expect(Array.isArray(res.body)).toBe(true)

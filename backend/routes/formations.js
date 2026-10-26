@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,13 @@ const {
     deleteFormation,
     updateFormation } = require('../controllers/formationsController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all formations
+// Public routes
 router.get('/', getFormations)
-
-// GET a single Formation
 router.get('/:id', getFormation)
-  
-// POST a new Formation
-router.post('/', createFormation)
 
-// DELETE a Formation
-router.delete('/:id', deleteFormation)
-
-// UPDATE a Formation
-router.patch('/:id', updateFormation)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createFormation)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteFormation)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateFormation)
 
 module.exports = router

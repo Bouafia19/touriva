@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 
 const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -13,26 +14,17 @@ const {
     updateBilling,
     getBillingsByUserId } = require('../controllers/billingsController')
 
-
-// GET all billings
-router.get('/', getBillings)
-
-// require auth for all routes
+// Require auth for all billing routes
 router.use(requireAuth)
 
-// GET a single billing
+// Admin-only billing listing and management
+router.get('/', requireRole('administrator'), getBillings)
+router.delete('/:id', requireRole('administrator'), deleteBilling)
+router.patch('/:id', requireRole('administrator'), updateBilling)
+
+// User-owned or Admin routes
 router.get('/:id', getBilling)
-  
-// POST a new billing
 router.post('/', createBilling)
-
-// DELETE a billing
-router.delete('/:id', deleteBilling)
-
-// UPDATE a billing
-router.patch('/:id', updateBilling)
-
-// GET billings by transporterId
 router.get('/getBillingsByUserId/:id', getBillingsByUserId)
 
 module.exports = router

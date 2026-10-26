@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,13 @@ const {
     deletePlan,
     updatePlan } = require('../controllers/plansController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all plans
+// Public routes
 router.get('/', getPlans)
-
-// GET a single Plan
 router.get('/:id', getPlan)
-  
-// POST a new Plan
-router.post('/', createPlan)
 
-// DELETE a Plan
-router.delete('/:id', deletePlan)
-
-// UPDATE a Plan
-router.patch('/:id', updatePlan)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createPlan)
+router.delete('/:id', requireAuth, requireRole('administrator'), deletePlan)
+router.patch('/:id', requireAuth, requireRole('administrator'), updatePlan)
 
 module.exports = router

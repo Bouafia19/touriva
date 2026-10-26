@@ -51,25 +51,72 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'))
 }
 
-// CORS configuration
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
-  : ['*']
+// CORS configuration - explicit production and development allowlist
+const defaultAllowedOrigins = [
+  'https://touriva-web.onrender.com',
+  'https://touriva-admin.onrender.com',
+  'https://touriva-shop-web.onrender.com',
+  'https://touriva-shop-admin.onrender.com',
+  'https://touriva-shop-seller-admin.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:2020',
+  'http://localhost:2021',
+  'http://localhost:2022',
+  'http://localhost:2023',
+  'http://localhost:2024',
+  'http://localhost:3000',
+  'capacitor://localhost',
+  'http://localhost'
+]
+
+const envOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim()).filter(o => o && o !== '*')
+  : []
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envOrigins]))
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-      callback(null, true)
-    } else {
-      callback(new Error('Blocked by CORS policy'))
+    // Allow non-browser requests (mobile apps, server-to-server, curl)
+    if (!origin) {
+      return callback(null, true)
     }
+    // Check against explicit allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin)
+    }
+    // Deny unauthorized origins without reflecting them or granting credentials
+    return callback(null, false)
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }))
 
-// Body parser
-app.use(express.json({ limit: '50mb' }))
-app.use(express.urlencoded({ extended: true, limit: '50mb' }))
+// Body parser - Hardened against payload exhaustion DoS
+// Standard 2MB limit for general API routes; dedicated 15MB limit strictly for media/import routes
+const defaultBodyLimit = '2mb'
+const uploadBodyLimit = '15mb'
+
+const uploadRoutes = [
+  '/api/users/uploadPartnerImages',
+  '/api/trips',
+  '/api/products',
+  '/api/advertising',
+  '/api/announcements',
+  '/api/sites/import',
+  '/api/hotels/import',
+  '/api/restaurants/import'
+]
+
+uploadRoutes.forEach(route => {
+  app.use(route, express.json({ limit: uploadBodyLimit }))
+  app.use(route, express.urlencoded({ extended: true, limit: uploadBodyLimit }))
+})
+
+app.use(express.json({ limit: defaultBodyLimit }))
+app.use(express.urlencoded({ extended: true, limit: defaultBodyLimit }))
 
 // Rate limiting for public APIs
 const apiLimiter = rateLimit({

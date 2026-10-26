@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,13 @@ const {
     deleteDaira,
     updateDaira } = require('../controllers/dairasController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all dairas
+// Public routes
 router.get('/', getDairas)
-
-// GET a single Daira
 router.get('/:id', getDaira)
-  
-// POST a new Daira
-router.post('/', createDaira)
 
-// DELETE a Daira
-router.delete('/:id', deleteDaira)
-
-// UPDATE a Daira
-router.patch('/:id', updateDaira)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createDaira)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteDaira)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateDaira)
 
 module.exports = router

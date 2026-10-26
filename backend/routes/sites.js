@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -14,28 +15,20 @@ const {
     importSites,
     getLocalSite } = require('../controllers/sitesController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
+// Public routes
 // GET all sites
 router.get('/', getSites)
 
-// GET a single Site
-router.get('/:id', getSite)
-  
-// POST a new Site
-router.post('/', createSite)
-
-//
+// GET local sites near coordinates
 router.post('/localSites', getLocalSite)
 
-// DELETE a Site
-router.delete('/:id', deleteSite)
+// GET a single Site
+router.get('/:id', getSite)
 
-// UPDATE a Site
-router.patch('/:id', updateSite)
-
-router.post('/import', importSites)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createSite)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteSite)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateSite)
+router.post('/import', requireAuth, requireRole('administrator'), importSites)
 
 module.exports = router

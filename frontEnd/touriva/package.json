@@ -13,13 +13,13 @@
     "test": "vitest run --environment happy-dom"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.4",
+    "@capacitor/android": "^7.6.9",
     "@capacitor/camera": "^7.0.2",
-    "@capacitor/cli": "^7.4.4",
-    "@capacitor/core": "^7.4.4",
+    "@capacitor/cli": "^7.6.9",
+    "@capacitor/core": "^7.6.9",
     "@capacitor/filesystem": "^7.1.4",
     "@capacitor/geolocation": "^7.1.7",
-    "@capacitor/ios": "^7.4.4",
+    "@capacitor/ios": "^7.6.9",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/status-bar": "^7.0.3",
     "axios": "^1.13.2",

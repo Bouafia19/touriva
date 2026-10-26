@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -14,29 +15,15 @@ const {
     createMultWilaya,
     deleteMultWilaya } = require('../controllers/wilayasController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
-// GET all wilayas
+// Public routes
 router.get('/', getWilayas)
-
-// GET a single Wilaya
 router.get('/:id', getWilaya)
-  
-// POST a new Wilaya
-router.post('/', createWilaya)
 
-// POST a new Wilaya
-router.post('/multi', createMultWilaya)
-
-// DELETE a Wilaya
-router.delete('/:id', deleteWilaya)
-
-// DELETE a Wilaya
-router.post('/delete', deleteMultWilaya)
-
-// UPDATE a Wilaya
-router.patch('/:id', updateWilaya)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createWilaya)
+router.post('/multi', requireAuth, requireRole('administrator'), createMultWilaya)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteWilaya)
+router.post('/delete', requireAuth, requireRole('administrator'), deleteMultWilaya)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateWilaya)
 
 module.exports = router

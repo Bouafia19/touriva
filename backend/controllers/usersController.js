@@ -316,68 +316,87 @@ const verifyCode = async (req, res) => {
     }
 }
 
-// GET all users
+// GET all users (ADMINISTRATOR ONLY)
 const getUsers = async (req, res) => {
-    const users = await User.find().sort({ createdAt: -1}).populate("categoryId").populate("authorizationIds")
+    if (!req.user || req.user.role !== 'administrator') {
+        return res.status(403).json({ error: 'Access forbidden: Administrator privileges required' })
+    }
+    const users = await User.find()
+        .sort({ createdAt: -1 })
+        .select('-password -resetOtp -resetOtpExpires')
+        .populate("categoryId")
+        .populate("authorizationIds")
     res.status(200).json(users)
 }
 
-// GET a single user
+// GET a single user (Self or Admin only)
 const getUser = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-    const item = await User.findById(id)
+
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot view another user\'s profile' })
+    }
+
+    const item = await User.findById(id).select('-password -resetOtp -resetOtpExpires')
     
     if(!item){
         return res.status(404).json({error: 'no such user'})
     }
-
     
-        let user = {
-            _id: item._id,
-            email: item.email,
-            firstName: item.firstName,
-            lastName: item.lastName,
-            language: item.language,
-            phone: item.phone,
-            role: item.role,
-            complete: item.complete,
-            status: item.status,
-            fileStatus: item.fileStatus,
-            companyName: item.companyName,
-            typeAccount: item.typeAccount,
-            categoryId: item.categoryId,
-            expirationOfSubscription: item.expirationOfSubscription,
-            sectorActivity: item.sectorActivity
-        }
-        res.status(200).json(user)
-
+    let user = {
+        _id: item._id,
+        email: item.email,
+        firstName: item.firstName,
+        lastName: item.lastName,
+        language: item.language,
+        phone: item.phone,
+        role: item.role,
+        complete: item.complete,
+        status: item.status,
+        fileStatus: item.fileStatus,
+        companyName: item.companyName,
+        typeAccount: item.typeAccount,
+        categoryId: item.categoryId,
+        expirationOfSubscription: item.expirationOfSubscription,
+        sectorActivity: item.sectorActivity
+    }
+    res.status(200).json(user)
 }
 
-// POST a new user
+// POST a new user (ADMIN ONLY)
 const createUser = async (req, res) => {
-    const { 
-        password,
-        
-    } = req.body
+    if (!req.user || req.user.role !== 'administrator') {
+        return res.status(403).json({ error: 'Access forbidden: Administrator privileges required' })
+    }
+    const { password } = req.body
     
     try {
         const salt = await bcrypt.genSalt(10)
         const hash = await bcrypt.hash(password, salt)
-        // add doc to db
         const user = await User.create({ 
             ...req.body,
             password: hash
         })
-        res.status(200).json(user)
+        const sanitized = user.toObject()
+        delete sanitized.password
+        delete sanitized.resetOtp
+        delete sanitized.resetOtpExpires
+        res.status(200).json(sanitized)
     } catch (error) {
         res.status(400).json({ error: error.message })
     }
 }
-// DELETE a user
+
+// DELETE a user (ADMIN ONLY)
 const deleteUser = async (req, res) => {
+    if (!req.user || req.user.role !== 'administrator') {
+        return res.status(403).json({ error: 'Access forbidden: Administrator privileges required' })
+    }
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
@@ -388,22 +407,40 @@ const deleteUser = async (req, res) => {
         return res.status(404).json({error: 'no such user'})
     }
 
-    res.status(200).json(user)
+    res.status(200).json({ message: 'User deleted successfully', _id: id })
 }
 
-// UPDATE a user
+// UPDATE a user (Self or Admin only, strictly prevents privilege escalation)
 const updateUser = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
+
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot modify another user' })
+    }
+
+    const updates = { ...req.body }
+    // Non-admins cannot escalate roles, modify authorizationIds or status flags
+    if (!isAdmin) {
+        delete updates.role
+        delete updates.authorizationIds
+        delete updates.activated
+        delete updates.status
+        delete updates.fileStatus
+        delete updates.expirationOfSubscription
+    }
+
+    if (updates.password) {
+        const salt = await bcrypt.genSalt(10)
+        updates.password = await bcrypt.hash(updates.password, salt)
+    }
     
-    const user = await User.findOneAndUpdate({_id: id},{
-        ...req.body
-    },
-    {
-        new: true
-    }).select('email firstName lastName language phone role complete status fileStatus typeAccount companyName expirationOfSubscription sectorActivity')
+    const user = await User.findOneAndUpdate({_id: id}, updates, { new: true })
+        .select('email firstName lastName language phone role complete status fileStatus typeAccount companyName expirationOfSubscription sectorActivity')
     
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -412,26 +449,40 @@ const updateUser = async (req, res) => {
     res.status(200).json(user)
 }
 
-// update existing user
+// update existing user (Self or Admin only, strictly prevents privilege escalation)
 const update_existing_user = async (req, res) => {
     const { id } = req.params
-    // let { password } = req.body
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-    
-    if(req.body.password){
-        const salt = await bcrypt.genSalt(10)
-        const hash = await bcrypt.hash(req.body.password, salt)
 
-        req.body.password = hash
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot modify another user' })
+    }
+
+    const updates = { ...req.body }
+    // Non-admins cannot escalate roles, modify authorizationIds or status flags
+    if (!isAdmin) {
+        delete updates.role
+        delete updates.authorizationIds
+        delete updates.activated
+        delete updates.status
+        delete updates.fileStatus
+        delete updates.expirationOfSubscription
+    }
+    
+    if(updates.password){
+        const salt = await bcrypt.genSalt(10)
+        updates.password = await bcrypt.hash(updates.password, salt)
     }
     
     const user = await User.findOneAndUpdate(
         { _id: id },
-        { ...req.body },
+        updates,
         { new: true }
-    )
+    ).select('-password -resetOtp -resetOtpExpires')
 
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -475,9 +526,12 @@ const loadPartnerPhotos = async (req, res) => {
     res.status(200).json(images)
 }
 
-// verify OTP
+// verify OTP (never return plaintext OTP in response)
 const verifyOTP = async (req, res) => {
     const { email } = req.body
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' })
+    }
     const user = await User.findOne({ email })
     if (!user) return res.json({ ok: true })
 
@@ -486,38 +540,59 @@ const verifyOTP = async (req, res) => {
     user.resetOtpExpires = Date.now() + 600000
     await user.save()
 
-    await sendOtpEmail(email, otp)
+    try {
+        await sendOtpEmail(email, otp)
+    } catch (mailErr) {
+        console.error('Failed to send OTP email:', mailErr.message)
+    }
 
-    res.status(200).send({
-        message: "Verification is sent!!",
-        email: email,
-        otp: otp
+    res.status(200).json({
+        message: "Verification code sent successfully",
+        email: email
     })
-
 }
 
 const checkOTP = async (req, res) => {
-
     const { phonenumber, code } = req.body
 
-    if (phonenumber && code.length === 6) {
-        const user = await User.findOne({ phone: phonenumber })
+    if (phonenumber && code && code.toString().length === 6) {
+        const user = await User.findOne({ phone: phonenumber }).select('+resetOtp +resetOtpExpires')
         if (!user) {
             return res.status(400).json({ error: 'USER_NOT_FOUND' })
         }
-        if (user.resetOtpExpires < Date.now()) {
+        if (!user.resetOtpExpires || user.resetOtpExpires < Date.now()) {
             return res.status(400).json({ error: 'OTP_EXPIRED' })
         }
         const isMatch = await bcrypt.compare(code.toString(), user.resetOtp)
         if (!isMatch) {
             return res.status(400).json({ error: 'INVALID_OTP' })
         }
-        res.status(200).send(user)
+
+        // Invalidate OTP to prevent replay
+        user.resetOtp = undefined
+        user.resetOtpExpires = undefined
+        await user.save()
+
+        // Generate scoped reset token valid for 15 minutes
+        const resetToken = jwt.sign(
+            { _id: user._id, role: user.role, purpose: 'password_reset' },
+            process.env.SECRET,
+            { expiresIn: '15m' }
+        )
+
+        res.status(200).json({
+            user: {
+                _id: user._id,
+                email: user.email,
+                phone: user.phone,
+                role: user.role
+            },
+            token: resetToken,
+            resetToken
+        })
     } else {
-        res.status(400).send({
-            message: "Wrong phone number or code :(",
-            phonenumber: phonenumber,
-            data
+        res.status(400).json({
+            error: "Wrong phone number or code"
         })
     }
 }

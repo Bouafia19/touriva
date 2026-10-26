@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 
 const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,12 +13,11 @@ const {
     deleteTerm,
     updateTerm } = require('../controllers/termsController')
 
-
-// GET all terms
+// Public terms reading
 router.get('/', getTerms)
 
-// require auth for all routes
-router.use(requireAuth)
+// Require administrator role for terms management
+router.use(requireAuth, requireRole('administrator'))
 
 // GET a single term
 router.get('/:id', getTerm)
@@ -30,6 +30,5 @@ router.delete('/:id', deleteTerm)
 
 // UPDATE a term
 router.patch('/:id', updateTerm)
-
 
 module.exports = router

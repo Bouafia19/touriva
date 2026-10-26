@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -14,28 +15,20 @@ const {
     importHotels,
     getLocalHotels } = require('../controllers/hotelsController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
+// Public routes
 // GET all hotels
 router.get('/', getHotels)
 
-// GET a single Hotel
-router.get('/:id', getHotel)
-  
-// POST a new Hotel
-router.post('/', createHotel)
-
-//
+// GET local hotels near coordinates
 router.post('/localHotels', getLocalHotels)
 
-// DELETE a Hotel
-router.delete('/:id', deleteHotel)
+// GET a single Hotel
+router.get('/:id', getHotel)
 
-// UPDATE a Hotel
-router.patch('/:id', updateHotel)
-
-router.post('/import', importHotels)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createHotel)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteHotel)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateHotel)
+router.post('/import', requireAuth, requireRole('administrator'), importHotels)
 
 module.exports = router

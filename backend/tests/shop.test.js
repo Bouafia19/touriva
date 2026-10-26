@@ -1,16 +1,23 @@
 const request = require('supertest')
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
 const app = require('../server')
 const Product = require('../models/Product')
 const Order = require('../models/Order')
+const User = require('../models/User')
 
 describe('Touriva Shop Endpoints', () => {
   let createdProductId = null
+  let partnerToken = null
 
   beforeAll(async () => {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/touriva'
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(mongoUri)
+    }
+    const partnerUser = await User.findOne({ role: { $in: ['partner', 'administrator'] } })
+    if (partnerUser) {
+      partnerToken = jwt.sign({ _id: partnerUser._id }, process.env.SECRET, { expiresIn: '1h' })
     }
   })
 
@@ -31,6 +38,7 @@ describe('Touriva Shop Endpoints', () => {
     const testCode = 'TEST_PROD_' + Date.now()
     const res = await request(app)
       .post('/api/products')
+      .set('Authorization', `Bearer ${partnerToken}`)
       .send({
         code: testCode,
         name: 'Artisan Ceramic Tagine',
@@ -66,7 +74,10 @@ describe('Touriva Shop Endpoints', () => {
 
   it('DELETE /api/products/:id cleans up test product', async () => {
     if (!createdProductId) return
-    const res = await request(app).delete(`/api/products/${createdProductId}`)
+    const res = await request(app)
+      .delete(`/api/products/${createdProductId}`)
+      .set('Authorization', `Bearer ${partnerToken}`)
+      .expect(200)
     expect(res.status).toBe(200)
     createdProductId = null
   })

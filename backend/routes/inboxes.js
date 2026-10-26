@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,23 +13,22 @@ const {
     deleteInbox,
     updateInbox } = require('../controllers/inboxesController')
 
-// require auth for all routes
-// router.use(requireAuth)
+// Public contact inquiry submission
+router.post('/', createInbox)
+
+// Require administrator role to read and manage support inboxes
+router.use(requireAuth, requireRole('administrator'))
 
 // GET all inboxes
 router.get('/', getInboxes)
 
 // GET a single Inbox
 router.get('/:id', getInbox)
-  
-// POST a new Inbox
-router.post('/', createInbox)
 
-// DELETE a Inbox
+// DELETE an Inbox
 router.delete('/:id', deleteInbox)
 
-// UPDATE a Inbox
+// UPDATE an Inbox
 router.patch('/:id', updateInbox)
-
 
 module.exports = router

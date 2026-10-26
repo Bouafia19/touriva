@@ -43,29 +43,35 @@ export const useSitesStore = defineStore('sites', {
             this.error = null
             try {
             
-                const response = await axios.post(
-                    'https://places.googleapis.com/v1/places:searchNearby',
-                    {
-                        "includedTypes": ["tourist_attraction"],
-                        "maxResultCount": 20,
-                        "locationRestriction": {
-                            "circle": {
-                                "center": { "latitude": lat, "longitude": lng },
-                                "radius": 2000
+                const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
+                let googleSites = []
+                if (apiKey) {
+                    try {
+                        const response = await axios.post(
+                            'https://places.googleapis.com/v1/places:searchNearby',
+                            {
+                                "includedTypes": ["tourist_attraction"],
+                                "maxResultCount": 20,
+                                "locationRestriction": {
+                                    "circle": {
+                                        "center": { "latitude": lat, "longitude": lng },
+                                        "radius": 2000
+                                    }
+                                }
+                            },
+                            {
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Goog-Api-Key': apiKey,
+                                    'X-Goog-FieldMask': 'places.name,places.displayName,places.photos,places.location,places.rating,places.formattedAddress,places.types'
+                                }
                             }
-                        }
-                    },
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Goog-Api-Key': 'AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4',
-                            'X-Goog-FieldMask': 'places.name,places.displayName,places.photos,places.location,places.rating,places.formattedAddress,places.types'
-                        }
+                        )
+                        googleSites = response.data.places || []
+                    } catch (e) {
+                        console.warn('Google Places API request failed:', e.message)
                     }
-                )
-
-                //
-                const googleSites = response.data.places || []
+                }
 
                 // 2️⃣ Local sites from MongoDB
                 const localResponse = await axios.post('/api/sites/localSites', { lat, lng })
@@ -112,8 +118,8 @@ export const useSitesStore = defineStore('sites', {
                 lng: p.location?.longitude,
                 rating: p.rating || null,
                 address: p.formattedAddress || '',
-                image: p.photos?.length
-                ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=800&key=AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4`
+                image: (p.photos?.length && (import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY))
+                ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=800&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY}`
                 : ''
             }))
         }

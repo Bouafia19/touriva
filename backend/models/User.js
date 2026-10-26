@@ -19,7 +19,8 @@ const UserSchema = new mongoose.Schema({
     default: 'fr'
   },
   password: {
-    type: String
+    type: String,
+    select: false
   },
   phone: {
     type: String,
@@ -163,10 +164,12 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   resetOtp: {
-    type: String
+    type: String,
+    select: false
   },
   resetOtpExpires: {
-    type: Date
+    type: Date,
+    select: false
   }
 },
 {
@@ -296,7 +299,7 @@ UserSchema.statics.loginPhone = async function( phone, password, role) {
       phone: { $in: phoneVariants },
       role: role,
       $or: [{ activated: true }, { activated: { $exists: false } }]
-    }).populate("authorizationIds")
+    }).select('+password').populate("authorizationIds")
   }
 
   // 2. If not found under the specified role (or role omitted), check across all active accounts
@@ -304,7 +307,7 @@ UserSchema.statics.loginPhone = async function( phone, password, role) {
     user = await this.findOne({
       phone: { $in: phoneVariants },
       $or: [{ activated: true }, { activated: { $exists: false } }]
-    }).populate("authorizationIds")
+    }).select('+password').populate("authorizationIds")
   }
 
   if(!user){
@@ -332,14 +335,14 @@ UserSchema.statics.loginEmail = async function( email, password, role ) {
       email: cleanEmail,
       role: role,
       $or: [{ activated: true }, { activated: { $exists: false } }]
-    }).populate("authorizationIds")
+    }).select('+password').populate("authorizationIds")
   }
 
   if (!user) {
     user = await this.findOne({
       email: cleanEmail,
       $or: [{ activated: true }, { activated: { $exists: false } }]
-    }).populate("authorizationIds")
+    }).select('+password').populate("authorizationIds")
   }
 
   if(!user){

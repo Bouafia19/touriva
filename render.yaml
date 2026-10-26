@@ -15,7 +15,7 @@ services:
       - key: SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        value: "*"
+        value: "https://touriva-web.onrender.com,https://touriva-admin.onrender.com,https://touriva-shop-web.onrender.com,https://touriva-shop-admin.onrender.com,https://touriva-shop-seller-admin.onrender.com"
       - key: MONGO_URI
         sync: false
 

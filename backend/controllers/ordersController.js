@@ -3,7 +3,12 @@ const mongoose = require('mongoose')
 
 // GET all orders
 const getOrders = async (req, res) => {
-    const orders = await Order.find().sort({ order: 1})
+    // If standard client, return only their own orders
+    const filter = (req.user.role === 'administrator' || req.user.role === 'partner')
+        ? {}
+        : { userId: req.user._id }
+
+    const orders = await Order.find(filter).sort({ order: 1})
     .populate({
         path: 'userId',
         model: 'User',
@@ -29,16 +34,23 @@ const getOrder = async (req, res) => {
         return res.status(404).json({error: 'no such order'})
     }
 
+    const isOwner = order.userId && order.userId.toString() === req.user._id.toString()
+    const isAdminOrPartner = req.user.role === 'administrator' || req.user.role === 'partner'
+    if (!isOwner && !isAdminOrPartner) {
+        return res.status(403).json({ error: 'Unauthorized: Access to order restricted' })
+    }
+
     res.status(200).json(order)
 }
 
 // POST a new order
 const createOrder = async (req, res) => {
     try {
-        // add doc to db
-        const order = await Order.create(
-            req.body
-        )
+        const payload = {
+            ...req.body,
+            userId: (req.user.role === 'administrator' && req.body.userId) ? req.body.userId : req.user._id
+        }
+        const order = await Order.create(payload)
         res.status(200).json(order)
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -50,13 +62,20 @@ const deleteOrder = async (req, res) => {
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such order'})
     }
-    const order = await Order.findOneAndDelete({_id: id})
 
-    if(!order){
+    const existingOrder = await Order.findById(id)
+    if(!existingOrder){
         return res.status(404).json({error: 'no such order'})
     }
 
-    res.status(200).json(order)
+    const isOwner = existingOrder.userId && existingOrder.userId.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === 'administrator'
+    if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized: You can only delete your own orders' })
+    }
+
+    await Order.findByIdAndDelete(id)
+    res.status(200).json(existingOrder)
 }
 
 // UPDATE a order
@@ -65,13 +84,21 @@ const updateOrder = async (req, res) => {
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such order'})
     }
-    const order = await Order.findOneAndUpdate({_id: id},{
-        ...req.body
-    })
 
-    if(!order){
+    const existingOrder = await Order.findById(id)
+    if(!existingOrder){
         return res.status(404).json({error: 'no such order'})
     }
+
+    const isOwner = existingOrder.userId && existingOrder.userId.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === 'administrator'
+    if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized: You can only update your own orders' })
+    }
+
+    const order = await Order.findOneAndUpdate({_id: id},{
+        ...req.body
+    }, { new: true })
 
     res.status(200).json(order)
 }
@@ -82,6 +109,12 @@ const getOrdersByUserId = async (req, res) => {
 
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
+    }
+
+    const isSelf = req.user._id.toString() === id
+    const isAdmin = req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized: Access to user orders restricted' })
     }
 
     const trips = await Order.find({ userId: id }).sort({ order: 1})

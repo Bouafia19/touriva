@@ -178,15 +178,16 @@ export const useAuthStore = defineStore('auth', {
     
         // update existing user
         async account_update_existing_user (params) {
-            console.log('account_update_existing_user', params)
             try {
-                const response = await axios.patch(`api/users/update_existing_user/${params.id}`, params)
+                const ls = await this.getLSUserInfo()
+                const token = this.user?.token || this.token || ls?.token
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
+                const response = await axios.patch(`api/users/update_existing_user/${params.id}`, params, { headers })
                 if(response.status === 200){
-                   console.log('res data', response.data)
                     this.account_sign_in({ 
                         phone: response.data.phone,
                         password: params.password,
-                        role: 'partner'
+                        role: response.data.role || 'partner'
                     })
     
                 } else {
@@ -194,7 +195,7 @@ export const useAuthStore = defineStore('auth', {
                 }
                 
             } catch (error) {
-                throw new Error(`${error.response.data.error}`)
+                throw new Error(`${error.response?.data?.error || error.message}`)
             }
         },
     

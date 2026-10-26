@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 
 const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -12,12 +13,11 @@ const {
     deleteRole,
     updateRole } = require('../controllers/rolesController')
 
+// require admin auth for all role configuration routes
+router.use(requireAuth, requireRole('administrator'))
 
 // GET all roles
 router.get('/', getRoles)
-
-// require auth for all routes
-router.use(requireAuth)
 
 // GET a single role
 router.get('/:id', getRole)
@@ -30,6 +30,5 @@ router.delete('/:id', deleteRole)
 
 // UPDATE a role
 router.patch('/:id', updateRole)
-
 
 module.exports = router

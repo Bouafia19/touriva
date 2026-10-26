@@ -267,7 +267,10 @@ const galleryImages = computed(() => {
   if (place.value?.photos && Array.isArray(place.value.photos)) {
     place.value.photos.slice(0, 6).forEach(p => {
       if (p.name) {
-        images.push(`https://places.googleapis.com/v1/${p.name}/media?key=AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4&maxWidthPx=800`)
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
+        if (apiKey) {
+          images.push(`https://places.googleapis.com/v1/${p.name}/media?key=${apiKey}&maxWidthPx=800`)
+        }
       }
     })
   }

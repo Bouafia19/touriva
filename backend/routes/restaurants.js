@@ -2,7 +2,8 @@ const express = require('express')
 
 const router = express.Router()
 
-// const requireAuth = require('../middleware/requireAuth')
+const requireAuth = require('../middleware/requireAuth')
+const requireRole = require('../middleware/requireRole')
 
 // controller functions
 const { 
@@ -14,28 +15,20 @@ const {
     importRestaurants,
     getLocalRestaurant } = require('../controllers/restaurantsController')
 
-// require auth for all routes
-// router.use(requireAuth)
-
+// Public routes
 // GET all restaurants
 router.get('/', getRestaurants)
 
-// GET a single Restaurant
-router.get('/:id', getRestaurant)
-  
-// POST a new Restaurant
-router.post('/', createRestaurant)
-
-//
+// GET local restaurants near coordinates
 router.post('/localRestaurants', getLocalRestaurant)
 
-// DELETE a Restaurant
-router.delete('/:id', deleteRestaurant)
+// GET a single Restaurant
+router.get('/:id', getRestaurant)
 
-// UPDATE a Restaurant
-router.patch('/:id', updateRestaurant)
-
-router.post('/import', importRestaurants)
-
+// Protected administrator mutation routes
+router.post('/', requireAuth, requireRole('administrator'), createRestaurant)
+router.delete('/:id', requireAuth, requireRole('administrator'), deleteRestaurant)
+router.patch('/:id', requireAuth, requireRole('administrator'), updateRestaurant)
+router.post('/import', requireAuth, requireRole('administrator'), importRestaurants)
 
 module.exports = router

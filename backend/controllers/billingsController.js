@@ -32,16 +32,24 @@ const getBilling = async (req, res) => {
         return res.status(404).json({error: 'no such billing'})
     }
 
+    // Ownership or admin check
+    const isOwner = billing.userId && billing.userId.toString() === req.user._id.toString()
+    const isAdmin = req.user.role === 'administrator'
+    if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized: Access to billing restricted' })
+    }
+
     res.status(200).json(billing)
 }
 
 // POST a new billing
 const createBilling = async (req, res) => {
     try {
-        // add doc to db
-        const billing = await Billing.create(
-            req.body
-        )
+        const payload = {
+            ...req.body,
+            userId: req.user.role === 'administrator' && req.body.userId ? req.body.userId : req.user._id
+        }
+        const billing = await Billing.create(payload)
         res.status(200).json(billing)
     } catch (error) {
         res.status(400).json({ error: error.message })
@@ -85,6 +93,12 @@ const getBillingsByUserId = async (req, res) => {
 
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
+    }
+
+    const isSelf = req.user._id.toString() === id
+    const isAdmin = req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Unauthorized: Access to user billings restricted' })
     }
 
     const trips = await Billing.find({ userId: id }).sort({ order: 1})
