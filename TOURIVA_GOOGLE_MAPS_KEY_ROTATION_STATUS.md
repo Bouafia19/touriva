@@ -1,7 +1,9 @@
 # TOURIVA — GOOGLE MAPS API KEY ROTATION & GOOGLE CLOUD SECURITY STATUS
 
-**Audit Date:** October 26, 2026, 17:46 UTC  
+**Audit Date:** October 26, 2026, 17:58 UTC  
 **Auditor / Agent:** Antigravity Autonomous Security Engineering Agent  
+**Active Production Commit:** `dd591cd9383849cf56d456ae173cb86e589c88b0` (`dd591cd`)  
+**Live Render Deploy ID (`touriva-web`):** `dep-dbfp8h6c6qcc738bb9ig`  
 **Overall Status:** **NOT READY — MANUAL ACTION REQUIRED**  
 **Google Maps Legacy Key Revoked:** **NOT VERIFIED** (Requires Google Cloud Console Confirmation)  
 **Replacement Key Restricted:** **NOT VERIFIED** (Requires Google Cloud Console Configuration)  

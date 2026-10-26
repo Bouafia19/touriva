@@ -1,9 +1,9 @@
 # TOURIVA — FINAL SECURITY CLOSURE & PRODUCTION RELEASE REPORT
 
-**Execution Date:** October 26, 2026, 17:46 UTC  
+**Execution Date:** October 26, 2026, 17:58 UTC  
 **Auditor / Agent:** Antigravity Autonomous Security Engineering Agent  
 **Repository:** `https://github.com/Bouafia19/touriva.git`  
-**Active Production Commit:** `5068a6ed63b2ad8708da5be201c13bc54d5e9b86` (`5068a6e`)  
+**Active Production Commit:** `dd591cd9383849cf56d456ae173cb86e589c88b0` (`dd591cd`)  
 **Production API Base URL:** `https://touriva-api.onrender.com`  
 **Production Web Client:** `https://touriva-web.onrender.com`  
 
@@ -18,10 +18,10 @@
 FINAL TOURIVA PRODUCTION SECURITY & RELEASE GATE
 ========================================================================================
 Overall Release Verdict:           NOT READY — MANUAL ACTION REQUIRED
-Remediation Commit:                5068a6e (Merged into master and live on Render)
+Production Release Commit:         dd591cd (Merged into master and live on Render)
 Render Services Live:              6 / 6 SERVICES LIVE (1 API + 5 Static Web Frontends)
 Local Automated Tests:             66 / 66 PASSED (59 Jest Backend, 4 Shop, 3 Vitest)
-Live Production Smoke Tests:       8 / 8 PASSED (100% Pass Rate against live endpoints)
+Live Production Smoke Tests:       10 / 10 PASSED (100% Pass Rate against live endpoints)
 CORS Origin Shield:                ACTIVE ON PRODUCTION (Untrusted denied; trusted allowed)
 Route Hardening & IDOR:            ACTIVE ON PRODUCTION (Unauthenticated mutations return 401)
 Google Maps Legacy Key Revoked:    NOT VERIFIED (Pending action in Google Cloud Console)
@@ -32,7 +32,7 @@ Frontend Builds and Tests:         PASS (3/3 Vitest tests, 4/4 Shop tests, 5/5 b
 Android Release APK Signing:       BLOCKED (Artifact built at 11 MB; pending upload key)
 Android AAB Signing:               BLOCKED (Artifact built at 9.4 MB; pending upload key)
 Git Secret-Exposure Check:         PASS (0 secrets in Git; .gitignore hardened)
-Render Deployment Verification:    PASS (All 6 microservices verified live on commit 5068a6e)
+Render Deployment Verification:    PASS (All 6 microservices verified live on commit dd591cd)
 Google Play Publication:           NOT PERFORMED (Requires owner authorization and signed AAB)
 ========================================================================================
 ```
@@ -51,7 +51,7 @@ Google Play Publication:           NOT PERFORMED (Requires owner authorization a
 | **Android APK signing** | Signature verification passes | Artifact compiled cleanly (11 MB); `apksigner verify` confirms unsigned (`DOES NOT VERIFY`). Awaiting upload keystore. | **BLOCKED** |
 | **Android AAB signing** | Bundle verification passes | Artifact compiled cleanly (9.4 MB); bundle structurally valid. Awaiting upload keystore. | **BLOCKED** |
 | **Git secret protection** | No signing secrets or keys tracked | Zero credentials in Git. Root and Android `.gitignore` strictly exclude `*.jks`, `*.keystore`, `*.pepk`, `keystore.properties`. | **PASS** |
-| **Render deployment** | Actual deployed service/commit evidence | All 6 services verified `live` running commit `5068a6e` via Render CLI. 8/8 live HTTPS smoke tests pass. | **PASS** |
+| **Render deployment** | Actual deployed service/commit evidence | All 6 services verified `live` running commit `dd591cd` via Render CLI. 10/10 live HTTPS smoke tests pass. | **PASS** |
 | **Google Play publication** | Not performed unless explicitly authorized | Not performed; awaiting owner approval, keystore configuration, and signed AAB. | **NOT PERFORMED** |
 
 ---
@@ -101,7 +101,7 @@ Detailed analysis is documented in [**`TOURIVA_ANDROID_RELEASE_READINESS.md`**](
 
 ---
 
-## 5. AUTOMATED TEST SUITES EXECUTION RECORD
+## 5. AUTOMATED TEST SUITES & LIVE PRODUCTION RECORD
 
 ```
 ========================================================================================
@@ -110,14 +110,22 @@ AUTOMATED TEST RECORD SUMMARY
 1. Backend Jest Test Suites:           6 / 6 PASSED  (59 / 59 tests)  - 100% Pass
 2. Shop Backend Jest Test Suites:      1 / 1 PASSED  (4 / 4 tests)    - 100% Pass
 3. Frontend Vitest Test Suites:        1 / 1 PASSED  (3 / 3 tests)    - 100% Pass
-4. Live Production HTTPS Smoke Tests:  8 / 8 PASSED  (8 / 8 tests)    - 100% Pass
+4. Live Production HTTPS Smoke Tests:  10 / 10 PASSED (10 / 10 tests) - 100% Pass
 ----------------------------------------------------------------------------------------
-TOTAL TESTS EXECUTED:                  74 / 74 PASSED (100% Pass Rate)
+TOTAL TESTS EXECUTED:                  76 / 76 PASSED (100% Pass Rate)
 ========================================================================================
 ```
 
-### Live Production Probes (`https://touriva-api.onrender.com`)
-- **SMK-01 (API Health):** HTTP 200 `{"status":"ok","service":"Touriva Tourism API","uptime":11.77,"database":"connected"}`.
+### Verified Render Production Microservices (Commit: `dd591cd`)
+- **touriva-api** (`srv-dbb3a4lg1s2s73e3ll9g`): Deploy `dep-dbfp8g7f3r2c7395f2g0` — **LIVE** (Finished 2026-10-26T17:56:57Z)
+- **touriva-web** (`srv-dbb3a78m7kps73aspl90`): Deploy `dep-dbfp8h6c6qcc738bb9ig` — **LIVE** (Finished 2026-10-26T17:56:42Z)
+- **touriva-admin** (`srv-dbb6sgjncjis73dm4bj0`): Deploy `dep-dbfp8i9srm7s73a5g62g` — **LIVE** (Finished 2026-10-26T17:56:46Z)
+- **touriva-shop-web** (`srv-dbb6sljncjis73dm5240`): Deploy `dep-dbfp8iivcj2c739v3li0` — **LIVE** (Finished 2026-10-26T17:56:48Z)
+- **touriva-shop-admin** (`srv-dbb6som7bikc73d9il40`): Deploy `dep-dbfp8iqfngtc73ah1sh0` — **LIVE** (Finished 2026-10-26T17:56:53Z)
+- **touriva-shop-seller-admin** (`srv-dbb6ssigjjms73d86ing`): Deploy `dep-dbfp8j6c6qcc738bbh70` — **LIVE** (Finished 2026-10-26T17:56:51Z)
+
+### Live Production Probes (`https://touriva-api.onrender.com` & Frontends)
+- **SMK-01 (API Health):** HTTP 200 `{"status":"ok","service":"Touriva Tourism API","uptime":41.56,"database":"connected"}`.
 - **SMK-02 (Untrusted CORS Origin):** Header `Access-Control-Allow-Origin` is **completely omitted** (denied).
 - **SMK-03 (Trusted CORS Origin):** `access-control-allow-origin: https://touriva-web.onrender.com` returned with `credentials: true`.
 - **SMK-04 (Account Takeover Protection):** `PATCH /api/users/update_existing_user/:id` returns **HTTP 401 Unauthorized**.
@@ -125,6 +133,8 @@ TOTAL TESTS EXECUTED:                  74 / 74 PASSED (100% Pass Rate)
 - **SMK-06 (Mutation Route Guard):** `POST /api/sites` returns **HTTP 401 Unauthorized**.
 - **SMK-07 (Public Data Availability):** `GET /api/sites` returns destination catalog without password hashes.
 - **SMK-08 (Web Client Accessibility):** `https://touriva-web.onrender.com` returns HTTP 200 OK.
+- **SMK-09 (Admin Portal Accessibility):** `https://touriva-admin.onrender.com` returns HTTP 200 OK.
+- **SMK-10 (Shop Web Accessibility):** `https://touriva-shop-web.onrender.com` returns HTTP 200 OK.
 
 ---
 
