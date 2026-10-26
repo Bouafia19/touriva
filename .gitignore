@@ -40,7 +40,11 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 
-# SSL Certificates
+# SSL & Android Signing Certificates
 nginx/ssl/*.crt
 nginx/ssl/*.key
 nginx/ssl/
+*.jks
+*.keystore
+*.pepk
+keystore.properties
