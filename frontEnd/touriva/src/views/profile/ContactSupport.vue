@@ -145,7 +145,7 @@
             </div>
           </v-card>
 
-          <!-- Map Card -->
+          <!-- Map Card (OpenStreetMap) -->
           <v-card class="editorial-card overflow-hidden" elevation="0">
             <iframe
               width="100%"
@@ -155,7 +155,7 @@
               allowfullscreen
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3196.7937397943564!2d3.056086!3d36.768132!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x128fb2f768b55555%3A0x1234567890abcdef!2sAlgiers%20Centre%2C%20Algeria!5e0!3m2!1sen!2sdz!4v1711123456789"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=3.046086%2C36.758132%2C3.066086%2C36.778132&amp;layer=mapnik&amp;marker=36.768132%2C3.056086"
             ></iframe>
           </v-card>
         </v-col>

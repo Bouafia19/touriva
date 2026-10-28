@@ -43,57 +43,35 @@ export const useRestaurantsStore = defineStore('restaurants', {
             this.error = null
 
             try {
-            
-                const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-                let googleRestaurants = []
-                if (apiKey) {
+                let localRestaurants = []
+                try {
+                    const localResponse = await axios.post('/api/restaurants/localRestaurants', { lat, lng })
+                    localRestaurants = localResponse.data || []
+                } catch (e) {
+                    console.warn('Local restaurants query failed, falling back to catalog:', e.message)
+                }
+
+                if (!localRestaurants.length) {
                     try {
-                        const response = await axios.post(
-                            'https://places.googleapis.com/v1/places:searchNearby',
-                            {
-                                "includedTypes": ["restaurant"],
-                                "maxResultCount": 20,
-                                "locationRestriction": {
-                                    "circle": {
-                                        "center": { "latitude": lat, "longitude": lng },
-                                        "radius": 2000
-                                    }
-                                }
-                            },
-                            {
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Goog-Api-Key': apiKey,
-                                    'X-Goog-FieldMask': 'places.name,places.displayName,places.photos,places.location,places.rating,places.formattedAddress'
-                                }
-                            }
-                        )
-                        googleRestaurants = response.data.places || []
+                        const catalogRes = await axios.get('/api/restaurants')
+                        localRestaurants = catalogRes.data || []
                     } catch (e) {
-                        console.warn('Google Places restaurants API request failed:', e.message)
+                        console.warn('Catalog restaurants query failed:', e.message)
                     }
                 }
 
-                // 2️⃣ Local restaurants from MongoDB
-                const localResponse = await axios.post('/api/restaurants/localRestaurants', { lat, lng })
-                let localRestaurants = localResponse.data || []
-
-                localResponse.data.forEach(r => {
+                localRestaurants.forEach(r => {
                     r.location = { latitude: r.latitude, longitude: r.longitude }
+                    if (!r.displayName) {
+                        r.displayName = { text: r.name }
+                    }
                 })
 
-                console.log('Local restaurants:', localRestaurants)
-
-                // 3️⃣ Merge both
-                this.restaurants = [...localRestaurants, ...googleRestaurants]
-
-                const res = await axios.post('/api/restaurants/import', {
-                    restaurants: googleRestaurants
-                })
-                this.normalizeRestaurantsForIA = this.normalizeRestaurants(response.data.places || [])
+                this.restaurants = localRestaurants
+                this.normalizeRestaurantsForIA = this.normalizeRestaurants(localRestaurants)
     
             } catch (err) {
-                console.error(err)
+                console.error('Failed to load restaurants:', err)
                 this.error = 'Failed to load restaurants'
                 this.restaurants = []
             } finally {
@@ -114,15 +92,13 @@ export const useRestaurantsStore = defineStore('restaurants', {
         },
 
         normalizeRestaurants(places) {
-            return places.map(p => ({
-                name: p.displayName?.text || 'Unknown hotel',
-                lat: p.location?.latitude,
-                lng: p.location?.longitude,
-                rating: p.rating || null,
-                address: p.formattedAddress || '',
-                image: (p.photos?.length && (import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY))
-                ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=800&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY}`
-                : ''
+            return (places || []).map(p => ({
+                name: p.displayName?.text || p.name || 'Restaurant',
+                lat: p.location?.latitude || p.latitude,
+                lng: p.location?.longitude || p.longitude,
+                rating: p.rating || 4.4,
+                address: p.formattedAddress || p.address || '',
+                image: p.photo || p.image || '/no-image.png'
             }))
         }
     }

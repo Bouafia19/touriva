@@ -54,9 +54,6 @@
   import { useRouter } from 'vue-router'
   const router = useRouter()
 
-  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-
-
   const props = defineProps({
     site: {
       type: Object,
@@ -73,12 +70,12 @@
   }
 
   const getPhotoUrl = (site) => {
-    if (!site || !site.photos || site.photos.length === 0) {
-      return "/no-image.png"
+    if (!site) return "/no-image.png"
+    if (site.photo) return site.photo
+    if (site.image) return site.image
+    if (site.photos?.length && typeof site.photos[0]?.name === 'string' && site.photos[0].name.startsWith('http')) {
+      return site.photos[0].name
     }
-
-    const photoName = site.photos[0].name // e.g. "places/xxxx/photos/yyyy"
-
-    return `https://places.googleapis.com/v1/${photoName}/media?key=${API_KEY}&maxWidthPx=800`
+    return "/no-image.png"
   }
 </script>

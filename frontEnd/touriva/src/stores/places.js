@@ -13,7 +13,7 @@ export const usePlacesStore = defineStore('places', {
 
     getPlaceById: (state) => (placeId) => {
       return state.places.find(
-        p => p.name === `places/${placeId}`
+        p => p._id === placeId || p.id === placeId || p.name === placeId
       )
     },
     getCurrentPlace: (state) => state.currentPlace,
@@ -28,36 +28,18 @@ export const usePlacesStore = defineStore('places', {
     async fetchNearby(type, lat, lng) {
       this.loading = true
       try {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-        const res = await axios.post(
-          'https://places.googleapis.com/v1/places:searchNearby',
-          {
-            includedTypes: [type],
-            maxResultCount: 20,
-            locationRestriction: {
-              circle: {
-                center: { latitude: lat, longitude: lng },
-                radius: 2000
-              }
-            }
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Goog-Api-Key': apiKey,
-              'X-Goog-FieldMask': `
-                places.name,
-                places.displayName,
-                places.formattedAddress,
-                places.rating,
-                places.photos,
-                places.location
-              `
-            }
-          }
-        )
+        let endpoint = '/api/sites/localSites'
+        if (type === 'restaurant' || type === 'restaurants') {
+          endpoint = '/api/restaurants/localRestaurants'
+        } else if (type === 'hotel' || type === 'lodging') {
+          endpoint = '/api/hotels/localHotels'
+        }
 
-        this.places = res.data.places || []
+        const res = await axios.post(endpoint, { lat, lng })
+        this.places = res.data || []
+      } catch (err) {
+        console.warn('Failed to fetch nearby places locally:', err.message)
+        this.places = []
       } finally {
         this.loading = false
       }

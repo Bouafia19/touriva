@@ -264,13 +264,16 @@ const heroImage = computed(() => {
 
 const galleryImages = computed(() => {
   const images = []
+  if (place.value?.photo) images.push(place.value.photo)
+  if (place.value?.image && !images.includes(place.value.image)) images.push(place.value.image)
   if (place.value?.photos && Array.isArray(place.value.photos)) {
     place.value.photos.slice(0, 6).forEach(p => {
-      if (p.name) {
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-        if (apiKey) {
-          images.push(`https://places.googleapis.com/v1/${p.name}/media?key=${apiKey}&maxWidthPx=800`)
-        }
+      if (typeof p === 'string' && p.startsWith('http')) {
+        images.push(p)
+      } else if (p?.name && p.name.startsWith('http')) {
+        images.push(p.name)
+      } else if (p?.url) {
+        images.push(p.url)
       }
     })
   }

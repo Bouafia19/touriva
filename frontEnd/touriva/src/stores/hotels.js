@@ -43,58 +43,34 @@ export const useHotelsStore = defineStore('hotels', {
             this.error = null
 
             try {
-                const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-                let googleHotels = []
-                if (apiKey) {
+                let localHotels = []
+                try {
+                    const localResponse = await axios.post('/api/hotels/localHotels', { lat, lng })
+                    localHotels = localResponse.data || []
+                } catch (e) {
+                    console.warn('Local hotels query failed, falling back to catalog:', e.message)
+                }
+
+                if (!localHotels.length) {
                     try {
-                        const response = await axios.post(
-                            'https://places.googleapis.com/v1/places:searchNearby',
-                            {
-                                includedTypes: ['lodging'],
-                                maxResultCount: 20,
-                                locationRestriction: {
-                                    circle: {
-                                        center: { latitude: lat, longitude: lng },
-                                        radius: 2000,
-                                    },
-                                },
-                            },
-                            {
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Goog-Api-Key': apiKey,
-                                    'X-Goog-FieldMask':
-                                        'places.name,places.displayName,places.photos,places.location,places.rating,places.formattedAddress',
-                                },
-                            }
-                        )
-                        googleHotels = response.data.places || []
+                        const catalogRes = await axios.get('/api/hotels')
+                        localHotels = catalogRes.data || []
                     } catch (e) {
-                        console.warn('Google Places hotels API request failed:', e.message)
+                        console.warn('Catalog hotels query failed:', e.message)
                     }
                 }
-                console.log('Google hotels:', googleHotels)
-                // 2️⃣ Local hotels from MongoDB
-                let localResponse = await axios.post('/api/hotels/localHotels', { lat, lng })
 
-                localResponse.data.forEach(h => {
+                localHotels.forEach(h => {
                     h.location = { latitude: h.latitude, longitude: h.longitude }
+                    if (!h.displayName) {
+                        h.displayName = { text: h.name }
+                    }
                 })
                 
-                const localHotels = localResponse.data || []
-
-                console.log('Local hotels:', localHotels)
-
-                // 3️⃣ Merge both
-                this.hotels = [...localHotels, ...googleHotels]
-                // this.hotels = response.data.places || []
-
-                const res = await axios.post('/api/hotels/import', {
-                    hotels: googleHotels
-                })
-                this.normalizeHotelsForIA = this.normalizeHotels(googleHotels)
+                this.hotels = localHotels
+                this.normalizeHotelsForIA = this.normalizeHotels(localHotels)
             } catch (err) {
-                console.error(err)
+                console.error('Failed to load hotels:', err)
                 this.error = 'Failed to load hotels'
                 this.hotels = []
             } finally {
@@ -115,15 +91,13 @@ export const useHotelsStore = defineStore('hotels', {
         },
 
         normalizeHotels(places) {
-            return places.map(p => ({
-                name: p.displayName?.text || 'Unknown hotel',
-                lat: p.location?.latitude,
-                lng: p.location?.longitude,
-                rating: p.rating || null,
-                address: p.formattedAddress || '',
-                image: (p.photos?.length && (import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY))
-                ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=800&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY}`
-                : ''
+            return (places || []).map(p => ({
+                name: p.displayName?.text || p.name || 'Hotel',
+                lat: p.location?.latitude || p.latitude,
+                lng: p.location?.longitude || p.longitude,
+                rating: p.rating || 4.2,
+                address: p.formattedAddress || p.address || '',
+                image: p.photo || p.image || '/no-image.png'
             }))
         }
     }

@@ -435,6 +435,15 @@ import { ref, reactive, computed, onMounted, nextTick, watch, onBeforeUnmount } 
 import { Capacitor } from '@capacitor/core'
 import { Geolocation } from '@capacitor/geolocation'
 // import draggable from 'vuedraggable'
+import { Map, NavigationControl, Marker, Popup, LngLatBounds } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import {
+  MAP_STYLES,
+  OSM_RASTER_FALLBACK,
+  DAY_ROUTE_COLORS,
+  createTourivaMarkerElement,
+  buildStopPopupHtml
+} from '@/utils/osmMap'
 import { useHotelsStore } from '@/stores/hotels'
 import { useRestaurantsStore } from '@/stores/restaurants'
 import { useSitesStore } from '@/stores/sites'
@@ -459,11 +468,19 @@ function genId() { return 's_' + Math.random().toString(36).slice(2, 9) }
 const days = ref([])
 const activeStopId = ref(null)
 let map = null
-const markers = reactive(new Map())
-const polylines = reactive(new Map())
-let infoWindow = null
+let popup = null
+const markers = new Map()
 const platform = ref(null)
 const autocompleteRef = ref(null)
+
+// Watch mobileView to resize MapLibre canvas when switching to map tab
+watch(mobileView, (val) => {
+  if (val === 'map' && map) {
+    nextTick(() => {
+      map.resize()
+    })
+  }
+})
 
 // DIALOG
 const dialog = reactive({
@@ -587,21 +604,17 @@ const itemsForSelectedType = computed(() => {
 })
 
 
-const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-
 const getPhotoUrl = (restaurant) => {
-  // local image from your database
-  if (restaurant.photo) {
+  if (restaurant?.photo) {
     return restaurant.photo
   }
-
-  if (!restaurant || !restaurant.photos || restaurant.photos.length === 0) {
-    return "/no-image.png"
+  if (restaurant?.image) {
+    return restaurant.image
   }
-
-  const photoName = restaurant.photos[0].name // e.g. "places/xxxx/photos/yyyy"
-
-  return `https://places.googleapis.com/v1/${photoName}/media?key=${API_KEY}&maxWidthPx=800`
+  if (restaurant?.photos?.length && typeof restaurant.photos[0]?.name === 'string' && restaurant.photos[0].name.startsWith('http')) {
+    return restaurant.photos[0].name
+  }
+  return "/no-image.png"
 }
 
 function addStopForDay(dayNum) {
@@ -754,41 +767,124 @@ onMounted(async () => {
 })
 
 function initMap() {
-  if (!window.google || !window.google.maps) return
+  const container = document.getElementById('map')
+  if (!container) return
+
   const firstStop = days.value[0]?.items[0]
-  const center = firstStop ? { lat: firstStop.lat, lng: firstStop.lng } : { lat: 36.75, lng: 3.05 }
-  map = new google.maps.Map(document.getElementById('map'), { center, zoom: 12 })
-  infoWindow = new google.maps.InfoWindow()
-  drawAll()
+  const center = firstStop && firstStop.lng && firstStop.lat
+    ? [Number(firstStop.lng), Number(firstStop.lat)]
+    : [3.0588, 36.7538] // [lng, lat] (Algiers)
+
+  map = new Map({
+    container: 'map',
+    style: MAP_STYLES.liberty,
+    center,
+    zoom: 12,
+    attributionControl: true
+  })
+
+  map.addControl(new NavigationControl({ visualizePitch: false }), 'top-right')
+
+  let fallback = false
+  map.on('error', (e) => {
+    if (!fallback && e?.error?.status >= 400) {
+      fallback = true
+      console.warn('MapLibre style fallback to OSM raster:', e.error)
+      try {
+        map.setStyle(OSM_RASTER_FALLBACK)
+      } catch (err) {
+        console.error('Failed to set fallback style:', err)
+      }
+    }
+  })
+
+  map.on('load', () => {
+    drawAll()
+  })
 }
 
 function drawAll() {
-  markers.forEach(m => m.setMap(null))
+  if (!map) return
+
+  markers.forEach(m => m.remove())
   markers.clear()
-  polylines.forEach(p => p.setMap(null))
-  polylines.clear()
-  days.value.forEach(day => {
+
+  if (!map.isStyleLoaded()) {
+    map.once('style.load', () => drawAll())
+    return
+  }
+
+  days.value.forEach((day, dayIndex) => {
+    const color = DAY_ROUTE_COLORS[dayIndex % DAY_ROUTE_COLORS.length]
     const path = []
-    day.items.forEach(stop => {
+
+    day.items.forEach((stop, stopIndex) => {
       if (!stop.lat || !stop.lng) return
-      const marker = new google.maps.Marker({ map, position: { lat: stop.lat, lng: stop.lng }, title: stop.title })
-      marker.addListener('click', () => openInfo(stop))
+      const lng = Number(stop.lng)
+      const lat = Number(stop.lat)
+      path.push([lng, lat])
+
+      const el = createTourivaMarkerElement(stop.title, stopIndex + 1, color)
+      el.addEventListener('click', () => openInfo(stop))
+
+      const marker = new Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([lng, lat])
+        .addTo(map)
+
       markers.set(stop.id, marker)
-      path.push({ lat: stop.lat, lng: stop.lng })
     })
-    if (path.length) {
-      const poly = new google.maps.Polyline({ path, geodesic: true, strokeColor: '#1976D2', strokeOpacity: 0.8, strokeWeight: 4, map })
-      polylines.set(day.day, poly)
+
+    const sourceId = `route-source-${day.day}`
+    const layerId = `route-layer-${day.day}`
+
+    const lineGeoJson = {
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: path
+      }
+    }
+
+    if (map.getSource(sourceId)) {
+      map.getSource(sourceId).setData(lineGeoJson)
+    } else if (path.length >= 2) {
+      map.addSource(sourceId, {
+        type: 'geojson',
+        data: lineGeoJson
+      })
+      map.addLayer({
+        id: layerId,
+        type: 'line',
+        source: sourceId,
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': color,
+          'line-width': 4,
+          'line-opacity': 0.85
+        }
+      })
     }
   })
 }
 
 function openInfo(stop) {
-  if (!infoWindow || !markers.get(stop.id)) return
-  infoWindow.setContent(`<strong>${stop.title}</strong><br/><small>${stop.time || ''}</small><div>${stop.description || ''}</div>${stop.image ? `<img src="${stop.image}" style="width:100%; border-radius:6px; margin-top:6px" />` : ''}`)
-  infoWindow.open(map, markers.get(stop.id))
-  map.panTo({ lat: stop.lat, lng: stop.lng })
-  map.setZoom(15)
+  if (!map || !stop.lat || !stop.lng) return
+  if (popup) popup.remove()
+
+  popup = new Popup({ offset: 35, closeButton: true, closeOnClick: true })
+    .setLngLat([Number(stop.lng), Number(stop.lat)])
+    .setHTML(buildStopPopupHtml(stop))
+    .addTo(map)
+
+  map.flyTo({
+    center: [Number(stop.lng), Number(stop.lat)],
+    zoom: Math.max(map.getZoom(), 14),
+    duration: 800
+  })
+
   activeStopId.value = stop.id
 }
 
@@ -799,16 +895,44 @@ function addDay() {
 
 function removeDay(dayNum) { 
   const dayObj = days.value.find(d => d.day===dayNum)
-  dayObj?.items.forEach(s => markers.get(s.id)?.setMap(null))
+  dayObj?.items.forEach(s => {
+    markers.get(s.id)?.remove()
+    markers.delete(s.id)
+  })
+  if (map) {
+    const layerId = `route-layer-${dayNum}`
+    const sourceId = `route-source-${dayNum}`
+    if (map.getLayer(layerId)) map.removeLayer(layerId)
+    if (map.getSource(sourceId)) map.removeSource(sourceId)
+  }
   days.value = days.value.filter(d=>d.day!==dayNum) 
 }
 function focusStop(stop) { openInfo(stop) }
 function onReorder() { drawAll() }
 function fitBoundsForDay(dayObj) {
-  const bounds = new google.maps.LatLngBounds()
-  dayObj.items.forEach(i => bounds.extend({ lat: i.lat, lng: i.lng }))
-  if (!bounds.isEmpty()) map.fitBounds(bounds, 60)
+  if (!map) return
+  const bounds = new LngLatBounds()
+  let hasPoints = false
+  dayObj.items.forEach(i => {
+    if (i.lat && i.lng) {
+      bounds.extend([Number(i.lng), Number(i.lat)])
+      hasPoints = true
+    }
+  })
+  if (hasPoints && !bounds.isEmpty()) {
+    map.fitBounds(bounds, { padding: 60, maxZoom: 15, duration: 800 })
+  }
 }
+
+onBeforeUnmount(() => {
+  markers.forEach(m => m.remove())
+  markers.clear()
+  if (popup) popup.remove()
+  if (map) {
+    map.remove()
+    map = null
+  }
+})
 
 const dayStartTime = (day) => day.items.length ? day.items.map(i => i.time||'').sort()[0] : '-'
 const dayEndTime = (day) => day.items.length ? day.items.map(i => i.time||'').sort().reverse()[0] : '-'

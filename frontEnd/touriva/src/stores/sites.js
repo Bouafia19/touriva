@@ -42,56 +42,34 @@ export const useSitesStore = defineStore('sites', {
             this.loading = true
             this.error = null
             try {
-            
-                const apiKey = import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY || ''
-                let googleSites = []
-                if (apiKey) {
+                let localSites = []
+                try {
+                    const localResponse = await axios.post('/api/sites/localSites', { lat, lng })
+                    localSites = localResponse.data || []
+                } catch (e) {
+                    console.warn('Local sites query failed, falling back to catalog:', e.message)
+                }
+
+                if (!localSites.length) {
                     try {
-                        const response = await axios.post(
-                            'https://places.googleapis.com/v1/places:searchNearby',
-                            {
-                                "includedTypes": ["tourist_attraction"],
-                                "maxResultCount": 20,
-                                "locationRestriction": {
-                                    "circle": {
-                                        "center": { "latitude": lat, "longitude": lng },
-                                        "radius": 2000
-                                    }
-                                }
-                            },
-                            {
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Goog-Api-Key': apiKey,
-                                    'X-Goog-FieldMask': 'places.name,places.displayName,places.photos,places.location,places.rating,places.formattedAddress,places.types'
-                                }
-                            }
-                        )
-                        googleSites = response.data.places || []
+                        const catalogRes = await axios.get('/api/sites')
+                        localSites = catalogRes.data || []
                     } catch (e) {
-                        console.warn('Google Places API request failed:', e.message)
+                        console.warn('Catalog sites query failed:', e.message)
                     }
                 }
 
-                // 2️⃣ Local sites from MongoDB
-                const localResponse = await axios.post('/api/sites/localSites', { lat, lng })
-                let localSites = localResponse.data || []
-
-                localResponse.data.forEach(s => {
+                localSites.forEach(s => {
                     s.location = { latitude: s.latitude, longitude: s.longitude }
+                    if (!s.displayName) {
+                        s.displayName = { text: s.name }
+                    }
                 })
 
-                console.log('Local sites:', localSites)
-
-                // 3️⃣ Merge both
-                this.sites = [...localSites, ...googleSites]
-
-                const res = await axios.post('/api/sites/import', {
-                    sites: googleSites
-                })
-                this.normalizeSitesForIA = this.normalizeSites(response.data.places || [])
+                this.sites = localSites
+                this.normalizeSitesForIA = this.normalizeSites(localSites)
             } catch (err) {
-                console.error(err)
+                console.error('Failed to load sites:', err)
                 this.error = 'Failed to load sites'
                 this.sites = []
             } finally {
@@ -112,15 +90,13 @@ export const useSitesStore = defineStore('sites', {
         },
 
         normalizeSites(places) {
-            return places.map(p => ({
-                name: p.displayName?.text || 'Unknown hotel',
-                lat: p.location?.latitude,
-                lng: p.location?.longitude,
-                rating: p.rating || null,
-                address: p.formattedAddress || '',
-                image: (p.photos?.length && (import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY))
-                ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=800&key=${import.meta.env.VITE_GOOGLE_MAPS_KEY || import.meta.env.VITE_GOOGLE_API_KEY}`
-                : ''
+            return (places || []).map(p => ({
+                name: p.displayName?.text || p.name || 'Tourism Site',
+                lat: p.location?.latitude || p.latitude,
+                lng: p.location?.longitude || p.longitude,
+                rating: p.rating || 4.5,
+                address: p.formattedAddress || p.address || '',
+                image: p.photo || p.image || '/no-image.png'
             }))
         }
 

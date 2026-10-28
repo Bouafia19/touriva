@@ -293,12 +293,12 @@ describe('Touriva Phase 1 — Comprehensive Security Remediation Test Suite', ()
   })
 
   // ==========================================
-  // PRIORITY 5: HIGH-01 — GOOGLE MAPS API KEY HARDENING
+  // PRIORITY 5: HIGH-01 — FREE OPENSTREETMAP STACK & ZERO CREDENTIALS
   // ==========================================
-  describe('HIGH-01: Google Maps Credentials Verification', () => {
-    it('5.1: No hardcoded Google Maps API key committed in frontend source files', () => {
+  describe('HIGH-01: Google Maps Replacement & Credentials Verification', () => {
+    it('5.1: No Google Maps API key or google.maps references in frontend source files', () => {
       const srcDir = path.resolve(__dirname, '../../frontEnd/touriva/src')
-      let keyFound = false
+      let googleFound = false
 
       const scanDir = (dir) => {
         const files = fs.readdirSync(dir)
@@ -309,20 +309,22 @@ describe('Touriva Phase 1 — Comprehensive Security Remediation Test Suite', ()
             scanDir(fullPath)
           } else if (file.endsWith('.js') || file.endsWith('.vue')) {
             const content = fs.readFileSync(fullPath, 'utf8')
-            if (content.includes('AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4')) {
-              keyFound = true
+            if (content.includes('AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4') || content.includes('google.maps.')) {
+              googleFound = true
             }
           }
         }
       }
 
       scanDir(srcDir)
-      expect(keyFound).toBe(false)
+      expect(googleFound).toBe(false)
     })
 
-    it('5.2: frontend index.html does not contain hardcoded Google Maps key', () => {
+    it('5.2: frontend index.html does not contain Google Maps script or key', () => {
       const indexHtml = fs.readFileSync(path.resolve(__dirname, '../../frontEnd/touriva/index.html'), 'utf8')
       expect(indexHtml).not.toContain('AIzaSyDxFsMTjS-UsZgkJXcAPbtLQFHmNrg7wN4')
+      expect(indexHtml).not.toContain('maps.googleapis.com')
+      expect(indexHtml).not.toContain('VITE_GOOGLE_MAPS_KEY')
     })
   })
 

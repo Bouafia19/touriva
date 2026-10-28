@@ -52,10 +52,13 @@
 
           <v-row justify="center">
             <v-col cols="12" md="8">
-              <v-text-field
+              <v-combobox
                 v-model="selectedState"
-                id="cityInput"
-                ref="cityInputRef"
+                v-model:search="citySearchQuery"
+                :items="citySuggestions"
+                item-title="name"
+                item-value="name"
+                :loading="isSearchingCity"
                 :placeholder="$t('search') || 'Enter city or destination (e.g. Algiers, Djanet, Oran)...'"
                 prepend-inner-icon="mdi-map-marker-outline"
                 variant="outlined"
@@ -64,7 +67,17 @@
                 color="#173F35"
                 class="bg-white elevation-1"
                 clearable
-              />
+                no-filter
+                @update:model-value="onDestinationSelected"
+              >
+                <template #item="{ props: itemProps, item }">
+                  <v-list-item v-bind="itemProps" :title="item.raw.name" :subtitle="item.raw.displayName">
+                    <template #prepend>
+                      <v-icon color="#21866B" size="20">mdi-map-marker</v-icon>
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-combobox>
             </v-col>
           </v-row>
 
@@ -311,7 +324,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTripsStore } from '@/stores/trips'
 import { useRestaurantsStore } from '@/stores/restaurants'
@@ -319,6 +332,7 @@ import { useHotelsStore } from '@/stores/hotels'
 import { useSitesStore } from '@/stores/sites'
 import { useAuthStore } from '@/stores/auth'
 import { useWilayasStore } from '@/stores/wilaya'
+import { searchDestinations, debounce, ALGERIAN_DESTINATIONS } from '@/utils/geocoding'
 
 const router = useRouter()
 const tripStore = useTripsStore()
@@ -467,24 +481,75 @@ const submitTrip = async () => {
   }
 }
 
-const setupAutocomplete = async () => {
-  const input = document.getElementById('cityInput')
-  if (!input || typeof google === 'undefined' || !google.maps || !google.maps.places) return
+const citySearchQuery = ref('')
+const isSearchingCity = ref(false)
+const citySuggestions = ref(
+  ALGERIAN_DESTINATIONS.slice(0, 8).map(d => ({
+    name: d.name,
+    displayName: `${d.name} (${d.nameAr}) - ${d.wilaya}`,
+    lat: d.lat,
+    lng: d.lng
+  }))
+)
 
-  const options = {
-    types: ['(cities)'],
-    componentRestrictions: { country: 'dz' }
+let searchAbortController = null
+const performCitySearch = debounce(async (query) => {
+  if (!query || query.trim().length < 2) {
+    citySuggestions.value = ALGERIAN_DESTINATIONS.slice(0, 8).map(d => ({
+      name: d.name,
+      displayName: `${d.name} (${d.nameAr}) - ${d.wilaya}`,
+      lat: d.lat,
+      lng: d.lng
+    }))
+    return
   }
 
-  const autocomplete = new google.maps.places.Autocomplete(input, options)
-  autocomplete.addListener('place_changed', () => {
-    const place = autocomplete.getPlace()
-    if (!place?.geometry) return
-    const location = place.geometry.location
-    restaurants.fetchRestaurants(location.lat(), location.lng())
-    hotels.fetchHotels(location.lat(), location.lng())
-    sites.fetchSites(location.lat(), location.lng())
-  })
+  if (searchAbortController) {
+    searchAbortController.abort()
+  }
+  searchAbortController = new AbortController()
+
+  isSearchingCity.value = true
+  try {
+    const results = await searchDestinations(query, searchAbortController.signal)
+    if (results && results.length > 0) {
+      citySuggestions.value = results
+    }
+  } catch (err) {
+    console.warn('Geocoding search caught error:', err)
+  } finally {
+    isSearchingCity.value = false
+  }
+}, 350)
+
+watch(citySearchQuery, (val) => {
+  if (val && val !== selectedState.value) {
+    performCitySearch(val)
+  }
+})
+
+const onDestinationSelected = (val) => {
+  if (!val) {
+    selectedState.value = ''
+    return
+  }
+
+  let chosen = null
+  if (typeof val === 'object' && val.name) {
+    selectedState.value = val.name
+    chosen = val
+  } else if (typeof val === 'string') {
+    selectedState.value = val
+    chosen = ALGERIAN_DESTINATIONS.find(
+      d => d.name.toLowerCase() === val.toLowerCase()
+    )
+  }
+
+  if (chosen && chosen.lat && chosen.lng) {
+    restaurants.fetchRestaurants(chosen.lat, chosen.lng)
+    hotels.fetchHotels(chosen.lat, chosen.lng)
+    sites.fetchSites(chosen.lat, chosen.lng)
+  }
 }
 
 const popularCities = [
@@ -539,7 +604,6 @@ onMounted(async () => {
   const ls = await auth.getLSUserInfo()
   user.value = ls?.user
   wilayaStore.fetchWilayas()
-  setupAutocomplete()
 })
 </script>
 
