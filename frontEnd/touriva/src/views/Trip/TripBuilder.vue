@@ -61,6 +61,7 @@
                 :loading="isSearchingCity"
                 :placeholder="$t('search') || 'Enter city or destination (e.g. Algiers, Djanet, Oran)...'"
                 prepend-inner-icon="mdi-map-marker-outline"
+                append-inner-icon="mdi-magnify"
                 variant="outlined"
                 density="comfortable"
                 rounded="pill"
@@ -68,16 +69,28 @@
                 class="bg-white elevation-1"
                 clearable
                 no-filter
+                @click:append-inner="triggerExplicitExternalSearch"
+                @keydown.enter.prevent="triggerExplicitExternalSearch"
                 @update:model-value="onDestinationSelected"
               >
                 <template #item="{ props: itemProps, item }">
                   <v-list-item v-bind="itemProps" :title="item.raw.name" :subtitle="item.raw.displayName">
                     <template #prepend>
-                      <v-icon color="#21866B" size="20">mdi-map-marker</v-icon>
+                      <v-icon :color="item.raw.source === 'nominatim' ? '#2B6CB0' : '#21866B'" size="20">
+                        {{ item.raw.source === 'nominatim' ? 'mdi-earth' : 'mdi-map-marker' }}
+                      </v-icon>
+                    </template>
+                    <template v-if="item.raw.source === 'nominatim'" #append>
+                      <v-chip size="x-small" color="primary" variant="tonal" class="text-caption">OSM</v-chip>
                     </template>
                   </v-list-item>
                 </template>
               </v-combobox>
+              <div class="text-caption text-secondary-editorial mt-1 px-2 text-center">
+                <span>Instant curated destinations. Press Enter or click</span>
+                <v-icon size="14" class="mx-1" color="#173F35">mdi-magnify</v-icon>
+                <span>to query OpenStreetMap.</span>
+              </div>
             </v-col>
           </v-row>
 
@@ -332,7 +345,11 @@ import { useHotelsStore } from '@/stores/hotels'
 import { useSitesStore } from '@/stores/sites'
 import { useAuthStore } from '@/stores/auth'
 import { useWilayasStore } from '@/stores/wilaya'
-import { searchDestinations, debounce, ALGERIAN_DESTINATIONS } from '@/utils/geocoding'
+import {
+  filterLocalDestinations,
+  searchNominatimExternal,
+  ALGERIAN_DESTINATIONS
+} from '@/utils/geocoding'
 
 const router = useRouter()
 const tripStore = useTripsStore()
@@ -483,50 +500,44 @@ const submitTrip = async () => {
 
 const citySearchQuery = ref('')
 const isSearchingCity = ref(false)
-const citySuggestions = ref(
-  ALGERIAN_DESTINATIONS.slice(0, 8).map(d => ({
-    name: d.name,
-    displayName: `${d.name} (${d.nameAr}) - ${d.wilaya}`,
-    lat: d.lat,
-    lng: d.lng
-  }))
-)
+const citySuggestions = ref(filterLocalDestinations(''))
 
-let searchAbortController = null
-const performCitySearch = debounce(async (query) => {
-  if (!query || query.trim().length < 2) {
-    citySuggestions.value = ALGERIAN_DESTINATIONS.slice(0, 8).map(d => ({
-      name: d.name,
-      displayName: `${d.name} (${d.nameAr}) - ${d.wilaya}`,
-      lat: d.lat,
-      lng: d.lng
-    }))
-    return
+// Instant local filtering while typing (100% compliant with OSM Nominatim Acceptable Use Policy: ZERO network requests)
+watch(citySearchQuery, (val) => {
+  if (val && val !== selectedState.value) {
+    citySuggestions.value = filterLocalDestinations(val)
+  } else if (!val) {
+    citySuggestions.value = filterLocalDestinations('')
   }
+})
 
-  if (searchAbortController) {
-    searchAbortController.abort()
-  }
-  searchAbortController = new AbortController()
+// Explicit external search triggered strictly upon user demand (Enter key or search icon click)
+const triggerExplicitExternalSearch = async () => {
+  const query = (citySearchQuery.value || selectedState.value || '').trim()
+  if (!query || query.length < 2) return
 
   isSearchingCity.value = true
   try {
-    const results = await searchDestinations(query, searchAbortController.signal)
-    if (results && results.length > 0) {
-      citySuggestions.value = results
+    const externalResults = await searchNominatimExternal(query)
+    if (externalResults && externalResults.length > 0) {
+      // Merge results with local suggestions, prioritizing external match at the top
+      const combined = [...citySuggestions.value]
+      for (const ext of externalResults) {
+        const duplicate = combined.some(
+          c => Math.abs(c.lat - ext.lat) < 0.05 && Math.abs(c.lng - ext.lng) < 0.05
+        )
+        if (!duplicate) {
+          combined.unshift(ext)
+        }
+      }
+      citySuggestions.value = combined
     }
   } catch (err) {
-    console.warn('Geocoding search caught error:', err)
+    console.warn('Explicit Nominatim destination search error:', err)
   } finally {
     isSearchingCity.value = false
   }
-}, 350)
-
-watch(citySearchQuery, (val) => {
-  if (val && val !== selectedState.value) {
-    performCitySearch(val)
-  }
-})
+}
 
 const onDestinationSelected = (val) => {
   if (!val) {

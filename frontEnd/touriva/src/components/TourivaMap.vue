@@ -71,15 +71,24 @@ const initMap = () => {
       map.addControl(new NavigationControl({ visualizePitch: false }), 'top-right')
     }
 
-    let fallbackTriggered = false
+    let fallbackStep = 0
     map.on('error', (e) => {
-      if (!fallbackTriggered && e?.error?.status >= 400) {
-        fallbackTriggered = true
-        console.warn('OpenFreeMap style issue, switching to OSM raster:', e.error)
+      if (fallbackStep === 0 && e?.error?.status >= 400) {
+        fallbackStep = 1
+        console.warn('OpenFreeMap Liberty style warning, trying Bright style:', e.error)
+        try {
+          map.setStyle(MAP_STYLES.bright)
+        } catch (err) {
+          fallbackStep = 2
+          map.setStyle(OSM_RASTER_FALLBACK)
+        }
+      } else if (fallbackStep === 1 && e?.error?.status >= 400) {
+        fallbackStep = 2
+        console.warn('OpenFreeMap Bright style warning, switching to OSM raster fallback:', e.error)
         try {
           map.setStyle(OSM_RASTER_FALLBACK)
         } catch (err) {
-          console.error('Failed to set fallback style:', err)
+          console.error('Failed to set fallback raster:', err)
         }
       }
     })

@@ -68,12 +68,21 @@ export function initTourivaMap(container, options = {}) {
   // Add zoom and rotation controls
   map.addControl(new NavigationControl({ visualizePitch: false }), 'top-right')
 
-  // Handle tile load errors by falling back to standard OSM raster
-  let fallbackApplied = false
+  // Handle style load errors with cascading fallback (Liberty -> Bright -> Raster)
+  let fallbackStep = 0
   map.on('error', (e) => {
-    if (!fallbackApplied && e && e.error && e.error.status >= 400) {
-      console.warn('OpenFreeMap style load warning, falling back to OSM raster:', e.error)
-      fallbackApplied = true
+    if (fallbackStep === 0 && e && e.error && e.error.status >= 400) {
+      fallbackStep = 1
+      console.warn('OpenFreeMap Liberty style warning, trying Bright style:', e.error)
+      try {
+        map.setStyle(MAP_STYLES.bright)
+      } catch (err) {
+        fallbackStep = 2
+        map.setStyle(OSM_RASTER_FALLBACK)
+      }
+    } else if (fallbackStep === 1 && e && e.error && e.error.status >= 400) {
+      fallbackStep = 2
+      console.warn('OpenFreeMap Bright style warning, switching to OSM raster fallback:', e.error)
       try {
         map.setStyle(OSM_RASTER_FALLBACK)
       } catch (err) {
