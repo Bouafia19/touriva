@@ -171,13 +171,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useField, useForm } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const auth = useAuthStore()
+const route = useRoute()
 
 const { handleSubmit } = useForm({
   validationSchema: {
@@ -268,6 +270,14 @@ const logIn = async () => {
 
 const submit = handleSubmit(() => {
   logIn()
+})
+
+onMounted(async () => {
+  if (route.query?.demo === 'agency') {
+    await quickDemoSignIn('agency')
+  } else if (route.query?.demo === 'customer') {
+    await quickDemoSignIn('customer')
+  }
 })
 </script>
 

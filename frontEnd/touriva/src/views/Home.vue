@@ -93,6 +93,26 @@
             </v-col>
           </v-row>
         </v-card>
+
+        <!-- B2B Quick Callout Pill in Hero -->
+        <div
+          tabindex="0"
+          role="button"
+          :aria-label="$t('b2bHeroCallout')"
+          class="hero-b2b-pill mt-5 px-4 py-2 rounded-pill d-inline-flex align-center cursor-pointer"
+          @click="scrollToAgency"
+          @keydown.enter.prevent="scrollToAgency"
+          @keydown.space.prevent="scrollToAgency"
+        >
+          <v-icon size="16" color="#D9B98C" class="mr-2">mdi-domain</v-icon>
+          <span class="text-caption text-sand font-weight-medium mr-2">
+            {{ $t('b2bHeroCallout') }}
+          </span>
+          <span class="text-caption text-white font-weight-bold text-decoration-underline d-inline-flex align-center">
+            {{ $t('b2bHeroCalloutAction') }}
+            <v-icon size="14" class="ml-1">mdi-arrow-down</v-icon>
+          </span>
+        </div>
       </v-container>
     </section>
 
@@ -192,6 +212,290 @@
             Explore Cultural Sites
           </v-btn>
         </v-card>
+      </v-container>
+    </section>
+
+    <!-- ======================================================================
+         B2B AGENCY MANAGEMENT PLATFORM: ESPACE AGENCES DE VOYAGES
+         ====================================================================== -->
+    <section id="agency-space" class="b2b-agency-section py-20 text-white position-relative">
+      <!-- Background Ambient Glow -->
+      <div class="b2b-ambient-glow"></div>
+
+      <v-container class="max-w-container position-relative z-index-2">
+        <!-- Section Header -->
+        <div class="text-center max-w-content mx-auto mb-14">
+          <div class="b2b-pill mb-4">
+            <v-icon size="16" color="#D9B98C" class="mr-2">mdi-office-building-outline</v-icon>
+            <span>{{ $t('b2bSectionTag') }}</span>
+          </div>
+
+          <h2 class="b2b-headline font-serif font-weight-bold text-white mb-4">
+            {{ $t('b2bSectionTitle') }}
+          </h2>
+
+          <p class="b2b-subtext text-sand-light mx-auto">
+            {{ $t('b2bSectionSubtitle') }}
+          </p>
+        </div>
+
+        <!-- 4 Main Value Propositions (Pillars Grid) -->
+        <v-row class="mb-12" align="stretch">
+          <!-- Pillar 1: Gestion des circuits -->
+          <v-col cols="12" sm="6" lg="3">
+            <v-card class="b2b-pillar-card pa-6" elevation="0">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="b2b-pillar-icon-box">
+                  <v-icon size="26" color="#D9B98C">mdi-map-marker-path</v-icon>
+                </div>
+                <span class="b2b-pillar-tag">{{ $t('b2bPillar1Tag') }}</span>
+              </div>
+
+              <h3 class="text-h6 font-weight-bold text-white mb-2">
+                {{ $t('b2bPillar1Title') }}
+              </h3>
+
+              <p class="text-caption text-sand-light mb-4 line-height-relaxed">
+                {{ $t('b2bPillar1Desc') }}
+              </p>
+
+              <v-divider class="border-dark mb-4 mt-auto"></v-divider>
+
+              <div class="d-flex flex-column ga-2">
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar1Feature1') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar1Feature2') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar1Feature3') }}</span>
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+
+          <!-- Pillar 2: Départs et réservations -->
+          <v-col cols="12" sm="6" lg="3">
+            <v-card class="b2b-pillar-card pa-6" elevation="0">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="b2b-pillar-icon-box">
+                  <v-icon size="26" color="#D9B98C">mdi-calendar-clock</v-icon>
+                </div>
+                <span class="b2b-pillar-tag">{{ $t('b2bPillar2Tag') }}</span>
+              </div>
+
+              <h3 class="text-h6 font-weight-bold text-white mb-2">
+                {{ $t('b2bPillar2Title') }}
+              </h3>
+
+              <p class="text-caption text-sand-light mb-4 line-height-relaxed">
+                {{ $t('b2bPillar2Desc') }}
+              </p>
+
+              <v-divider class="border-dark mb-4 mt-auto"></v-divider>
+
+              <div class="d-flex flex-column ga-2">
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar2Feature1') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar2Feature2') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar2Feature3') }}</span>
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+
+          <!-- Pillar 3: Gestion des voyageurs -->
+          <v-col cols="12" sm="6" lg="3">
+            <v-card class="b2b-pillar-card pa-6" elevation="0">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="b2b-pillar-icon-box">
+                  <v-icon size="26" color="#D9B98C">mdi-clipboard-account-outline</v-icon>
+                </div>
+                <span class="b2b-pillar-tag">{{ $t('b2bPillar3Tag') }}</span>
+              </div>
+
+              <h3 class="text-h6 font-weight-bold text-white mb-2">
+                {{ $t('b2bPillar3Title') }}
+              </h3>
+
+              <p class="text-caption text-sand-light mb-4 line-height-relaxed">
+                {{ $t('b2bPillar3Desc') }}
+              </p>
+
+              <v-divider class="border-dark mb-4 mt-auto"></v-divider>
+
+              <div class="d-flex flex-column ga-2">
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar3Feature1') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar3Feature2') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar3Feature3') }}</span>
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+
+          <!-- Pillar 4: Suivi financier -->
+          <v-col cols="12" sm="6" lg="3">
+            <v-card class="b2b-pillar-card pa-6" elevation="0">
+              <div class="d-flex align-center justify-space-between mb-4">
+                <div class="b2b-pillar-icon-box">
+                  <v-icon size="26" color="#D9B98C">mdi-cash-register</v-icon>
+                </div>
+                <span class="b2b-pillar-tag">{{ $t('b2bPillar4Tag') }}</span>
+              </div>
+
+              <h3 class="text-h6 font-weight-bold text-white mb-2">
+                {{ $t('b2bPillar4Title') }}
+              </h3>
+
+              <p class="text-caption text-sand-light mb-3 line-height-relaxed">
+                {{ $t('b2bPillar4Desc') }}
+              </p>
+
+              <!-- Honest Technical Boundary Disclaimer -->
+              <div class="b2b-disclaimer-box mb-4">
+                <v-icon size="13" color="#D9B98C" class="mr-1">mdi-information-outline</v-icon>
+                {{ $t('b2bPillar4Disclaimer') }}
+              </div>
+
+              <v-divider class="border-dark mb-4 mt-auto"></v-divider>
+
+              <div class="d-flex flex-column ga-2">
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar4Feature1') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar4Feature2') }}</span>
+                </div>
+                <div class="d-flex align-center text-caption text-grey-lighten-1">
+                  <v-icon size="14" color="#D9B98C" class="mr-2">mdi-check-circle-outline</v-icon>
+                  <span>{{ $t('b2bPillar4Feature3') }}</span>
+                </div>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- Highlights & Interactive Live Showcase Strip -->
+        <div class="b2b-showcase-box pa-6 pa-md-8 mb-12">
+          <v-row align="center">
+            <!-- Left: Highlights Badges -->
+            <v-col cols="12" md="6">
+              <div class="text-caption text-sand font-weight-bold text-uppercase mb-3">
+                {{ $t('b2bLivePreviewTitle') }}
+              </div>
+              <h3 class="text-h5 font-serif font-weight-bold text-white mb-4">
+                {{ $t('b2bLivePreviewHeadline') }}
+              </h3>
+              <div class="d-flex flex-wrap ga-2">
+                <div class="b2b-badge-chip">
+                  <v-icon size="16" color="#D9B98C" class="mr-2">mdi-check-decagram</v-icon>
+                  <span>{{ $t('b2bHighlight1') }}</span>
+                </div>
+                <div class="b2b-badge-chip">
+                  <v-icon size="16" color="#D9B98C" class="mr-2">mdi-printer</v-icon>
+                  <span>{{ $t('b2bHighlight2') }}</span>
+                </div>
+                <div class="b2b-badge-chip">
+                  <v-icon size="16" color="#D9B98C" class="mr-2">mdi-receipt-text-check</v-icon>
+                  <span>{{ $t('b2bHighlight3') }}</span>
+                </div>
+                <div class="b2b-badge-chip">
+                  <v-icon size="16" color="#D9B98C" class="mr-2">mdi-shield-lock-outline</v-icon>
+                  <span>{{ $t('b2bHighlight4') }}</span>
+                </div>
+              </div>
+            </v-col>
+
+            <!-- Right: Live Demo Snapshot Stats -->
+            <v-col cols="12" md="6" class="mt-6 mt-md-0">
+              <v-card class="pa-4 bg-deep-green border-sand-subtle rounded-xl" elevation="0">
+                <div class="d-flex align-center justify-space-between mb-3">
+                  <span class="text-caption font-weight-bold text-sand">
+                    {{ $t('b2bLivePreviewBadge') }}
+                  </span>
+                  <v-chip size="x-small" color="#21866B" variant="flat" class="font-weight-bold text-white">
+                    {{ $t('b2bLiveDemoChip') }}
+                  </v-chip>
+                </div>
+                <v-row dense>
+                  <v-col cols="6" sm="3" class="text-center pa-2 border-subtle-box">
+                    <div class="text-h6 font-weight-bold text-white">3</div>
+                    <div class="text-caption text-sand-light text-xs">{{ $t('b2bLiveStatPackages') }}</div>
+                  </v-col>
+                  <v-col cols="6" sm="3" class="text-center pa-2 border-subtle-box">
+                    <div class="text-h6 font-weight-bold text-white">4</div>
+                    <div class="text-caption text-sand-light text-xs">{{ $t('b2bLiveStatDepartures') }}</div>
+                  </v-col>
+                  <v-col cols="6" sm="3" class="text-center pa-2 border-subtle-box">
+                    <div class="text-h6 font-weight-bold text-white">4</div>
+                    <div class="text-caption text-sand-light text-xs">{{ $t('b2bLiveStatBookings') }}</div>
+                  </v-col>
+                  <v-col cols="6" sm="3" class="text-center pa-2">
+                    <div class="text-h6 font-weight-bold text-sand">100%</div>
+                    <div class="text-caption text-sand-light text-xs">{{ $t('b2bLiveStatLedger') }}</div>
+                  </v-col>
+                </v-row>
+                <!-- Explicit Fictional Demo Data Disclaimer -->
+                <div class="text-caption text-sand-light text-xs mt-3 text-center font-italic opacity-80">
+                  {{ $t('b2bLiveDemoDataNote') }}
+                </div>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Prominent Agency Demo Call to Action Dock -->
+        <div class="text-center">
+          <div class="d-flex flex-column flex-sm-row justify-center align-center ga-4 mb-3">
+            <v-btn
+              to="/login?demo=agency"
+              size="x-large"
+              rounded="pill"
+              color="#D9B98C"
+              class="btn-b2b-primary font-weight-bold elevation-4 px-8 py-3"
+            >
+              <v-icon start size="22" color="#102D27">mdi-office-building-cog-outline</v-icon>
+              <span class="text-forest font-weight-bold">{{ $t('b2bCtaDemo') }}</span>
+              <v-icon end size="20" color="#102D27" class="b2b-arrow-icon">mdi-arrow-right</v-icon>
+            </v-btn>
+
+            <v-btn
+              to="/contactSupport"
+              variant="outlined"
+              size="large"
+              rounded="pill"
+              class="border-sand-btn text-sand font-weight-bold px-6"
+            >
+              <v-icon start size="18">mdi-email-outline</v-icon>
+              {{ $t('b2bCtaContact') }}
+            </v-btn>
+          </div>
+
+          <p class="text-caption text-sand-light">
+            {{ $t('b2bCtaDemoSub') }}
+          </p>
+        </div>
       </v-container>
     </section>
 
@@ -516,7 +820,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useTripsStore } from '@/stores/trips'
 import { useSitesStore } from '@/stores/sites'
 import { useHotelsStore } from '@/stores/hotels'
@@ -529,6 +833,7 @@ import HotelCard from '@/components/HotelCard.vue'
 import RestaurantCard from '@/components/RestaurantCard.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 const tripsStore = useTripsStore()
 const sitesStore = useSitesStore()
@@ -590,12 +895,26 @@ const filterByDestination = (name) => {
   })
 }
 
+const scrollToAgency = () => {
+  const el = document.getElementById('agency-space')
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
 onMounted(async () => {
   // Fetch real catalog data across all tourism resources
   tripsStore.fetchTrips()
   sitesStore.fetchCatalogSites()
   hotelsStore.fetchCatalogHotels()
   restaurantsStore.fetchCatalogRestaurants()
+
+  // Smooth-scroll to agency section if target hash is present
+  if (route.hash === '#agency-space') {
+    setTimeout(() => {
+      scrollToAgency()
+    }, 350)
+  }
 })
 </script>
 
@@ -826,5 +1145,163 @@ onMounted(async () => {
   .search-dock {
     padding: 12px !important;
   }
+}
+
+/* ==========================================================================
+   B2B Travel Agency Space Styling
+   ========================================================================== */
+.hero-b2b-pill {
+  background: rgba(23, 63, 53, 0.88);
+  border: 1px solid rgba(217, 185, 140, 0.45);
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  max-width: 960px;
+}
+
+.hero-b2b-pill:hover {
+  background: rgba(16, 45, 39, 0.98);
+  border-color: #D9B98C;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.b2b-agency-section {
+  background: linear-gradient(180deg, #102D27 0%, #173F35 50%, #102D27 100%);
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(217, 185, 140, 0.25);
+  border-bottom: 1px solid rgba(217, 185, 140, 0.25);
+}
+
+.b2b-ambient-glow {
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(217, 185, 140, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.z-index-2 {
+  position: relative;
+  z-index: 2;
+}
+
+.b2b-pill {
+  background: rgba(217, 185, 140, 0.15);
+  border: 1px solid rgba(217, 185, 140, 0.4);
+  color: #D9B98C;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 6px 20px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.b2b-headline {
+  font-size: clamp(2rem, 3.8vw, 3rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.b2b-subtext {
+  font-size: clamp(1rem, 1.4vw, 1.18rem);
+  line-height: 1.65;
+  max-width: 820px;
+  font-weight: 400;
+  opacity: 0.95;
+}
+
+.b2b-pillar-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(217, 185, 140, 0.25) !important;
+  border-radius: 20px !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.b2b-pillar-card:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: #D9B98C !important;
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.4) !important;
+}
+
+.b2b-pillar-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(217, 185, 140, 0.18);
+  border: 1px solid rgba(217, 185, 140, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.b2b-pillar-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #D9B98C;
+}
+
+.b2b-disclaimer-box {
+  background: rgba(217, 185, 140, 0.08);
+  border: 1px dashed rgba(217, 185, 140, 0.35);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+  color: #F5EDE0;
+  line-height: 1.4;
+}
+
+.b2b-showcase-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(217, 185, 140, 0.2);
+  border-radius: 20px;
+}
+
+.b2b-badge-chip {
+  background: rgba(217, 185, 140, 0.12);
+  border: 1px solid rgba(217, 185, 140, 0.3);
+  color: #FAF8F2;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.border-subtle-box {
+  border-right: 1px solid rgba(217, 185, 140, 0.18);
+}
+
+[dir="rtl"] .border-subtle-box {
+  border-right: none;
+  border-left: 1px solid rgba(217, 185, 140, 0.18);
+}
+
+.btn-b2b-primary {
+  background-color: #D9B98C !important;
+  color: #102D27 !important;
+  transition: all 0.25s ease;
+}
+
+.btn-b2b-primary:hover {
+  background-color: #E2C9A5 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35) !important;
+}
+
+[dir="rtl"] .b2b-arrow-icon {
+  transform: scaleX(-1);
 }
 </style>

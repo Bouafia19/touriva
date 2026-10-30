@@ -58,6 +58,23 @@
           </v-list-item-title>
         </v-list-item>
 
+        <!-- B2B Travel Agency Space Mobile Link -->
+        <v-list-item
+          to="/#agency-space"
+          link
+          rounded="lg"
+          class="mb-1 text-sand font-weight-bold"
+          style="background: rgba(217, 185, 140, 0.12); border: 1px solid rgba(217, 185, 140, 0.3);"
+          @click="drawer = false; scrollToAgencySection()"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-domain" color="#D9B98C" class="mr-3" size="20"></v-icon>
+          </template>
+          <v-list-item-title class="font-weight-bold text-sand">
+            {{ $t('b2bNavTitle') }}
+          </v-list-item-title>
+        </v-list-item>
+
         <v-divider class="my-3 border-dark"></v-divider>
 
         <!-- Auth Links -->
@@ -167,6 +184,19 @@
             :class="{ 'active-nav-link': route.path === item.route }"
           >
             {{ $t(item.title) }}
+          </v-btn>
+
+          <!-- B2B Travel Agency Space Link -->
+          <v-btn
+            to="/#agency-space"
+            variant="outlined"
+            rounded="pill"
+            size="small"
+            class="text-sand border-sand-btn px-3 font-weight-bold ml-1 text-capitalize"
+            @click="scrollToAgencySection"
+          >
+            <v-icon start size="16" color="#D9B98C">mdi-domain</v-icon>
+            {{ $t('b2bNavTitle') }}
           </v-btn>
         </div>
 
@@ -390,6 +420,17 @@ const authSignOut = () => {
   auth.account_sign_out()
   ls.value = null
   router.push('/')
+}
+
+const scrollToAgencySection = () => {
+  if (route.path === '/') {
+    const el = document.getElementById('agency-space')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' })
+    }
+  } else {
+    router.push({ path: '/', hash: '#agency-space' })
+  }
 }
 
 onMounted(async () => {
