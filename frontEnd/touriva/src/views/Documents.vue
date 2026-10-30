@@ -40,6 +40,22 @@
 
         <!-- Document List -->
         <div v-else>
+          <!-- Rejection Notice if resubmitting -->
+          <v-alert
+            v-if="users.user?.fileStatus === 'rejected'"
+            type="error"
+            variant="tonal"
+            density="comfortable"
+            class="mb-6 rounded-lg text-body-2"
+          >
+            <div class="font-weight-bold mb-1">
+              {{ $t('rejectionNoticeTitle') || 'Dossier Précédemment Rejeté' }}
+            </div>
+            <div>
+              {{ users.user?.rejectionReason || 'Veuillez mettre à jour les documents non conformes puis soumettre à nouveau.' }}
+            </div>
+          </v-alert>
+
           <div class="document-list mb-6">
             <v-card
               v-for="(item, index) in array"

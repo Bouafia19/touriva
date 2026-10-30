@@ -171,6 +171,65 @@ const router = createRouter({
       ],
     },
     {
+      path: '/agency',
+      component: () => import('@/layouts/AgencyLayout.vue'),
+      meta: { requiresAuth: true, requiresAgency: true },
+      children: [
+        {
+          path: '',
+          redirect: '/agency/dashboard'
+        },
+        {
+          path: 'dashboard',
+          name: 'AgencyDashboard',
+          component: () => import('@/views/agency/AgencyDashboard.vue'),
+          meta: { title: 'AgencyDashboard', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'packages',
+          name: 'AgencyPackages',
+          component: () => import('@/views/agency/AgencyPackages.vue'),
+          meta: { title: 'AgencyPackages', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'packages/new',
+          name: 'AgencyPackageNew',
+          component: () => import('@/views/agency/AgencyPackageEdit.vue'),
+          meta: { title: 'AgencyPackageNew', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'packages/edit/:id',
+          name: 'AgencyPackageEdit',
+          component: () => import('@/views/agency/AgencyPackageEdit.vue'),
+          meta: { title: 'AgencyPackageEdit', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'departures',
+          name: 'AgencyDepartures',
+          component: () => import('@/views/agency/AgencyDepartures.vue'),
+          meta: { title: 'AgencyDepartures', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'bookings',
+          name: 'AgencyBookings',
+          component: () => import('@/views/agency/AgencyBookings.vue'),
+          meta: { title: 'AgencyBookings', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'enquiries',
+          name: 'AgencyEnquiries',
+          component: () => import('@/views/agency/AgencyEnquiries.vue'),
+          meta: { title: 'AgencyEnquiries', requiresAuth: true, requiresAgency: true }
+        },
+        {
+          path: 'financials',
+          name: 'AgencyFinancials',
+          component: () => import('@/views/agency/AgencyFinancials.vue'),
+          meta: { title: 'AgencyFinancials', requiresAuth: true, requiresAgency: true }
+        }
+      ]
+    },
+    {
       path: '/user',
       component: () => import('@/layouts/PageLayout.vue'),
       children: [
@@ -262,6 +321,26 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  // Agency portal access control
+  if (to.matched.some(record => record.meta.requiresAgency)) {
+    const auth = useAuthStore()
+    auth.getLSUserInfo().then((ls) => {
+      if (!ls || !ls.token) {
+        return next({ name: "Login" })
+      }
+      const user = ls.user
+      const isAgency = user && user.role === 'partner' && user.typeAccount === 'touristAgencies'
+      const isAdmin = user && user.role === 'administrator'
+      if (!isAgency && !isAdmin) {
+        return next({ name: "Home" })
+      }
+      next()
+    }).catch(() => {
+      next({ name: "Login" })
+    })
+    return
+  }
+
   if (Capacitor.isNativePlatform()) {
     if(to.meta.requiresAuth){
       const auth = useAuthStore()

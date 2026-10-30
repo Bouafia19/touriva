@@ -37,6 +37,10 @@ const activityRouters = require('./routes/activities')
 const productRouters = require('./routes/products')
 const categoriesProductsRouters = require('./routes/categoriesProducts')
 const orderRouters = require('./routes/orders')
+const agencyRouters = require('./routes/agency')
+const bookingRouters = require('./routes/bookings')
+const enquiryRouters = require('./routes/enquiries')
+const financialRouters = require('./routes/financial')
 
 // express app
 const app = express()
@@ -102,12 +106,15 @@ const uploadBodyLimit = '15mb'
 const uploadRoutes = [
   '/api/users/uploadPartnerImages',
   '/api/trips',
+  '/api/agency/packages',
   '/api/products',
   '/api/advertising',
   '/api/announcements',
   '/api/sites/import',
   '/api/hotels/import',
-  '/api/restaurants/import'
+  '/api/restaurants/import',
+  '/api/bookings',
+  '/api/agency'
 ]
 
 uploadRoutes.forEach(route => {
@@ -160,6 +167,7 @@ app.use('/api/inboxes', inboxRouters)
 app.use('/api/advertising', advertisingRouters)
 app.use('/api/adsSettings', adsSettingsRouters)
 app.use('/api/trips', tripRouters)
+app.use('/api/agency', agencyRouters)
 app.use('/api/hotels', hotelRouters)
 app.use('/api/sites', siteRouters)
 app.use('/api/restaurants', restaurantRouters)
@@ -169,6 +177,9 @@ app.use('/api/activities', activityRouters)
 app.use('/api/products', productRouters)
 app.use('/api/catprod', categoriesProductsRouters)
 app.use('/api/orders', orderRouters)
+app.use('/api/bookings', bookingRouters)
+app.use('/api/enquiries', enquiryRouters)
+app.use('/api/financial', financialRouters)
 
 // 404 handler
 app.use((req, res, next) => {

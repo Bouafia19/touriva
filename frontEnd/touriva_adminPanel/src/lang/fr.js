@@ -370,6 +370,8 @@ export default {
   justification: "Document justificatif",
   pendingStatus: 'En attente',
   rejectedStatus: "Rejeté",  
+  rejected: "Rejeté",
+  rejectionReason: "Motif du rejet",
   publishedStatus: "Publié",
   Hotels: 'Hôtels',
   Sites: 'Sites touristiques',
@@ -389,5 +391,9 @@ export default {
   ManageUsers: 'Gérer les utilisateurs',
   ViewApprovals: 'Voir les approbations',
   AllReviewed: 'Tout est à jour ! Aucune alerte.',
-  NewSite: 'Nouveau site touristique'
+  NewSite: 'Nouveau site touristique',
+  demoAdminTitle: 'Administrateur Démo Touriva',
+  demoAdminSubtitle: 'Compte démo préconfiguré pour évaluation. Mot de passe disponible dans TOURIVA_DEMO_CREDENTIALS.md',
+  demoAdminSelect: 'Sélectionner l\'administrateur démo',
+  demoAdminBadge: 'ACCÈS DÉMO'
 }

@@ -110,6 +110,7 @@ const loginUser = async (req, res) => {
             complete: item.complete,
             status: item.status,
             fileStatus: item.fileStatus,
+            rejectionReason: item.rejectionReason || null,
             companyName: item.companyName,
             typeAccount: item.typeAccount,
             guideType: item.guideType,
@@ -128,6 +129,76 @@ const loginUser = async (req, res) => {
 
     } catch (error) {
         res.status(400).json({ error: error.message })
+    }
+}
+
+// demo login for prospective clients (Customer & Agency Director)
+const demoLogin = async (req, res) => {
+    try {
+        const { demoType } = req.body
+
+        // Critical Security Restriction:
+        // Administrator demo access CANNOT be obtained via this public endpoint.
+        // Platform administrators must authenticate explicitly via the admin portal.
+        if (demoType === 'admin' || demoType === 'administrator') {
+            return res.status(403).json({
+                error: 'Administrator demo access is strictly restricted. Platform administrators must authenticate through the dedicated admin portal.'
+            })
+        }
+
+        let targetEmail = null
+        let expectedRole = null
+
+        if (demoType === 'customer' || demoType === 'tourist') {
+            targetEmail = 'demo.customer@touriva.test'
+            expectedRole = 'client'
+        } else if (demoType === 'agency' || demoType === 'director') {
+            targetEmail = 'demo.agency@touriva.test'
+            expectedRole = 'partner'
+        } else {
+            return res.status(400).json({
+                error: 'Invalid demoType. Permitted options: "customer", "agency".'
+            })
+        }
+
+        const item = await User.findOne({
+            email: targetEmail,
+            role: expectedRole,
+            $or: [{ activated: true }, { activated: { $exists: false } }]
+        }).populate('authorizationIds')
+
+        if (!item) {
+            return res.status(404).json({
+                error: `Demo account (${targetEmail}) has not been seeded yet. Please run the demo seeder.`
+            })
+        }
+
+        const token = createToken(item._id)
+
+        let user = {
+            _id: item._id,
+            email: item.email,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            language: item.language,
+            phone: item.phone,
+            role: item.role,
+            complete: item.complete,
+            status: item.status,
+            fileStatus: item.fileStatus,
+            rejectionReason: item.rejectionReason || null,
+            companyName: item.companyName,
+            typeAccount: item.typeAccount,
+            guideType: item.guideType,
+            hasLicense: item.hasLicense,
+            associationTypeActivity: item.associationTypeActivity,
+            expirationOfSubscription: item.expirationOfSubscription,
+            sectorActivity: item.sectorActivity
+        }
+
+        res.status(200).json({ user, token })
+    } catch (error) {
+        res.status(500).json({ error: 'Demo authentication failed', details: error.message })
     }
 }
 
@@ -224,6 +295,7 @@ const signupUser = async (req, res) => {
                 status: item.status,
                 companyName: item.companyName,
                 fileStatus: item.fileStatus,
+                rejectionReason: item.rejectionReason || null,
                 typeAccount: item.typeAccount,
                 expirationOfSubscription: item.expirationOfSubscription,
                 sectorActivity: item.sectorActivity,
@@ -359,6 +431,7 @@ const getUser = async (req, res) => {
         complete: item.complete,
         status: item.status,
         fileStatus: item.fileStatus,
+        rejectionReason: item.rejectionReason || null,
         companyName: item.companyName,
         typeAccount: item.typeAccount,
         categoryId: item.categoryId,
@@ -430,8 +503,24 @@ const updateUser = async (req, res) => {
         delete updates.authorizationIds
         delete updates.activated
         delete updates.status
-        delete updates.fileStatus
         delete updates.expirationOfSubscription
+        delete updates.rejectionReason
+
+        // Self-modification of fileStatus: Only allow transitioning to 'pending' (submission / resubmission)
+        // Strictly prevent self-approval ('confirmed') or unauthorized status mutations
+        if (updates.fileStatus !== undefined) {
+            if (updates.fileStatus === 'pending') {
+                // Allowed: partner submitting documents for admin review
+            } else {
+                delete updates.fileStatus
+            }
+        }
+    } else {
+        // Administrator updates:
+        // When administrator approves an agency/partner, automatically clear any prior rejectionReason
+        if (updates.fileStatus === 'confirmed') {
+            updates.rejectionReason = null
+        }
     }
 
     if (updates.password) {
@@ -440,7 +529,7 @@ const updateUser = async (req, res) => {
     }
     
     const user = await User.findOneAndUpdate({_id: id}, updates, { new: true })
-        .select('email firstName lastName language phone role complete status fileStatus typeAccount companyName expirationOfSubscription sectorActivity')
+        .select('email firstName lastName language phone role complete status fileStatus rejectionReason typeAccount companyName expirationOfSubscription sectorActivity')
     
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -469,8 +558,24 @@ const update_existing_user = async (req, res) => {
         delete updates.authorizationIds
         delete updates.activated
         delete updates.status
-        delete updates.fileStatus
         delete updates.expirationOfSubscription
+        delete updates.rejectionReason
+
+        // Self-modification of fileStatus: Only allow transitioning to 'pending' (submission / resubmission)
+        // Strictly prevent self-approval ('confirmed') or unauthorized status mutations
+        if (updates.fileStatus !== undefined) {
+            if (updates.fileStatus === 'pending') {
+                // Allowed: partner submitting documents for admin review
+            } else {
+                delete updates.fileStatus
+            }
+        }
+    } else {
+        // Administrator updates:
+        // When administrator approves an agency/partner, automatically clear any prior rejectionReason
+        if (updates.fileStatus === 'confirmed') {
+            updates.rejectionReason = null
+        }
     }
     
     if(updates.password){
@@ -491,18 +596,49 @@ const update_existing_user = async (req, res) => {
     res.status(200).json(user)
 }
 
-// upload images
+// upload partner images/documents (Self or Admin only, strictly whitelisted document fields)
 const uploadPartnerImages = async (req, res) => {
-
     const { id } = req.params
     
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
+
+    if (!req.user) {
+        return res.status(401).json({ error: 'Authorization token required' })
+    }
+
+    const isSelf = req.user._id.toString() === id
+    const isAdmin = req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot modify another partner\'s documents' })
+    }
+
+    const ALLOWED_DOCUMENT_FIELDS = [
+        'nisDoc', 'commercialRegister', 'nifDoc', 'id', 'presidentId', 
+        'diploma', 'accreditation', 'justification', 'grayCard', 
+        'transportCard', 'trafficPermit'
+    ]
+
+    const updates = {}
+    for (const key of ALLOWED_DOCUMENT_FIELDS) {
+        if (req.body[key] !== undefined) {
+            // Safety check: protect against BSON 16MB document overflow
+            // Base64 document payload should not exceed 5MB (~3.7MB binary)
+            if (typeof req.body[key] === 'string' && req.body[key].length > 5 * 1024 * 1024) {
+                return res.status(413).json({ 
+                    error: `Document payload for ${key} exceeds 5MB limit. Please compress or optimize the file before uploading.` 
+                })
+            }
+            updates[key] = req.body[key]
+        }
+    }
+
+    if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ error: 'No valid document fields provided' })
+    }
    
-    const user = await User.findOneAndUpdate({_id: id},{
-        ...req.body
-    }).select('_id')
+    const user = await User.findOneAndUpdate({_id: id}, updates, { new: true }).select('_id')
     
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -511,13 +647,24 @@ const uploadPartnerImages = async (req, res) => {
     res.status(200).json(user)
 }
 
-// GET partner photos
+// GET partner photos/documents (Self or Admin only)
 const loadPartnerPhotos = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-    const images = await User.findById(id).select('nisDoc commercialRegister nifDoc id presidentId diploma accreditation justification')
+
+    if (!req.user) {
+        return res.status(401).json({ error: 'Authorization token required' })
+    }
+
+    const isSelf = req.user._id.toString() === id
+    const isAdmin = req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot view another partner\'s documents' })
+    }
+
+    const images = await User.findById(id).select('nisDoc commercialRegister nifDoc id presidentId diploma accreditation justification grayCard transportCard trafficPermit')
     
     if(!images){
         return res.status(404).json({error: 'no such user'})
@@ -614,5 +761,6 @@ module.exports = {
     uploadPartnerImages,
     loadPartnerPhotos,
     verifyOTP,
-    checkOTP
+    checkOTP,
+    demoLogin
 }

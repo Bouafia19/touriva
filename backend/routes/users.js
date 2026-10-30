@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 
 const requireAuth = require('../middleware/requireAuth')
+const requireAgencyVerified = require('../middleware/requireAgencyVerified')
 
 // controller functions
 const { 
@@ -22,8 +23,12 @@ const {
     uploadPartnerImages,
     loadPartnerPhotos,
     verifyOTP,
-    checkOTP
+    checkOTP,
+    demoLogin
  } = require('../controllers/usersController')
+
+// demo login route (customer and agency only; admin explicitly prohibited)
+router.post('/demo-login', demoLogin)
 
 // login via web route
 router.post('/loginWeb', loginUserWeb)
@@ -60,6 +65,17 @@ router.patch('/update_existing_user/:id', update_existing_user)
 
 // GET all users (ADMIN ONLY)
 router.get('/', getUsers)
+
+// GET agency verification status (ADMIN or VERIFIED AGENCY PARTNER)
+router.get('/agency/status', requireAgencyVerified, (req, res) => {
+    res.status(200).json({
+        verified: true,
+        agencyId: req.user._id,
+        role: req.user.role,
+        typeAccount: req.user.typeAccount,
+        fileStatus: req.user.fileStatus
+    })
+})
 
 // GET a single user
 router.get('/:id', getUser)

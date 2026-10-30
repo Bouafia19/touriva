@@ -3,11 +3,22 @@ const Trip = require('../models/Trip')
 // GET all trips
 const getTrips = async (req, res) => {
   try {
-    const trips = await Trip.find().sort({ createdAt: -1 })
+    const filter = {}
+    if (req.query.status) {
+      filter.status = req.query.status
+    }
+    if (req.query.published !== undefined) {
+      filter.published = req.query.published === 'true'
+    }
+    if (req.query.destination) {
+      filter.destination = req.query.destination
+    }
+
+    const trips = await Trip.find(filter).sort({ createdAt: -1 })
       .populate({
         path: 'creator',
         model: 'User',
-        select: '_id firstName lastName companyName phone typeAccount'
+        select: '_id firstName lastName companyName phone typeAccount fileStatus'
       })
       .populate({
         path: 'destination',
@@ -24,7 +35,7 @@ const getTrips = async (req, res) => {
 const getTripById = async (req, res) => {
   try {
     const trip = await Trip.findById(req.params.id)
-      .populate('creator', '_id firstName lastName companyName phone typeAccount')
+      .populate('creator', '_id firstName lastName companyName phone typeAccount fileStatus')
       .populate('destination', '_id name')
     if (!trip) {
       return res.status(404).json({ message: 'Trip not found' })
@@ -38,6 +49,16 @@ const getTripById = async (req, res) => {
 // CREATE trip
 const createTrip = async (req, res) => {
   try {
+    // Verification enforcement: partner agencies must be confirmed by administrator before publishing trips
+    if (req.user.role === 'partner' && req.user.typeAccount === 'touristAgencies' && req.user.fileStatus !== 'confirmed') {
+      const status = req.user.fileStatus || 'created'
+      return res.status(403).json({
+        error: 'Access forbidden: Agency account verification is required before publishing trips',
+        fileStatus: status,
+        rejectionReason: req.user.rejectionReason || null
+      })
+    }
+
     const tripPayload = {
       ...req.body,
       creator: req.user.role === 'administrator' && req.body.creator ? req.body.creator : req.user._id

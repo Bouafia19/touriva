@@ -7,6 +7,7 @@
     "test": "jest --detectOpenHandles --forceExit",
     "migrate": "node scripts/migrate_from_djawal.js",
     "seed:demo": "node seed/seed_touriva.js",
+    "seed:demo-users": "node seed/seed_demo_users.js",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },

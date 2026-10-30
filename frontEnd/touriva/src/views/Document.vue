@@ -141,6 +141,12 @@ const onFileSelected = (e) => {
   const file = e.target.files[0]
   if (!file) return
 
+  // Prevent selecting files > 4MB (translates to ~5.3MB in Base64) to prevent BSON document overflow
+  if (file.size > 4 * 1024 * 1024) {
+    err.value = 'Le fichier sélectionné dépasse la taille limite de 4 Mo. Veuillez sélectionner un fichier optimisé.'
+    return
+  }
+
   const reader = new FileReader()
   reader.onload = (event) => {
     uploadImage(event.target.result)

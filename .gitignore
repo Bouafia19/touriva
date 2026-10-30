@@ -1,3 +1,9 @@
+# Confidential Demo Credentials
+TOURIVA_DEMO_CREDENTIALS.md
+
+# Runtime uploads & test storage
+backend/uploads/
+
 # Dependencies
 node_modules/
 */node_modules/

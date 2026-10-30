@@ -366,6 +366,8 @@ export default {
   justification: "وثيقة مبررة",
   pendingStatus: 'في الانتظار',
   rejectedStatus: "مرفوض",
+  rejected: "مرفوض",
+  rejectionReason: "سبب الرفض",
   publishedStatus: "منشور",
   Hotels: 'الفنادق',
   Sites: 'المواقع السياحية',
@@ -385,5 +387,9 @@ export default {
   ManageUsers: 'إدارة المستخدمين',
   ViewApprovals: 'عرض الموافقات',
   AllReviewed: 'رائع! لا توجد تنبيهات معلقة حالياً.',
-  NewSite: 'موقع سياحي جديد'
+  NewSite: 'موقع سياحي جديد',
+  demoAdminTitle: 'مدير النظام التجريبي لتوريفا',
+  demoAdminSubtitle: 'حساب تجريبي مهيأ للتقييم. كلمة المرور متوفرة في ملف TOURIVA_DEMO_CREDENTIALS.md السري',
+  demoAdminSelect: 'اختيار حساب المدير التجريبي',
+  demoAdminBadge: 'وصول تجريبي'
 }

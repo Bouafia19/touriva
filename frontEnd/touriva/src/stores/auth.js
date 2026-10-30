@@ -92,6 +92,35 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         
+        // demo login for prospective clients
+        async demoSignIn (demoType) {
+            this.loading = true
+            this.error = null
+            try {
+                const response = await axios.post("api/users/demo-login", { demoType })
+                if (response && response.data && response.data.token) {
+                    this.user = response.data.user
+                    this.token = response.data.token
+                    this.auth_login = true
+                    await this.setLSUserInfo(response.data)
+                    if (this.user.role === 'partner' && this.user.typeAccount === 'touristAgencies') {
+                        this.router.push('/agency/dashboard')
+                    } else {
+                        this.router.push('/tabs')
+                    }
+                    return response.data
+                } else {
+                    throw new Error('Invalid response from server')
+                }
+            } catch (error) {
+                const apiError = error.response?.data?.error || error.message || 'Demo login failed'
+                this.error = apiError
+                throw new Error(apiError)
+            } finally {
+                this.loading = false
+            }
+        },
+
         // login to user account 
         async account_sign_in (params) {
             this.loading = true

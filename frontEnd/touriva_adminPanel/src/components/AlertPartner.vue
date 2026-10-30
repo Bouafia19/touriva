@@ -178,6 +178,17 @@
                                     </template>
                                 </v-select>
 
+                                <v-textarea
+                                    v-if="editedItem.fileStatus === 'rejected'"
+                                    v-model="editedItem.rejectionReason"
+                                    label="Motif du rejet (Rejection Reason)"
+                                    rows="2"
+                                    variant="outlined"
+                                    density="comfortable"
+                                    counter="2000"
+                                    class="mt-2"
+                                ></v-textarea>
+
 
                                 <!-- <v-text-field
                                     v-model="editedItem.code"
@@ -366,7 +377,7 @@
                 { name: 'created' },
                 { name: 'pending' },
                 { name: 'confirmed' },
-                
+                { name: 'rejected' },
             ],
             DOCUMENTS_BY_TYPE: {
                 touristGuide: [
@@ -559,6 +570,9 @@
                         case 'pending':
                             this.editedItem.complete = false
                             break;
+                        case 'rejected':
+                            this.editedItem.complete = false
+                            break;
                     
                         default:
                             break;
@@ -566,7 +580,8 @@
                     let updatedItem = {
                         _id: this.editedItem._id,
                         complete: this.editedItem.complete,
-                        fileStatus: this.editedItem.fileStatus
+                        fileStatus: this.editedItem.fileStatus,
+                        rejectionReason: this.editedItem.fileStatus === 'rejected' ? (this.editedItem.rejectionReason || 'Dossier non conforme') : null
                     }
                     this.editUsers(updatedItem).then(() => {
                         Object.assign(this.users[this.editedIndex], this.editedItem)

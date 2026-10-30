@@ -60,13 +60,18 @@
 
         <div class="d-flex align-center justify-space-between">
           <!-- Guide / Organizer Avatar -->
-          <div class="d-flex align-center">
-            <v-avatar size="32" color="#F5EDE0" class="mr-2 border-sand">
+          <div class="d-flex align-center" style="max-width: 60%;">
+            <v-avatar size="32" color="#F5EDE0" class="mr-2 border-sand flex-shrink-0">
               <v-img v-if="trip.creator?.avatar" :src="trip.creator.avatar" cover />
-              <v-icon v-else size="18" color="#173F35">mdi-account</v-icon>
+              <v-icon v-else size="18" color="#173F35">
+                {{ isAgency ? 'mdi-domain' : 'mdi-account' }}
+              </v-icon>
             </v-avatar>
-            <div class="text-caption font-weight-medium text-forest">
+            <div class="text-caption font-weight-medium text-forest text-truncate">
               {{ organizerName }}
+              <v-icon v-if="isVerifiedAgency" size="14" color="#21866B" class="ms-1" title="Agence Agréée">
+                mdi-check-decagram
+              </v-icon>
             </div>
           </div>
 
@@ -130,7 +135,13 @@ const destinationText = computed(() => {
   return props.trip.destination?.name || props.trip.destination || (typeof props.trip.wilaya === 'string' ? props.trip.wilaya : props.trip.wilaya?.name) || 'Algeria'
 })
 
+const isAgency = computed(() => props.trip.creator?.typeAccount === 'touristAgencies')
+const isVerifiedAgency = computed(() => isAgency.value && props.trip.creator?.fileStatus === 'confirmed')
+
 const organizerName = computed(() => {
+  if (props.trip.creator?.companyName) {
+    return props.trip.creator.companyName
+  }
   if (props.trip.creator?.firstName) {
     return `${props.trip.creator.firstName} ${props.trip.creator.lastName || ''}`.trim()
   }

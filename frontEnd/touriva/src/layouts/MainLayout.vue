@@ -82,6 +82,12 @@
             </template>
             <v-list-item-title>{{ $t('Subscriptions') }}</v-list-item-title>
           </v-list-item>
+          <v-list-item v-if="isAgencyUser" to="/agency/dashboard" link rounded="lg" class="mb-1 text-emerald-light">
+            <template #prepend>
+              <v-icon icon="mdi-domain" color="#21866B" class="mr-3" size="20"></v-icon>
+            </template>
+            <v-list-item-title class="font-weight-bold">Espace Agence</v-list-item-title>
+          </v-list-item>
           <v-list-item to="/updateProfile" link rounded="lg" class="mb-1 text-white">
             <template #prepend>
               <v-icon icon="mdi-account-cog-outline" color="#D9B98C" class="mr-3" size="20"></v-icon>
@@ -248,6 +254,12 @@
                 <v-list-item to="/contactSupport" prepend-icon="mdi-face-agent">
                   <v-list-item-title>{{ $t('contactSupport') }}</v-list-item-title>
                 </v-list-item>
+                <template v-if="isAgencyUser">
+                  <v-divider class="my-1"></v-divider>
+                  <v-list-item to="/agency/dashboard" prepend-icon="mdi-domain">
+                    <v-list-item-title class="font-weight-bold" style="color: #21866B;">Espace Agence</v-list-item-title>
+                  </v-list-item>
+                </template>
                 <v-divider class="my-1"></v-divider>
                 <v-list-item @click="authSignOut" prepend-icon="mdi-logout" class="text-error">
                   <v-list-item-title>{{ $t('logOut') }}</v-list-item-title>
@@ -334,6 +346,12 @@ const isMobile = computed(() => smAndDown.value)
 
 const isAuthenticated = computed(() => {
   return !!ls.value?.token
+})
+
+const isAgencyUser = computed(() => {
+  const role = users.getUser?.role
+  const typeAccount = users.getUser?.typeAccount
+  return typeAccount === 'touristAgencies' || role === 'partner' || role === 'administrator'
 })
 
 const locals = [

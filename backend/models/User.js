@@ -138,7 +138,14 @@ const UserSchema = new mongoose.Schema({
   }],
   fileStatus: {
     type: String, 
-    enum: ['created', 'pending', 'confirmed']
+    enum: ['created', 'pending', 'confirmed', 'rejected'],
+    default: 'created'
+  },
+  rejectionReason: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: 2000
   },
   expirationOfSubscription: {
     type: Date,
@@ -213,6 +220,9 @@ UserSchema.statics.signup = async function(
   if(!validator.isEmail(email)){
     throw Error('email is not valid')
   }
+  if(email.toLowerCase().trim().endsWith('@touriva.test')){
+    throw Error('Reserved demo domain cannot be used for registration')
+  }
   // if(!validator.isStrongPassword(password)){
   //   throw Error('password not strong enough')
   // }
@@ -225,6 +235,9 @@ UserSchema.statics.signup = async function(
   const salt = await bcrypt.genSalt(10)
   const hash = await bcrypt.hash(password, salt)
 
+  // Security: Public registration must never permit creating administrators or pre-confirmed accounts
+  const safeRole = role === 'administrator' ? 'client' : (role || 'client')
+  const safeFileStatus = 'created'
 
   const user = await this.create({ 
     email, 
@@ -232,14 +245,15 @@ UserSchema.statics.signup = async function(
     lastName, 
     phone, 
     password: hash, 
-    role, 
+    role: safeRole, 
     // fcmToken, 
     // codePartenaire, 
     // code, 
     activated,
     complete,
     status,
-    fileStatus,
+    fileStatus: safeFileStatus,
+    rejectionReason: null,
     rc,
     nis,
     nif,
@@ -381,8 +395,22 @@ UserSchema.statics.signupWeb = async function( phone, role, email, firstName, la
   if(!phone){
     throw Error('Phone field must be filled')
   }
+  if(email && email.toLowerCase().trim().endsWith('@touriva.test')){
+    throw Error('Reserved demo domain cannot be used for registration')
+  }
  
-  const user = await this.create({ phone, role, email, firstName, lastName, activated })
+  // Security: Prevent registration as administrator or pre-confirmed status
+  const safeRole = role === 'administrator' ? 'client' : (role || 'client')
+  const user = await this.create({ 
+    phone, 
+    role: safeRole, 
+    email, 
+    firstName, 
+    lastName, 
+    activated,
+    fileStatus: 'created',
+    rejectionReason: null
+  })
 
   return user
 }

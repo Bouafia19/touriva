@@ -16,7 +16,7 @@ const requireAuth = async (req, res, next) => {
 
     try {
         const {_id} = jwt.verify(token, process.env.SECRET)
-        const user = await User.findOne({ _id }).select('_id role email')
+        const user = await User.findOne({ _id }).select('_id role email typeAccount fileStatus rejectionReason activated status companyName phone firstName lastName')
         if (!user) {
             return res.status(401).json({error: 'request is not authorized'})
         }

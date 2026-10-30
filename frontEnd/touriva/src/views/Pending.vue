@@ -5,25 +5,45 @@
       <v-card class="editorial-card text-center pa-8 elevation-1">
         <!-- Badge & Icon -->
         <div class="d-flex justify-center mb-6">
-          <div class="icon-circle bg-sand-light d-flex align-center justify-center">
+          <div v-if="users.user?.fileStatus === 'rejected'" class="icon-circle bg-sand-light d-flex align-center justify-center">
+            <v-icon color="#C24545" size="36">mdi-alert-circle-outline</v-icon>
+          </div>
+          <div v-else class="icon-circle bg-sand-light d-flex align-center justify-center">
             <v-icon color="#173F35" size="36">mdi-clock-check-outline</v-icon>
           </div>
         </div>
 
-        <div class="editorial-tag text-emerald mb-2">
+        <div v-if="users.user?.fileStatus === 'rejected'" class="editorial-tag text-error mb-2">
+          {{ $t('verificationRejected') || 'DOSSIER REJETÉ' }}
+        </div>
+        <div v-else class="editorial-tag text-emerald mb-2">
           {{ $t('partnerPortal') || 'PARTNER VERIFICATION' }}
         </div>
 
-        <h2 class="editorial-title text-forest mb-3">
+        <h2 v-if="users.user?.fileStatus === 'rejected'" class="editorial-title text-forest mb-3">
+          {{ $t('dossierRejectedTitle') || 'Vérification Non Validée' }}
+        </h2>
+        <h2 v-else class="editorial-title text-forest mb-3">
           {{ $t('pendingReview') || 'Application Under Review' }}
         </h2>
 
-        <p class="text-secondary-editorial mb-8">
+        <!-- Rejection Feedback Box -->
+        <div v-if="users.user?.fileStatus === 'rejected'" class="pa-4 rounded-lg bg-sand-light border-editorial text-left mb-6">
+          <div class="font-weight-bold text-forest mb-1 d-flex align-center">
+            <v-icon color="#C24545" size="18" class="mr-1">mdi-information-outline</v-icon>
+            {{ $t('rejectionReason') || 'Motif du rejet par l’administrateur :' }}
+          </div>
+          <p class="text-body-2 text-forest mb-0">
+            {{ users.user?.rejectionReason || $t('defaultRejectionMessage') || 'Des informations ou pièces justificatives fournies sont incomplètes ou non conformes aux normes réglementaires.' }}
+          </p>
+        </div>
+
+        <p v-else class="text-secondary-editorial mb-8">
           {{ $t('pendingDescription') || 'Thank you for submitting your partner dossier. Our editorial tourism committee is currently verifying your accreditation and credentials to maintain the premier quality standards of Touriva.' }}
         </p>
 
         <!-- Stepper / Status Indicator -->
-        <div class="timeline-box bg-warm-ivory pa-4 rounded-lg mb-8 text-left">
+        <div v-if="users.user?.fileStatus !== 'rejected'" class="timeline-box bg-warm-ivory pa-4 rounded-lg mb-8 text-left">
           <div class="d-flex align-center mb-3">
             <v-icon color="#21866B" size="20" class="mr-2">mdi-check-circle</v-icon>
             <span class="text-body-2 font-weight-medium text-forest">{{ $t('dossierSubmitted') || 'Documentation Uploaded' }}</span>
@@ -40,6 +60,17 @@
 
         <!-- Actions -->
         <div class="d-flex flex-column gap-3">
+          <v-btn
+            v-if="users.user?.fileStatus === 'rejected'"
+            class="btn-editorial-primary mb-2"
+            block
+            size="large"
+            @click="goToDocuments"
+          >
+            <v-icon start>mdi-file-document-edit-outline</v-icon>
+            {{ $t('resubmitDossier') || 'Mettre à jour et renvoyer le dossier' }}
+          </v-btn>
+
           <v-btn
             class="btn-editorial-primary"
             block
@@ -67,12 +98,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUsersStore } from '@/stores/users'
 
+const router = useRouter()
 const auth = useAuthStore()
 const users = useUsersStore()
 const loading = ref(false)
+
+const goToDocuments = () => {
+  router.push({ name: 'Documents' })
+}
 
 const auth_sign_out = async () => {
   await auth.account_sign_out()

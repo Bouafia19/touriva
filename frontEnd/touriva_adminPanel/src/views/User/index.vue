@@ -331,6 +331,17 @@
                 v-if="editedItem.typeAccount != 'ordinary'"
               ></v-select>
 
+              <v-textarea
+                v-if="editedItem.fileStatus === 'rejected'"
+                v-model="editedItem.rejectionReason"
+                label="Motif du rejet (Rejection Reason)"
+                variant="outlined"
+                density="comfortable"
+                rows="2"
+                counter="2000"
+                class="mb-3"
+              ></v-textarea>
+
               <v-checkbox
                 v-model="editedItem.status"
                 label="Active Status"
@@ -494,7 +505,8 @@ const roles = ref([])
 const fileStatus = ref([
   { name: 'created' },
   { name: 'pending' },
-  { name: 'confirmed' }
+  { name: 'confirmed' },
+  { name: 'rejected' }
 ])
 
 const editedItem = ref({
@@ -639,6 +651,7 @@ const save = () => {
         break
       case 'created':
       case 'pending':
+      case 'rejected':
         editedItem.value.complete = false
         editedItem.value.status = false
         break
@@ -649,6 +662,7 @@ const save = () => {
     let updatedItem = {
       _id: editedItem.value._id,
       fileStatus: editedItem.value.fileStatus,
+      rejectionReason: editedItem.value.fileStatus === 'rejected' ? (editedItem.value.rejectionReason || 'Dossier non conforme') : null,
       vehicleId: editedItem.value.vehicleId,
       complete: editedItem.value.complete,
       code: editedItem.value.code,

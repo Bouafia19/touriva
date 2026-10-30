@@ -31,7 +31,7 @@ export const useUsersStore = defineStore('users', {
                 if (ls.user.complete === false) {
                     if (ls.user.fileStatus === 'created') {
                         this.router.push({ name: 'Documents' })
-                    } else if (ls.user.fileStatus === 'pending') {
+                    } else if (ls.user.fileStatus === 'pending' || ls.user.fileStatus === 'rejected') {
                         this.router.push({ name: 'Pending' })
                     }
                 }
@@ -55,7 +55,7 @@ export const useUsersStore = defineStore('users', {
                 })
                 if (response.status === 200) {
                     this.user = response.data
-                    if (response.data.complete != ls.user.complete || response.data.fileStatus != ls.user.fileStatus || response.data.status != ls.user.status || response.data.expirationOfSubscription != ls.user.expirationOfSubscription) {
+                    if (response.data.complete != ls.user.complete || response.data.fileStatus != ls.user.fileStatus || response.data.rejectionReason != ls.user.rejectionReason || response.data.status != ls.user.status || response.data.expirationOfSubscription != ls.user.expirationOfSubscription) {
                         await auth.setLSUserInfo({
                             token: ls.token, 
                             user: response.data

@@ -366,6 +366,8 @@ export default {
   justification: "Document justificatif",
   pendingStatus: 'Pending',
   rejectedStatus: "Rejected",  
+  rejected: "Rejected",
+  rejectionReason: "Rejection reason",
   publishedStatus: "Published",
   Hotels: 'Hotels',
   Sites: 'Sites',
@@ -385,5 +387,9 @@ export default {
   ManageUsers: 'Manage Users',
   ViewApprovals: 'View Approvals',
   AllReviewed: 'All caught up! No pending alerts.',
-  NewSite: 'New Heritage Site'
+  NewSite: 'New Heritage Site',
+  demoAdminTitle: 'Touriva Demo Administrator',
+  demoAdminSubtitle: 'Pre-configured evaluator account. Password provided in confidential TOURIVA_DEMO_CREDENTIALS.md',
+  demoAdminSelect: 'Populate Demo Admin',
+  demoAdminBadge: 'DEMO ACCESS'
 }

@@ -13,9 +13,12 @@ const {
     getTripsByUser,
     deleteTrip } = require('../controllers/tripsController')
 
+const { getPublicTripDepartures } = require('../controllers/agencyController')
+
 // Public browsing routes
 router.get('/', getTrips)
 router.get('/:id', getTripById)
+router.get('/:id/departures', getPublicTripDepartures)
 
 // Protected routes
 router.post('/', requireAuth, requireRole('partner', 'administrator'), createTrip)

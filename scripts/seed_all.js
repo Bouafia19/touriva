@@ -38,6 +38,7 @@ function runChildScript(scriptPath, cwd, label) {
 async function main() {
   const rootDir = path.resolve(__dirname, '..')
   const coreSeedScript = path.join(rootDir, 'backend', 'seed', 'seed_touriva.js')
+  const demoUsersSeedScript = path.join(rootDir, 'backend', 'seed', 'seed_demo_users.js')
   const shopSeedScript = path.join(rootDir, 'shop', 'backend', 'seed', 'seed_shop.js')
 
   console.log(`\n======================================================`)
@@ -47,6 +48,9 @@ async function main() {
   try {
     // 1. Seed Touriva Core Platform
     await runChildScript(coreSeedScript, path.join(rootDir, 'backend'), 'Touriva Core Platform')
+
+    // 1.1 Seed Dedicated Demo Users & Fictional Dataset
+    await runChildScript(demoUsersSeedScript, path.join(rootDir, 'backend'), 'Touriva Demo Users & Data')
 
     // 2. Seed Touriva Shop Marketplace
     await runChildScript(shopSeedScript, path.join(rootDir, 'shop', 'backend'), 'Touriva Shop & Marketplace')
