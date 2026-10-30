@@ -511,6 +511,7 @@
             size="small"
             rounded="pill"
             class="text-white font-weight-bold"
+            :loading="printLoading"
             @click="printManifest(currentManifestDepartureId)"
           >
             <v-icon start size="16">mdi-printer</v-icon>
@@ -600,8 +601,32 @@ const openManifestModal = async (dep) => {
   }
 }
 
-const printManifest = (depId) => {
-  window.open(`/api/agency/departures/${depId}/manifest?format=html`, '_blank')
+const printLoading = ref(false)
+
+const printManifest = async (depId) => {
+  if (!depId) return
+  printLoading.value = true
+  try {
+    const html = await agencyStore.fetchManifestHtml(depId)
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const blobUrl = URL.createObjectURL(blob)
+    const printWindow = window.open(blobUrl, '_blank')
+    if (printWindow) {
+      printWindow.onload = () => {
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+      }
+    } else {
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.target = '_blank'
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 60000)
+    }
+  } catch (err) {
+    notify('Impossible de générer le manifeste officiel pour impression.', 'error')
+  } finally {
+    printLoading.value = false
+  }
 }
 
 const snackbar = ref(false)

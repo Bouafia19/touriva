@@ -480,6 +480,31 @@ export const useAgencyStore = defineStore('agency', {
       }
     },
 
+    async fetchManifestHtml(departureId) {
+      this.loading = true
+      this.error = null
+      const auth = useAuthStore()
+      const ls = await auth.getLSUserInfo()
+      if (!ls || !ls.token) {
+        this.loading = false
+        throw new Error('Unauthenticated')
+      }
+
+      try {
+        const res = await axios.get(`/api/agency/departures/${departureId}/manifest?format=html`, {
+          ...this.getAuthHeaders(ls),
+          responseType: 'text'
+        })
+        return res.data
+      } catch (err) {
+        this.error = err.response?.data?.error || err.message
+        console.error('fetchManifestHtml error:', err)
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+
     // ==========================================
     // PHASE 3: CUSTOM ENQUIRIES ACTIONS
     // ==========================================
@@ -681,6 +706,26 @@ export const useAgencyStore = defineStore('agency', {
         throw err
       } finally {
         this.loading = false
+      }
+    },
+
+    async fetchPaymentProofBlob(paymentId) {
+      const auth = useAuthStore()
+      const ls = await auth.getLSUserInfo()
+      if (!ls || !ls.token) {
+        throw new Error('Unauthenticated')
+      }
+
+      const res = await axios.get(`/api/agency/payments/${paymentId}/proof`, {
+        ...this.getAuthHeaders(ls),
+        responseType: 'blob'
+      })
+      const mimeType = res.headers['content-type'] || 'application/octet-stream'
+      const url = URL.createObjectURL(res.data)
+      return {
+        blob: res.data,
+        mimeType,
+        url
       }
     },
 

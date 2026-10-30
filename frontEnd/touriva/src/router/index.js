@@ -105,7 +105,7 @@ const router = createRouter({
           path: '/trips',
           name: 'Trips',
           component: () => import('@/views/Trip/TripsList.vue'),
-          meta: { requiresAuth: true, title: 'Trips' }
+          meta: { requiresAuth: false, title: 'Trips' }
         },
         {
           path: '/myTrips',
@@ -129,7 +129,7 @@ const router = createRouter({
           path: '/tripDetail/:id',
           name: 'TripDetail',
           component: () => import('@/views/Trip/TripDetail.vue'),
-          meta: { requiresAuth: true, title: 'TripDetail' }
+          meta: { requiresAuth: false, title: 'TripDetail' }
         },
         {
           path: '/tripSubscription/:id',
@@ -147,19 +147,19 @@ const router = createRouter({
           path: '/hotels',
           name: 'Hotels',
           component: () => import('@/views/Hotel/Hotels.vue'),
-          meta: { requiresAuth: true, title: 'Hotels' }
+          meta: { requiresAuth: false, title: 'Hotels' }
         },
         {
           path: '/restaurants',
           name: 'Restaurants',
           component: () => import('@/views/Restaurant/Restaurants.vue'),
-          meta: { requiresAuth: true, title: 'Restaurants' }
+          meta: { requiresAuth: false, title: 'Restaurants' }
         },
         {
           path: '/sites',
           name: 'Sites',
           component: () => import('@/views/Site/Sites.vue'),
-          meta: { requiresAuth: true, title: 'Sites' }
+          meta: { requiresAuth: false, title: 'Sites' }
         },
         {
           path: '/places/:placeId',
@@ -177,7 +177,8 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/agency/dashboard'
+          redirect: '/agency/dashboard',
+          meta: { requiresAuth: true, requiresAgency: true }
         },
         {
           path: 'dashboard',
@@ -320,11 +321,13 @@ const router = createRouter({
   },
 })
 
-router.beforeEach((to, from, next) => {
-  // Agency portal access control
+router.beforeEach(async (to, from, next) => {
+  const auth = useAuthStore()
+
+  // 1. Agency portal access control (strictly protected)
   if (to.matched.some(record => record.meta.requiresAgency)) {
-    const auth = useAuthStore()
-    auth.getLSUserInfo().then((ls) => {
+    try {
+      const ls = await auth.getLSUserInfo()
       if (!ls || !ls.token) {
         return next({ name: "Login" })
       }
@@ -334,52 +337,31 @@ router.beforeEach((to, from, next) => {
       if (!isAgency && !isAdmin) {
         return next({ name: "Home" })
       }
-      next()
-    }).catch(() => {
-      next({ name: "Login" })
-    })
-    return
+      return next()
+    } catch (e) {
+      return next({ name: "Login" })
+    }
   }
 
-  if (Capacitor.isNativePlatform()) {
-    if(to.meta.requiresAuth){
-      const auth = useAuthStore()
-      auth.getLSUserInfo().then((ls) => {
-        if(ls){
-          auth.attempt(ls.token).then((value) => {
-            if(value === false && to.name != 'Login'){
-              next({ name: "Login" })
-            }else{
-              next()
-            }
-          })
-        }else{
-          next({ name: "Home" })
-        }
-      })
-    }else{
-      next()
+  // 2. Protected routes requiring authentication (unified parity across Web & Mobile)
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    try {
+      const ls = await auth.getLSUserInfo()
+      if (!ls || !ls.token) {
+        return next({ name: "Login" })
+      }
+      const valid = await auth.attempt(ls.token, ls.user)
+      if (!valid && to.name !== 'Login') {
+        return next({ name: "Login" })
+      }
+      return next()
+    } catch (e) {
+      return next({ name: "Login" })
     }
-  } else {
-    if(to.name === 'MyTrips' || to.name === 'Subscriptions'){
-      const auth = useAuthStore()
-      auth.getLSUserInfo().then((ls) => {
-        if(ls){
-          auth.attempt(ls.token).then((value) => {
-            if(value === false){
-              next({ name: "Login" })
-            }else{
-              next()
-            }
-          })
-        }else{
-          next({ name: "Login" })
-        }
-      })
-    }else{
-      next()
-    } 
   }
+
+  // 3. Public exploration routes open to all guests (Home, Trips, Sites, Hotels, Restaurants, etc.)
+  next()
 })
 
 export default router

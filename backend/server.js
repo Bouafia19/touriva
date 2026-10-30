@@ -71,7 +71,8 @@ const defaultAllowedOrigins = [
   'http://localhost:2024',
   'http://localhost:3000',
   'capacitor://localhost',
-  'http://localhost'
+  'http://localhost',
+  'https://localhost'
 ]
 
 const envOrigins = process.env.CORS_ORIGINS

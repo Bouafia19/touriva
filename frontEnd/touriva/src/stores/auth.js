@@ -132,7 +132,11 @@ export const useAuthStore = defineStore('auth', {
                     this.token = response.data.token
                     this.auth_login = true
                     await this.setLSUserInfo(response.data)
-                    this.router.push('/tabs')
+                    if (this.user?.role === 'partner' && this.user?.typeAccount === 'touristAgencies') {
+                        this.router.push('/agency/dashboard')
+                    } else {
+                        this.router.push('/tabs')
+                    }
                     return response.data
                 } else {
                     throw new Error('Invalid response from server')
@@ -239,14 +243,25 @@ export const useAuthStore = defineStore('auth', {
             })
         },
     
-        async attempt(token){
+        async attempt(token, user = null){
             if (token){
-                this.user = token
+                this.token = token
+                if (user && typeof user === 'object') {
+                    this.user = user
+                } else if (!this.user || typeof this.user !== 'object') {
+                    try {
+                        const ls = await this.getLSUserInfo()
+                        if (ls && ls.user && typeof ls.user === 'object') {
+                            this.user = ls.user
+                        }
+                    } catch (e) {}
+                }
                 this.auth_login = true
                 return true
             }
             if (!token) {
-                this.user = ''
+                this.user = undefined
+                this.token = null
                 this.auth_login = false
                 return false
             }

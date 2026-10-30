@@ -24,7 +24,9 @@ const {
     loadPartnerPhotos,
     verifyOTP,
     checkOTP,
-    demoLogin
+    demoLogin,
+    getUserNotifications,
+    markNotificationRead
  } = require('../controllers/usersController')
 
 // demo login route (customer and agency only; admin explicitly prohibited)
@@ -76,6 +78,13 @@ router.get('/agency/status', requireAgencyVerified, (req, res) => {
         fileStatus: req.user.fileStatus
     })
 })
+
+// GET user notifications (Self or Admin)
+router.get('/me/notifications', getUserNotifications)
+router.get('/:id/notifications', getUserNotifications)
+
+// PATCH mark notification as read
+router.patch('/me/notifications/:notifId/read', markNotificationRead)
 
 // GET a single user
 router.get('/:id', getUser)

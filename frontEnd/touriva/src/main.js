@@ -101,8 +101,7 @@ axios.interceptors.request.use(
     error => Promise.reject(error)
 )
 
-// Automatic fallback between host LAN IP and localhost (for adb reverse over USB)
-// and centralized handling of 401 Unauthorized responses
+// Centralized handling of 401 Unauthorized responses
 axios.interceptors.response.use(
     response => response,
     async error => {
@@ -114,17 +113,6 @@ axios.interceptors.response.use(
                 try {
                     localStorage.removeItem('userInfo')
                 } catch (e) {}
-            }
-        }
-        if (!config || config.__isRetry) return Promise.reject(error)
-        if (error.code === 'ERR_NETWORK' || !error.response) {
-            config.__isRetry = true
-            if (config.baseURL && config.baseURL.includes('172.20.10.3')) {
-                config.baseURL = 'http://localhost:4004/'
-                return axios(config)
-            } else if (config.baseURL && config.baseURL.includes('localhost')) {
-                config.baseURL = 'http://172.20.10.3:4004/'
-                return axios(config)
             }
         }
         return Promise.reject(error)

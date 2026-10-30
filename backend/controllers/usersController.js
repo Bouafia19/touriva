@@ -483,6 +483,45 @@ const deleteUser = async (req, res) => {
     res.status(200).json({ message: 'User deleted successfully', _id: id })
 }
 
+// Helper: In-app compliance notification on partner verification status change (ADM-01)
+const createComplianceNotification = (user, fileStatus, rejectionReason) => {
+    if (!user.notifications) user.notifications = []
+
+    // Deduplication: if latest compliance notification matches current status and reason, avoid duplicate
+    const latest = user.notifications[user.notifications.length - 1]
+    if (latest && latest.type === 'compliance' && latest.metadata && latest.metadata.fileStatus === fileStatus) {
+        if (fileStatus === 'rejected' && latest.metadata.rejectionReason === rejectionReason) {
+            return false
+        }
+        if (fileStatus === 'confirmed') {
+            return false
+        }
+    }
+
+    if (fileStatus === 'rejected') {
+        user.notifications.push({
+            title: 'Dossier Partenaire Non Conforme',
+            message: rejectionReason || 'Votre dossier d\'accréditation n\'a pas été validé par l\'administration.',
+            type: 'compliance',
+            status: 'unread',
+            metadata: { fileStatus: 'rejected', rejectionReason: rejectionReason || null },
+            createdAt: new Date()
+        })
+        return true
+    } else if (fileStatus === 'confirmed') {
+        user.notifications.push({
+            title: 'Dossier Partenaire Validé',
+            message: 'Félicitations ! Votre dossier d\'accréditation a été validé par l\'administration. Vous pouvez désormais publier vos offres sur Touriva.',
+            type: 'compliance',
+            status: 'unread',
+            metadata: { fileStatus: 'confirmed' },
+            createdAt: new Date()
+        })
+        return true
+    }
+    return false
+}
+
 // UPDATE a user (Self or Admin only, strictly prevents privilege escalation)
 const updateUser = async (req, res) => {
     const {id} = req.params
@@ -527,9 +566,20 @@ const updateUser = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         updates.password = await bcrypt.hash(updates.password, salt)
     }
+
+    const targetUser = await User.findById(id)
+    if (!targetUser) {
+        return res.status(404).json({error: 'no such user'})
+    }
+
+    // In-app notification on partner compliance status change (ADM-01)
+    if (isAdmin && updates.fileStatus && updates.fileStatus !== targetUser.fileStatus) {
+        createComplianceNotification(targetUser, updates.fileStatus, updates.rejectionReason)
+        updates.notifications = targetUser.notifications
+    }
     
     const user = await User.findOneAndUpdate({_id: id}, updates, { new: true })
-        .select('email firstName lastName language phone role complete status fileStatus rejectionReason typeAccount companyName expirationOfSubscription sectorActivity')
+        .select('email firstName lastName language phone role complete status fileStatus rejectionReason typeAccount companyName expirationOfSubscription sectorActivity notifications')
     
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -581,6 +631,17 @@ const update_existing_user = async (req, res) => {
     if(updates.password){
         const salt = await bcrypt.genSalt(10)
         updates.password = await bcrypt.hash(updates.password, salt)
+    }
+
+    const targetUser = await User.findById(id)
+    if (!targetUser) {
+        return res.status(404).json({error: 'no such user'})
+    }
+
+    // In-app notification on partner compliance status change (ADM-01)
+    if (isAdmin && updates.fileStatus && updates.fileStatus !== targetUser.fileStatus) {
+        createComplianceNotification(targetUser, updates.fileStatus, updates.rejectionReason)
+        updates.notifications = targetUser.notifications
     }
     
     const user = await User.findOneAndUpdate(
@@ -744,6 +805,52 @@ const checkOTP = async (req, res) => {
     }
 }
 
+// GET user notifications (Self or Admin)
+const getUserNotifications = async (req, res) => {
+    const userId = req.params.id || (req.user ? req.user._id : null)
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(404).json({ error: 'no such user' })
+    }
+
+    const isSelf = req.user && req.user._id.toString() === userId.toString()
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot view notifications of another user' })
+    }
+
+    const user = await User.findById(userId).select('notifications')
+    if (!user) {
+        return res.status(404).json({ error: 'no such user' })
+    }
+
+    const notifications = (user.notifications || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    res.status(200).json({ notifications })
+}
+
+// PATCH mark notification as read (Self or Admin)
+const markNotificationRead = async (req, res) => {
+    const { notifId } = req.params
+    const userId = req.user ? req.user._id : null
+    if (!userId) {
+        return res.status(401).json({ error: 'Authorization token required' })
+    }
+
+    const user = await User.findById(userId)
+    if (!user) {
+        return res.status(404).json({ error: 'no such user' })
+    }
+
+    const notif = (user.notifications || []).find(n => n._id.toString() === notifId)
+    if (!notif) {
+        return res.status(404).json({ error: 'Notification not found' })
+    }
+
+    notif.status = 'read'
+    await user.save()
+
+    res.status(200).json({ message: 'Notification marked as read', notification: notif })
+}
+
 module.exports = {
     loginUser,
     signupUser,
@@ -762,5 +869,7 @@ module.exports = {
     loadPartnerPhotos,
     verifyOTP,
     checkOTP,
-    demoLogin
+    demoLogin,
+    getUserNotifications,
+    markNotificationRead
 }

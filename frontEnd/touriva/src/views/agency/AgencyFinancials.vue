@@ -511,13 +511,13 @@
       </v-card>
 
       <!-- Proof Inspection & Verification Modal -->
-      <v-dialog v-model="proofDialog" max-width="650">
+      <v-dialog v-model="proofDialog" max-width="650" @update:model-value="(val) => { if (!val) closeProofDialog() }">
         <v-card class="pa-4 pa-md-6 rounded-lg" v-if="selectedPayment">
           <div class="d-flex justify-space-between align-center mb-4">
             <h3 class="text-h6 font-weight-bold font-serif text-forest">
               Justificatif de Paiement — {{ selectedPayment.paymentReference }}
             </h3>
-            <v-btn icon="mdi-close" variant="text" size="small" @click="proofDialog = false" />
+            <v-btn icon="mdi-close" variant="text" size="small" @click="closeProofDialog" />
           </div>
 
           <div class="mb-4 pa-3 bg-warm-ivory rounded border">
@@ -539,27 +539,69 @@
           </div>
 
           <!-- Document Preview -->
-          <div class="text-center py-4 bg-grey-lighten-4 rounded mb-4" style="min-height: 200px; max-height: 400px; overflow-y: auto;">
-            <template v-if="selectedPayment.proofDocument?.mimeType?.includes('pdf')">
-              <v-icon size="48" color="#C24545" class="mb-2">mdi-file-pdf-box</v-icon>
-              <div class="font-weight-bold text-body-2 mb-2">{{ selectedPayment.proofDocument?.originalName || 'Document PDF' }}</div>
-              <v-btn
-                color="#173F35"
-                variant="outlined"
-                size="small"
-                :href="getProofStreamUrl(selectedPayment)"
-                target="_blank"
-              >
-                <v-icon start>mdi-open-in-new</v-icon> Ouvrir le PDF
+          <div class="text-center py-4 bg-grey-lighten-4 rounded mb-4" style="min-height: 220px; max-height: 440px; overflow-y: auto;">
+            <div v-if="proofLoading" class="py-12 d-flex flex-column align-center justify-center">
+              <v-progress-circular indeterminate color="#21866B" size="40" class="mb-3" />
+              <span class="text-caption text-secondary-editorial">Chargement sécurisé du document...</span>
+            </div>
+
+            <div v-else-if="proofError" class="py-8 px-4 text-center">
+              <v-icon size="40" color="#C24545" class="mb-2">mdi-alert-circle-outline</v-icon>
+              <div class="text-caption text-error font-weight-medium mb-3">{{ proofError }}</div>
+              <v-btn size="small" variant="outlined" color="#173F35" rounded="pill" @click="previewProof(selectedPayment)">
+                <v-icon start size="16">mdi-refresh</v-icon> Réessayer
               </v-btn>
-            </template>
-            <template v-else>
-              <img
-                :src="getProofStreamUrl(selectedPayment)"
-                class="rounded elevation-1"
-                style="max-width: 100%; max-height: 380px; object-fit: contain;"
-                alt="Justificatif de paiement"
-              />
+            </div>
+
+            <template v-else-if="currentProofBlobUrl">
+              <template v-if="selectedPayment.proofDocument?.mimeType?.includes('pdf')">
+                <v-icon size="56" color="#C24545" class="mb-2">mdi-file-pdf-box</v-icon>
+                <div class="font-weight-bold text-body-2 mb-3">{{ selectedPayment.proofDocument?.originalName || 'Document PDF' }}</div>
+                <div class="d-flex justify-center ga-2">
+                  <v-btn
+                    color="#173F35"
+                    variant="flat"
+                    size="small"
+                    rounded="pill"
+                    class="text-white font-weight-bold"
+                    :href="currentProofBlobUrl"
+                    target="_blank"
+                  >
+                    <v-icon start>mdi-open-in-new</v-icon> Ouvrir le PDF
+                  </v-btn>
+                  <v-btn
+                    color="#21866B"
+                    variant="outlined"
+                    size="small"
+                    rounded="pill"
+                    class="font-weight-bold"
+                    :href="currentProofBlobUrl"
+                    :download="selectedPayment.proofDocument?.originalName || 'recu-paiement.pdf'"
+                  >
+                    <v-icon start>mdi-download</v-icon> Télécharger
+                  </v-btn>
+                </div>
+              </template>
+              <template v-else>
+                <div class="mb-2">
+                  <img
+                    :src="currentProofBlobUrl"
+                    class="rounded elevation-1"
+                    style="max-width: 100%; max-height: 340px; object-fit: contain;"
+                    alt="Justificatif de paiement"
+                  />
+                </div>
+                <v-btn
+                  size="small"
+                  variant="text"
+                  color="#173F35"
+                  class="font-weight-bold"
+                  :href="currentProofBlobUrl"
+                  :download="selectedPayment.proofDocument?.originalName || 'justificatif.png'"
+                >
+                  <v-icon start size="16">mdi-download</v-icon> Télécharger l'image originale
+                </v-btn>
+              </template>
             </template>
           </div>
 
@@ -1117,16 +1159,45 @@ const refreshData = async () => {
   }
 }
 
-const previewProof = (pay) => {
+const currentProofBlobUrl = ref(null)
+const proofLoading = ref(false)
+const proofError = ref('')
+
+const closeProofDialog = () => {
+  if (currentProofBlobUrl.value) {
+    URL.revokeObjectURL(currentProofBlobUrl.value)
+    currentProofBlobUrl.value = null
+  }
+  proofLoading.value = false
+  proofError.value = ''
+  proofDialog.value = false
+}
+
+const previewProof = async (pay) => {
   selectedPayment.value = pay
+  if (currentProofBlobUrl.value) {
+    URL.revokeObjectURL(currentProofBlobUrl.value)
+    currentProofBlobUrl.value = null
+  }
+  proofError.value = ''
+  proofLoading.value = true
   proofDialog.value = true
+
+  try {
+    const res = await agencyStore.fetchPaymentProofBlob(pay._id)
+    currentProofBlobUrl.value = res.url
+  } catch (err) {
+    proofError.value = err.response?.data?.error || err.message || 'Impossible de charger le document justificatif.'
+  } finally {
+    proofLoading.value = false
+  }
 }
 
 const openVerifyDialog = (pay) => {
   selectedPayment.value = pay
   verifyAmount.value = pay.amountDZD
   verifyNote.value = ''
-  proofDialog.value = false
+  closeProofDialog()
   verifyDialog.value = true
 }
 
@@ -1150,7 +1221,7 @@ const confirmVerifyPayment = async () => {
 const openRejectDialog = (pay) => {
   selectedPayment.value = pay
   rejectionReason.value = ''
-  proofDialog.value = false
+  closeProofDialog()
   rejectDialog.value = true
 }
 

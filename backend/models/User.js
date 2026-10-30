@@ -170,6 +170,34 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  notifications: [{
+    title: {
+      type: String,
+      required: true
+    },
+    message: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['system', 'compliance', 'account', 'booking'],
+      default: 'compliance'
+    },
+    status: {
+      type: String,
+      enum: ['unread', 'read'],
+      default: 'unread'
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   resetOtp: {
     type: String,
     select: false
