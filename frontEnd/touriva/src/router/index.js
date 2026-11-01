@@ -329,17 +329,17 @@ router.beforeEach(async (to, from, next) => {
     try {
       const ls = await auth.getLSUserInfo()
       if (!ls || !ls.token) {
-        return next({ name: "Login" })
+        return next({ name: "Login", query: { redirect: to.fullPath, role: 'agency' } })
       }
       const user = ls.user
       const isAgency = user && user.role === 'partner' && user.typeAccount === 'touristAgencies'
       const isAdmin = user && user.role === 'administrator'
       if (!isAgency && !isAdmin) {
-        return next({ name: "Home" })
+        return next({ name: "Login", query: { redirect: to.fullPath, role: 'agency', error: 'agency_required' } })
       }
       return next()
     } catch (e) {
-      return next({ name: "Login" })
+      return next({ name: "Login", query: { redirect: to.fullPath, role: 'agency' } })
     }
   }
 

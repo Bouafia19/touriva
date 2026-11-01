@@ -11,14 +11,28 @@
           contain
           class="mx-auto mb-3"
         />
-        <div class="editorial-tag text-sand mb-1">TRAVELER & PARTNER ACCESS</div>
+        <div class="editorial-tag text-sand mb-1">
+          {{ isAgencyMode ? ($t('b2bSectionTag') || 'ESPACE AGENCES DE VOYAGES') : 'TRAVELER & PARTNER ACCESS' }}
+        </div>
         <h2 class="text-h5 font-serif font-weight-bold text-forest">
-          Welcome to Touriva
+          {{ isAgencyMode ? ($t('b2bLoginTitle') || 'Connexion Espace Agence') : ($t('welcomeToTouriva') || 'Welcome to Touriva') }}
         </h2>
         <p class="text-caption text-secondary-editorial mt-1">
-          Sign in to access your travel reservations and custom itineraries.
+          {{ isAgencyMode ? ($t('b2bLoginSubtitle') || 'Connectez-vous pour piloter vos circuits, départs et manifestes passagers.') : ($t('loginSubtitle') || 'Sign in to access your travel reservations and custom itineraries.') }}
         </p>
       </div>
+
+      <!-- Agency Restricted Notice Alert -->
+      <v-alert
+        v-if="agencyNotice"
+        type="warning"
+        variant="tonal"
+        density="comfortable"
+        class="mb-6 rounded-lg text-body-2"
+        icon="mdi-shield-alert-outline"
+      >
+        {{ $t('b2bAgencyRequired') || 'Accès restreint aux agences de voyages agréées. Veuillez vous connecter avec votre compte agence.' }}
+      </v-alert>
 
       <!-- Error Alert -->
       <v-alert
@@ -32,25 +46,54 @@
       </v-alert>
 
       <!-- Demo Accounts Section -->
-      <div class="demo-section pa-4 mb-6 rounded-lg border-subtle bg-sand-light">
+      <div class="demo-section pa-4 mb-6 rounded-lg border-subtle bg-sand-light" :class="{ 'demo-section-agency': isAgencyMode }">
         <div class="d-flex align-center justify-space-between mb-2">
           <div class="d-flex align-center ga-2">
-            <v-icon color="#173F35" size="20">mdi-shield-account-outline</v-icon>
+            <v-icon :color="isAgencyMode ? '#21866B' : '#173F35'" size="20">
+              {{ isAgencyMode ? 'mdi-domain' : 'mdi-shield-account-outline' }}
+            </v-icon>
             <span class="text-caption font-weight-bold text-forest text-uppercase">
-              {{ $t('demoAccounts') }}
+              {{ isAgencyMode ? ($t('b2bNavTitle') || 'Espace Agences') : $t('demoAccounts') }}
             </span>
           </div>
-          <v-chip size="x-small" color="#173F35" variant="flat" class="font-weight-bold text-sand">
-            DEMO ACCESS
+          <v-chip size="x-small" :color="isAgencyMode ? '#21866B' : '#173F35'" variant="flat" class="font-weight-bold text-white">
+            {{ isAgencyMode ? 'DÉMO PRO' : 'DEMO ACCESS' }}
           </v-chip>
         </div>
         <p class="text-caption text-secondary-editorial mb-3">
-          {{ $t('demoExploreSubtitle') }}
+          {{ isAgencyMode ? ($t('b2bCtaDemoSub') || 'Accès instantané avec données de démonstration • Aucun engagement') : $t('demoExploreSubtitle') }}
         </p>
 
         <div class="d-flex flex-column ga-2">
-          <!-- Customer Demo Option -->
+          <!-- Agency Director Demo Option (Top Priority when in Agency Mode) -->
           <v-btn
+            variant="flat"
+            :color="isAgencyMode ? '#173F35' : '#FFFFFF'"
+            rounded="lg"
+            class="text-none justify-start px-3 py-2 border-subtle demo-btn"
+            elevation="0"
+            :loading="demoLoadingRole === 'agency'"
+            :disabled="loading || (demoLoadingRole !== null && demoLoadingRole !== 'agency')"
+            @click="quickDemoSignIn('agency')"
+          >
+            <v-icon :color="isAgencyMode ? '#D9B98C' : '#173F35'" start size="22">mdi-office-building-outline</v-icon>
+            <div class="text-left flex-grow-1">
+              <div class="text-caption font-weight-bold" :class="isAgencyMode ? 'text-white' : 'text-forest'">
+                {{ $t('demoAgencyTitle') }}
+              </div>
+              <div class="text-caption text-xs" :class="isAgencyMode ? 'text-sand' : 'text-secondary-editorial'">
+                demo.agency@touriva.test
+              </div>
+            </div>
+            <v-chip v-if="isAgencyMode" size="x-small" color="#D9B98C" variant="flat" class="text-deep-green font-weight-bold me-2">
+              DÉMO PRO
+            </v-chip>
+            <v-icon :color="isAgencyMode ? '#D9B98C' : '#C2A87E'" size="18">mdi-arrow-right</v-icon>
+          </v-btn>
+
+          <!-- Customer Demo Option (Available when not in agency mode, or secondary) -->
+          <v-btn
+            v-if="!isAgencyMode"
             variant="flat"
             color="#FFFFFF"
             rounded="lg"
@@ -64,25 +107,6 @@
             <div class="text-left flex-grow-1">
               <div class="text-caption font-weight-bold text-forest">{{ $t('demoTouristTitle') }}</div>
               <div class="text-caption text-secondary-editorial text-xs">demo.customer@touriva.test</div>
-            </div>
-            <v-icon color="#C2A87E" size="18">mdi-arrow-right</v-icon>
-          </v-btn>
-
-          <!-- Agency Director Demo Option -->
-          <v-btn
-            variant="flat"
-            color="#FFFFFF"
-            rounded="lg"
-            class="text-none justify-start px-3 py-2 border-subtle demo-btn"
-            elevation="0"
-            :loading="demoLoadingRole === 'agency'"
-            :disabled="loading || (demoLoadingRole !== null && demoLoadingRole !== 'agency')"
-            @click="quickDemoSignIn('agency')"
-          >
-            <v-icon color="#173F35" start size="22">mdi-office-building-outline</v-icon>
-            <div class="text-left flex-grow-1">
-              <div class="text-caption font-weight-bold text-forest">{{ $t('demoAgencyTitle') }}</div>
-              <div class="text-caption text-secondary-editorial text-xs">demo.agency@touriva.test</div>
             </div>
             <v-icon color="#C2A87E" size="18">mdi-arrow-right</v-icon>
           </v-btn>
@@ -105,7 +129,7 @@
           </div>
           <v-text-field
             v-model="identifier.value.value"
-            placeholder="0550 12 34 56 or demo.customer@touriva.test"
+            :placeholder="isAgencyMode ? '0550 12 34 56 or demo.agency@touriva.test' : '0550 12 34 56 or demo.customer@touriva.test'"
             variant="outlined"
             density="comfortable"
             rounded="lg"
@@ -171,8 +195,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useField, useForm } from 'vee-validate'
 import { useI18n } from 'vue-i18n'
@@ -180,6 +204,18 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const auth = useAuthStore()
 const route = useRoute()
+const router = useRouter()
+
+const isAgencyMode = computed(() => {
+  return route.path === '/agency/login' ||
+         route.query?.role === 'agency' ||
+         route.query?.redirect?.startsWith('/agency') ||
+         route.query?.demo === 'agency'
+})
+
+const agencyNotice = computed(() => {
+  return route.query?.error === 'agency_required'
+})
 
 const { handleSubmit } = useForm({
   validationSchema: {
@@ -213,6 +249,9 @@ const quickDemoSignIn = async (role) => {
     demoLoadingRole.value = role
     err.value = ''
     await auth.demoSignIn(role)
+    if (route.query?.redirect && auth.user?.role === 'partner' && auth.user?.typeAccount === 'touristAgencies') {
+      router.push(route.query.redirect)
+    }
   } catch (error) {
     err.value = error.message || 'Demo login failed'
     setTimeout(() => {
@@ -249,6 +288,9 @@ const logIn = async () => {
     }
 
     await auth.account_sign_in(payload)
+    if (route.query?.redirect && auth.user?.role === 'partner' && auth.user?.typeAccount === 'touristAgencies') {
+      router.push(route.query.redirect)
+    }
   } catch (error) {
     const errorMsg = error.message || ''
     if (errorMsg === 'ip' || errorMsg === 'ie') {
@@ -301,6 +343,11 @@ onMounted(async () => {
 
 .demo-section {
   border: 1px dashed #D9B98C;
+}
+
+.demo-section-agency {
+  border: 1px dashed #21866B !important;
+  background-color: #F0F6F4 !important;
 }
 
 .demo-btn {

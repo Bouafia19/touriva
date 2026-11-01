@@ -366,6 +366,9 @@ export default {
 
   // Espace Agences de Voyages (B2B SaaS)
   b2bNavTitle: "فضاء الوكالات",
+  b2bLoginTitle: "تسجيل دخول فضاء الوكالات",
+  b2bLoginSubtitle: "سجل الدخول لإدارة رحلاتك السياحية، المغادرات، الحجوزات وقوائم المسافرين.",
+  b2bAgencyRequired: "الوصول مقتصر على وكالات الأسفار المعتمدة. يرجى تسجيل الدخول بحساب الوكالة.",
   b2bHeroCallout: "هل تدير وكالة سياحة وأسفار؟ نظّم رحلاتك وحجوزاتك باحترافية مع توريفا",
   b2bHeroCalloutAction: "اكتشف المنصة",
   b2bSectionTag: "فضاء وكالات السياحة والأسفار",

@@ -357,6 +357,9 @@ export default {
 
   // Espace Agences de Voyages (B2B SaaS)
   b2bNavTitle: "Espace Agences",
+  b2bLoginTitle: "Connexion Espace Agence",
+  b2bLoginSubtitle: "Connectez-vous pour piloter vos circuits, départs et manifestes passagers.",
+  b2bAgencyRequired: "Accès restreint aux agences de voyages agréées. Veuillez vous connecter avec votre compte agence.",
   b2bHeroCallout: "Vous dirigez une agence de voyages ? Pilotez vos départs & réservations avec Touriva",
   b2bHeroCalloutAction: "Découvrir la plateforme",
   b2bSectionTag: "ESPACE AGENCES DE VOYAGES",

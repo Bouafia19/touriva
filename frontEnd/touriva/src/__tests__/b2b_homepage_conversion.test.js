@@ -105,9 +105,9 @@ describe('Touriva B2B Homepage Conversion & Agency Space Verification', () => {
 
   it('verifies that MainLayout.vue provides navigation to the agency space', () => {
     const layoutContent = fs.readFileSync(path.resolve(__dirname, '../layouts/MainLayout.vue'), 'utf-8')
-    expect(layoutContent).toContain('to="/#agency-space"')
+    expect(layoutContent).toContain('to="/agency/dashboard"')
     expect(layoutContent).toContain('$t(\'b2bNavTitle\')')
-    expect(layoutContent).toContain('scrollToAgencySection')
+    expect(layoutContent).toContain('goToAgencyPortal')
   })
 
   it('verifies that index.html contains updated SEO meta tags for travel agency management', () => {

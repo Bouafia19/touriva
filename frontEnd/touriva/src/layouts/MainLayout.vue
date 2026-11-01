@@ -4,28 +4,36 @@
     <v-navigation-drawer
       v-model="drawer"
       temporary
-      location="left"
+      :location="isRtl ? 'right' : 'left'"
       color="#102D27"
       class="editorial-drawer"
       v-if="isMobile"
+      width="300"
     >
-      <div class="pa-6 d-flex align-center justify-space-between border-b-dark">
+      <div class="pa-5 d-flex align-center justify-space-between border-b-dark">
         <div class="d-flex align-center">
           <v-img
             src="/logo-dark.svg"
             alt="Touriva"
-            width="130"
-            height="36"
+            width="125"
+            height="34"
             contain
           />
         </div>
-        <v-btn icon="mdi-close" variant="text" color="white" @click="drawer = false" size="small"></v-btn>
+        <v-btn
+          icon="mdi-close"
+          variant="text"
+          color="white"
+          @click="drawer = false"
+          size="small"
+          aria-label="Close navigation"
+        ></v-btn>
       </div>
 
       <!-- User Profile in Drawer -->
       <div v-if="isAuthenticated && users.getUser" class="pa-4 bg-deep-green-alt border-b-dark">
         <div class="d-flex align-center">
-          <v-avatar size="44" color="#D9B98C" class="mr-3">
+          <v-avatar size="42" color="#D9B98C" class="me-3">
             <v-img :src="photo || avatar" cover />
           </v-avatar>
           <div class="overflow-hidden">
@@ -49,71 +57,86 @@
           rounded="lg"
           class="mb-1 text-white editorial-nav-item"
           active-color="#D9B98C"
+          @click="drawer = false"
         >
           <template #prepend>
-            <v-icon :icon="item.icon" color="#D9B98C" class="mr-3" size="20"></v-icon>
+            <v-icon :icon="item.icon" color="#D9B98C" class="me-3" size="20"></v-icon>
           </template>
           <v-list-item-title class="font-weight-medium">
             {{ $t(item.title) }}
           </v-list-item-title>
         </v-list-item>
 
-        <!-- B2B Travel Agency Space Mobile Link -->
+        <!-- B2B Travel Agency Space Mobile Link: Direct Navigation to Agency Portal / Login -->
         <v-list-item
-          to="/#agency-space"
+          to="/agency/dashboard"
           link
           rounded="lg"
           class="mb-1 text-sand font-weight-bold"
           style="background: rgba(217, 185, 140, 0.12); border: 1px solid rgba(217, 185, 140, 0.3);"
-          @click="drawer = false; scrollToAgencySection()"
+          @click="drawer = false; goToAgencyPortal()"
         >
           <template #prepend>
-            <v-icon icon="mdi-domain" color="#D9B98C" class="mr-3" size="20"></v-icon>
+            <v-icon icon="mdi-domain" color="#D9B98C" class="me-3" size="20"></v-icon>
           </template>
           <v-list-item-title class="font-weight-bold text-sand">
             {{ $t('b2bNavTitle') }}
           </v-list-item-title>
         </v-list-item>
 
+        <!-- Contact & Support Link in Mobile Drawer -->
+        <v-list-item
+          to="/contactSupport"
+          link
+          rounded="lg"
+          class="mb-1 text-white"
+          @click="drawer = false"
+        >
+          <template #prepend>
+            <v-icon icon="mdi-face-agent" color="#D9B98C" class="me-3" size="20"></v-icon>
+          </template>
+          <v-list-item-title>{{ $t('contactSupport') }}</v-list-item-title>
+        </v-list-item>
+
         <v-divider class="my-3 border-dark"></v-divider>
 
         <!-- Auth Links -->
         <template v-if="!isAuthenticated">
-          <v-list-item to="/login" link rounded="lg" class="mb-1 text-white">
+          <v-list-item to="/login" link rounded="lg" class="mb-1 text-white" @click="drawer = false">
             <template #prepend>
-              <v-icon icon="mdi-login" color="#21866B" class="mr-3" size="20"></v-icon>
+              <v-icon icon="mdi-login" color="#21866B" class="me-3" size="20"></v-icon>
             </template>
             <v-list-item-title>{{ $t('Login') }}</v-list-item-title>
           </v-list-item>
-          <v-list-item to="/signup" link rounded="lg" class="mb-1 text-sand">
+          <v-list-item to="/signup" link rounded="lg" class="mb-1 text-sand" @click="drawer = false">
             <template #prepend>
-              <v-icon icon="mdi-account-plus" color="#D9B98C" class="mr-3" size="20"></v-icon>
+              <v-icon icon="mdi-account-plus" color="#D9B98C" class="me-3" size="20"></v-icon>
             </template>
             <v-list-item-title>{{ $t('SignUp') }}</v-list-item-title>
           </v-list-item>
         </template>
         <template v-else>
-          <v-list-item to="/subscriptions" link rounded="lg" class="mb-1 text-white">
+          <v-list-item to="/subscriptions" link rounded="lg" class="mb-1 text-white" @click="drawer = false">
             <template #prepend>
-              <v-icon icon="mdi-ticket-confirmation-outline" color="#D9B98C" class="mr-3" size="20"></v-icon>
+              <v-icon icon="mdi-ticket-confirmation-outline" color="#D9B98C" class="me-3" size="20"></v-icon>
             </template>
             <v-list-item-title>{{ $t('Subscriptions') }}</v-list-item-title>
           </v-list-item>
-          <v-list-item v-if="isAgencyUser" to="/agency/dashboard" link rounded="lg" class="mb-1 text-emerald-light">
+          <v-list-item v-if="isAgencyUser" to="/agency/dashboard" link rounded="lg" class="mb-1 text-emerald-light" @click="drawer = false">
             <template #prepend>
-              <v-icon icon="mdi-domain" color="#21866B" class="mr-3" size="20"></v-icon>
+              <v-icon icon="mdi-domain" color="#21866B" class="me-3" size="20"></v-icon>
             </template>
             <v-list-item-title class="font-weight-bold">Espace Agence</v-list-item-title>
           </v-list-item>
-          <v-list-item to="/updateProfile" link rounded="lg" class="mb-1 text-white">
+          <v-list-item to="/updateProfile" link rounded="lg" class="mb-1 text-white" @click="drawer = false">
             <template #prepend>
-              <v-icon icon="mdi-account-cog-outline" color="#D9B98C" class="mr-3" size="20"></v-icon>
+              <v-icon icon="mdi-account-cog-outline" color="#D9B98C" class="me-3" size="20"></v-icon>
             </template>
             <v-list-item-title>{{ $t('profile') }}</v-list-item-title>
           </v-list-item>
-          <v-list-item @click="authSignOut" link rounded="lg" class="mb-1 text-red-lighten-2">
+          <v-list-item @click="drawer = false; authSignOut()" link rounded="lg" class="mb-1 text-red-lighten-2">
             <template #prepend>
-              <v-icon icon="mdi-logout" color="error" class="mr-3" size="20"></v-icon>
+              <v-icon icon="mdi-logout" color="error" class="me-3" size="20"></v-icon>
             </template>
             <v-list-item-title>{{ $t('logOut') }}</v-list-item-title>
           </v-list-item>
@@ -145,35 +168,35 @@
     <v-app-bar
       elevation="0"
       color="#173F35"
-      height="80"
+      height="76"
       class="editorial-app-bar border-b"
       style="border-color: rgba(217, 185, 140, 0.2) !important;"
     >
-      <v-container class="d-flex align-center justify-space-between fill-height px-4 px-md-8 max-w-container">
+      <v-container class="d-flex align-center justify-space-between fill-height px-3 px-sm-4 px-md-6 px-lg-8 max-w-container">
         <!-- Brand Identity -->
-        <div class="d-flex align-center cursor-pointer" @click="router.push('/')">
+        <div class="d-flex align-center cursor-pointer header-brand-area" @click="router.push('/')">
           <!-- Mobile Drawer Activator -->
           <v-app-bar-nav-icon
             v-if="isMobile"
             color="#D9B98C"
-            @click="drawer = !drawer"
-            class="mr-2"
+            @click.stop="drawer = !drawer"
+            class="me-1 me-sm-2 header-nav-icon"
+            aria-label="Open navigation menu"
           ></v-app-bar-nav-icon>
 
           <v-img
             src="/logo-dark.svg"
             alt="Touriva"
-            width="155"
-            height="42"
+            class="header-brand-logo"
             contain
           />
-          <span class="d-none d-lg-inline-block text-sand ml-3 text-caption font-weight-medium pl-3 border-s border-sand-subtle">
+          <span class="d-none d-xl-inline-block text-sand ms-3 text-caption font-weight-medium ps-3 brand-tagline">
             {{ $t('tagline') }}
           </span>
         </div>
 
         <!-- Desktop Navigation Items -->
-        <div class="d-none d-md-flex align-center ga-1">
+        <div v-if="!isMobile" class="align-center nav-items-group ga-1 ga-xl-2">
           <v-btn
             v-for="item in navLinks"
             :key="item.route"
@@ -186,36 +209,35 @@
             {{ $t(item.title) }}
           </v-btn>
 
-          <!-- B2B Travel Agency Space Link -->
+          <!-- B2B Travel Agency Space Link: Direct Navigation to Agency Portal / Login -->
           <v-btn
-            to="/#agency-space"
+            to="/agency/dashboard"
             variant="outlined"
             rounded="pill"
-            size="small"
-            class="text-sand border-sand-btn px-3 font-weight-bold ml-1 text-capitalize"
-            @click="scrollToAgencySection"
+            class="text-sand border-sand-btn nav-b2b-btn font-weight-bold text-capitalize"
+            @click="goToAgencyPortal"
           >
-            <v-icon start size="16" color="#D9B98C">mdi-domain</v-icon>
-            {{ $t('b2bNavTitle') }}
+            <v-icon start size="15" color="#D9B98C" class="me-1">mdi-domain</v-icon>
+            <span>{{ $t('b2bNavTitle') }}</span>
           </v-btn>
         </div>
 
         <!-- Right Action Dock: Language + User Profile -->
-        <div class="d-flex align-center ga-2">
+        <div class="d-flex align-center ga-1 ga-sm-2 action-dock">
           <!-- Language Selector -->
-          <v-menu location="bottom end" transition="slide-y-transition">
+          <v-menu :location="isRtl ? 'bottom start' : 'bottom end'" transition="slide-y-transition">
             <template #activator="{ props }">
               <v-btn
                 v-bind="props"
                 variant="outlined"
                 rounded="pill"
                 size="small"
-                class="text-sand border-sand-btn px-2 px-sm-3"
+                class="text-sand border-sand-btn lang-btn px-2 px-md-3"
               >
-                <v-icon start size="16">mdi-web</v-icon>
-                <span class="d-none d-sm-inline">{{ currentLangLabel }}</span>
-                <span class="d-sm-none text-uppercase">{{ locale }}</span>
-                <v-icon end size="14">mdi-chevron-down</v-icon>
+                <v-icon start size="15" class="me-1">mdi-web</v-icon>
+                <span class="d-none d-lg-inline">{{ currentLangLabel }}</span>
+                <span class="d-lg-none text-uppercase">{{ locale }}</span>
+                <v-icon end size="13" class="ms-1">mdi-chevron-down</v-icon>
               </v-btn>
             </template>
             <v-list class="editorial-menu-list elevation-3" rounded="lg" density="compact">
@@ -238,7 +260,7 @@
               to="/login"
               variant="text"
               color="#FAF8F2"
-              class="d-none d-sm-inline-flex text-capitalize font-weight-medium"
+              class="d-none d-sm-inline-flex text-capitalize font-weight-medium auth-nav-btn"
               rounded="pill"
             >
               {{ $t('Login') }}
@@ -246,7 +268,7 @@
             <v-btn
               to="/signup"
               color="#D9B98C"
-              class="btn-editorial-sand text-capitalize font-weight-bold d-none d-sm-inline-flex"
+              class="btn-editorial-sand text-capitalize font-weight-bold d-none d-sm-inline-flex auth-nav-btn auth-signup-btn"
               rounded="pill"
               elevation="1"
             >
@@ -255,10 +277,10 @@
           </template>
 
           <template v-else>
-            <v-menu location="bottom end" transition="slide-y-transition">
+            <v-menu :location="isRtl ? 'bottom start' : 'bottom end'" transition="slide-y-transition">
               <template #activator="{ props }">
                 <v-btn v-bind="props" icon variant="text" class="avatar-activator">
-                  <v-avatar size="38" color="#D9B98C" class="border-sand">
+                  <v-avatar size="36" color="#D9B98C" class="border-sand">
                     <v-img :src="photo || avatar" cover />
                   </v-avatar>
                 </v-btn>
@@ -308,7 +330,7 @@
 
     <!-- Mobile Bottom Navigation for Native / Phone -->
     <v-bottom-navigation
-      v-if="isMobile"
+      v-if="isPhone"
       app
       fixed
       grow
@@ -359,7 +381,7 @@ import { useAdsSettingsStore } from '@/stores/adsSettings'
 
 const { isRtl } = useLocale()
 const { locale } = useI18n()
-const { smAndDown } = useDisplay()
+const { mdAndDown, smAndDown } = useDisplay()
 const router = useRouter()
 const route = useRoute()
 
@@ -372,7 +394,8 @@ const ls = ref(null)
 const photo = ref(null)
 const avatar = ref(new URL('@/assets/avatar.png', import.meta.url).href)
 
-const isMobile = computed(() => smAndDown.value)
+const isMobile = computed(() => mdAndDown.value)
+const isPhone = computed(() => smAndDown.value)
 
 const isAuthenticated = computed(() => {
   return !!ls.value?.token
@@ -414,6 +437,11 @@ const changeLanguage = (code) => {
     document.dir = 'ltr'
   }
   locale.value = code
+  try {
+    localStorage.setItem('locale', code)
+  } catch (e) {
+    // Ignore storage errors
+  }
 }
 
 const authSignOut = () => {
@@ -422,6 +450,11 @@ const authSignOut = () => {
   router.push('/')
 }
 
+const goToAgencyPortal = () => {
+  router.push('/agency/dashboard')
+}
+
+// Retain scrollToAgencySection for hash anchor compatibility
 const scrollToAgencySection = () => {
   if (route.path === '/') {
     const el = document.getElementById('agency-space')
@@ -440,8 +473,10 @@ onMounted(async () => {
   ls.value = await auth.getLSUserInfo()
   adsSettings.fetchAdsSettings()
 
-  // Ensure HTML dir attribute is synchronized with current locale
-  if (locale.value === 'ar') {
+  const savedLang = localStorage.getItem('locale')
+  if (savedLang) {
+    changeLanguage(savedLang)
+  } else if (locale.value === 'ar') {
     isRtl.value = true
     document.dir = 'rtl'
   } else {
@@ -456,16 +491,55 @@ onMounted(async () => {
   min-height: 100vh;
 }
 
+.editorial-app-bar {
+  overflow-x: clip;
+}
+
 .max-w-container {
-  max-width: 1400px;
+  max-width: 1720px;
+  width: 100%;
+}
+
+.header-brand-area {
+  flex-shrink: 0;
+}
+
+.header-brand-logo {
+  width: 145px;
+  height: 38px;
+  transition: width 0.2s ease;
+}
+
+@media (max-width: 480px) {
+  .header-brand-logo {
+    width: 115px;
+    height: 32px;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-brand-logo {
+    width: 102px;
+    height: 28px;
+  }
+}
+
+.brand-tagline {
+  border-inline-start: 1px solid rgba(217, 185, 140, 0.3) !important;
+  white-space: nowrap;
+}
+
+@media (min-width: 1280px) and (max-width: 1380px) {
+  .brand-tagline {
+    font-size: 0.72rem !important;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .filter-brightness {
   filter: brightness(0) invert(1);
-}
-
-.border-s {
-  border-left: 1px solid rgba(217, 185, 140, 0.3) !important;
 }
 
 .border-b-dark {
@@ -484,13 +558,48 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+/* Desktop Navigation Links */
+.nav-items-group {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .nav-link-btn {
   color: #FAF8F2 !important;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   letter-spacing: 0.01em;
-  padding: 0 16px;
-  height: 40px;
+  padding: 0 12px;
+  height: 38px;
+  min-width: 0;
   transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .nav-link-btn {
+    font-size: 0.81rem;
+    padding: 0 7px;
+    height: 34px;
+    letter-spacing: 0;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .nav-link-btn {
+    font-size: 0.85rem;
+    padding: 0 10px;
+    height: 36px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .nav-link-btn {
+    font-size: 0.92rem;
+    padding: 0 14px;
+    height: 40px;
+  }
 }
 
 .nav-link-btn:hover {
@@ -503,12 +612,97 @@ onMounted(async () => {
   background-color: rgba(217, 185, 140, 0.12) !important;
 }
 
+/* B2B Agency Button in Header */
+.nav-b2b-btn {
+  color: #D9B98C !important;
+  border-color: rgba(217, 185, 140, 0.5) !important;
+  font-size: 0.84rem;
+  padding: 0 12px;
+  height: 36px;
+  min-width: 0;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .nav-b2b-btn {
+    font-size: 0.77rem;
+    padding: 0 8px;
+    height: 32px;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .nav-b2b-btn {
+    font-size: 0.82rem;
+    padding: 0 10px;
+    height: 34px;
+  }
+}
+
+.nav-b2b-btn:hover {
+  background-color: rgba(217, 185, 140, 0.12) !important;
+}
+
+/* Right Action Dock */
+.action-dock {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .border-sand-btn {
   border-color: rgba(217, 185, 140, 0.5) !important;
 }
 
 .border-sand-btn:hover {
   background-color: rgba(217, 185, 140, 0.1) !important;
+}
+
+.lang-btn {
+  height: 34px;
+  min-width: 0;
+  font-size: 0.82rem;
+}
+
+@media (min-width: 1280px) {
+  .lang-btn {
+    height: 36px;
+    font-size: 0.85rem;
+  }
+}
+
+.auth-nav-btn {
+  font-size: 0.86rem;
+  padding: 0 12px;
+  height: 36px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+@media (min-width: 960px) and (max-width: 1279px) {
+  .auth-nav-btn {
+    font-size: 0.8rem;
+    padding: 0 9px;
+    height: 32px;
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .auth-nav-btn {
+    font-size: 0.84rem;
+    padding: 0 11px;
+    height: 34px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .auth-nav-btn {
+    font-size: 0.9rem;
+    padding: 0 16px;
+    height: 38px;
+  }
 }
 
 .editorial-menu-list {
@@ -526,14 +720,10 @@ onMounted(async () => {
   left: 0 !important;
   right: 0 !important;
   z-index: 9999 !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .editorial-bottom-nav .v-btn--active {
   color: #D9B98C !important;
-}
-
-[dir="rtl"] .border-s {
-  border-left: none !important;
-  border-right: 1px solid rgba(217, 185, 140, 0.3) !important;
 }
 </style>

@@ -16,6 +16,13 @@ export default defineConfig({
   },
   server: {
     port: 2021,
+    proxy: {
+      '/api': {
+        target: 'https://touriva-api.onrender.com',
+        changeOrigin: true,
+        secure: true
+      }
+    }
   },
   build: {
     rollupOptions: {

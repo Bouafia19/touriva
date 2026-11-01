@@ -357,6 +357,9 @@ export default {
 
   // Espace Agences de Voyages (B2B SaaS)
   b2bNavTitle: "For Agencies",
+  b2bLoginTitle: "Agency Portal Sign In",
+  b2bLoginSubtitle: "Sign in to manage your tours, departures, bookings, and passenger manifests.",
+  b2bAgencyRequired: "Access restricted to authorized travel agencies. Please sign in with your agency credentials.",
   b2bHeroCallout: "Do you run a travel agency? Manage your departures & bookings with Touriva",
   b2bHeroCalloutAction: "Explore the platform",
   b2bSectionTag: "TRAVEL AGENCY MANAGEMENT",
