@@ -102,10 +102,10 @@ export default {
   // About
   Office: 'مكتب دراسات واستشارات تكنولوجيا المعلومات',
   Services: 'خدماتنا',
-  Telephone: '036 63 93 82',
+  Telephone: '0552 56 96 54',
   MyMobile: '0552 56 96 54',
-  Contact: 'contact@nextchallenge-dz.com',
-  Site: 'https://nextchallenge-dz.com',
+  Contact: 'nextchallenge2021@gmail.com',
+  Site: 'https://nextchallenge.tech',
   web: 'تطوير تطبيقات الويب',
   ecommerce: 'تطوير تطبيقات التجارة الإلكترونية',
   erp: 'تطوير تخطيط موارد المؤسسات',

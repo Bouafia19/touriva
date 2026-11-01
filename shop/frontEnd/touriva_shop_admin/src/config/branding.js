@@ -34,10 +34,18 @@ export const BRANDING = {
     background: '#FAF8F2',
     surface: '#FFFFFF'
   },
+  companyName: 'Next Challenge',
+  website: 'https://nextchallenge.tech',
   contact: {
-    supportEmail: 'support@touriva.com',
-    phone: '+213 550 000 000',
-    address: 'Algiers, Algeria'
+    supportEmail: 'nextchallenge2021@gmail.com',
+    phone: '0552 56 96 54',
+    phoneTel: '+213552569654',
+    whatsapp: '0552 56 96 54',
+    whatsappLink: 'https://wa.me/213552569654',
+    website: 'https://nextchallenge.tech',
+    address: 'El Hidab, Sétif, Algeria',
+    addressAr: 'الهضاب، سطيف، الجزائر',
+    addressFr: 'El Hidab, Sétif, Algérie'
   }
 }
 

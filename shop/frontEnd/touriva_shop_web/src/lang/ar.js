@@ -117,5 +117,9 @@ export default {
   Explore: 'استكشف',
   Contact: 'اتصل بنا',
   TrackOrder: 'تتبع الطلب',
-  AllRightsReserved: 'جميع الحقوق محفوظة.'
+  AllRightsReserved: 'جميع الحقوق محفوظة.',
+  companyAddress: 'الهضاب، سطيف، الجزائر',
+  companyWebsite: 'https://nextchallenge.tech',
+  companyPhone: '0552 56 96 54',
+  companyEmail: 'nextchallenge2021@gmail.com'
 }

@@ -402,5 +402,9 @@ export default {
   b2bLiveStatPackages: "Packages Démo",
   b2bLiveStatDepartures: "Sessions Démo",
   b2bLiveStatBookings: "Voyageurs Démo",
-  b2bLiveStatLedger: "Grand Livre DZD"
+  b2bLiveStatLedger: "Grand Livre DZD",
+  companyAddress: "El Hidab, Sétif, Algérie",
+  companyWebsite: "https://nextchallenge.tech",
+  companyPhone: "0552 56 96 54",
+  companyEmail: "nextchallenge2021@gmail.com"
 }

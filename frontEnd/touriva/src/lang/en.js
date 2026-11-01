@@ -402,5 +402,9 @@ export default {
   b2bLiveStatPackages: "Demo Packages",
   b2bLiveStatDepartures: "Demo Sessions",
   b2bLiveStatBookings: "Demo Travelers",
-  b2bLiveStatLedger: "Financial Ledger (DZD)"
+  b2bLiveStatLedger: "Financial Ledger (DZD)",
+  companyAddress: "El Hidab, Sétif, Algeria",
+  companyWebsite: "https://nextchallenge.tech",
+  companyPhone: "0552 56 96 54",
+  companyEmail: "nextchallenge2021@gmail.com"
 }

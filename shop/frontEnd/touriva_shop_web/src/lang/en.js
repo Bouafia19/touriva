@@ -117,5 +117,9 @@ export default {
   Explore: 'Explore',
   Contact: 'Contact',
   TrackOrder: 'Order Tracking',
-  AllRightsReserved: 'All rights reserved.'
+  AllRightsReserved: 'All rights reserved.',
+  companyAddress: 'El Hidab, Sétif, Algeria',
+  companyWebsite: 'https://nextchallenge.tech',
+  companyPhone: '0552 56 96 54',
+  companyEmail: 'nextchallenge2021@gmail.com'
 }

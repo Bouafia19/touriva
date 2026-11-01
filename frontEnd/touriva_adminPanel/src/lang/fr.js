@@ -106,10 +106,10 @@ export default {
   // About
   Office: 'Bureau d\'étude et de conseil en informatique',
   Services: 'Nos services',
-  Telephone: '036 63 93 82',
+  Telephone: '0552 56 96 54',
   MyMobile: '0552 56 96 54',
-  Contact: 'contact@nextchallenge-dz.com',
-  Site: 'https://nextchallenge-dz.com',
+  Contact: 'nextchallenge2021@gmail.com',
+  Site: 'https://nextchallenge.tech',
   web: 'Développement d\'applications Web',
   ecommerce: 'Développement d\'applications de commerce électronique',
   erp: 'Développement ERP',

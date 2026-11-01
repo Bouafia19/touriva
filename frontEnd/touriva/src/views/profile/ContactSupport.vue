@@ -105,7 +105,7 @@
           <v-card class="editorial-card pa-6 pa-md-8 bg-deep-green text-white mb-6" elevation="0">
             <div class="editorial-tag text-sand mb-1">OFFICIAL CONTACT</div>
             <h3 class="text-h5 font-serif font-weight-bold text-white mb-4">
-              Touriva Headquarters
+              Touriva — Next Challenge
             </h3>
             <p class="text-sand-light text-caption mb-6">
               National tourism platform coordinating excursions, verified boutique stays, and cultural heritage promotion across all 58 Algerian Wilayas.
@@ -115,23 +115,38 @@
               <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-map-marker-outline</v-icon>
               <div>
                 <div class="text-caption text-sand font-weight-bold">OFFICE LOCATION</div>
-                <div class="text-body-2 text-white">Didouche Mourad Avenue, Algiers, Algeria</div>
+                <div class="text-body-2 text-white">El Hidab, Sétif, Algeria</div>
               </div>
             </div>
 
             <div class="d-flex align-start mb-4">
               <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-phone-outline</v-icon>
               <div>
-                <div class="text-caption text-sand font-weight-bold">DIRECT TELEPHONE</div>
-                <div class="text-body-2 text-white">+213 (0) 550 000 000</div>
+                <div class="text-caption text-sand font-weight-bold">PHONE / WHATSAPP</div>
+                <div class="text-body-2">
+                  <a href="tel:+213552569654" class="text-white text-decoration-none font-weight-medium">0552 56 96 54</a>
+                  <a href="https://wa.me/213552569654" target="_blank" rel="noopener noreferrer" class="text-sand text-caption text-decoration-none ml-2 font-weight-bold">(WhatsApp)</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex align-start mb-4">
+              <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-email-outline</v-icon>
+              <div>
+                <div class="text-caption text-sand font-weight-bold">OFFICIAL EMAIL</div>
+                <div class="text-body-2">
+                  <a href="mailto:nextchallenge2021@gmail.com" class="text-white text-decoration-none font-weight-medium">nextchallenge2021@gmail.com</a>
+                </div>
               </div>
             </div>
 
             <div class="d-flex align-start mb-6">
-              <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-email-outline</v-icon>
+              <v-icon color="#D9B98C" class="mr-3 mt-1" size="20">mdi-web</v-icon>
               <div>
-                <div class="text-caption text-sand font-weight-bold">CONCIERGE INQUIRIES</div>
-                <div class="text-body-2 text-white">support@touriva.com</div>
+                <div class="text-caption text-sand font-weight-bold">OFFICIAL WEBSITE</div>
+                <div class="text-body-2">
+                  <a href="https://nextchallenge.tech" target="_blank" rel="noopener noreferrer" class="text-white text-decoration-none font-weight-medium">nextchallenge.tech</a>
+                </div>
               </div>
             </div>
 
@@ -145,7 +160,7 @@
             </div>
           </v-card>
 
-          <!-- Map Card (OpenStreetMap) -->
+          <!-- Map Card (OpenStreetMap - El Hidab, Sétif) -->
           <v-card class="editorial-card overflow-hidden" elevation="0">
             <iframe
               width="100%"
@@ -155,7 +170,7 @@
               allowfullscreen
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=3.046086%2C36.758132%2C3.066086%2C36.778132&amp;layer=mapnik&amp;marker=36.768132%2C3.056086"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=5.4150%2C36.1950%2C5.4480%2C36.2220&amp;layer=mapnik&amp;marker=36.2087%2C5.4319"
             ></iframe>
           </v-card>
         </v-col>

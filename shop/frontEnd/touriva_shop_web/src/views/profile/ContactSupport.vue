@@ -85,7 +85,7 @@
                 </v-avatar>
               </template>
               <v-list-item-title class="font-weight-bold text-forest">Headquarters</v-list-item-title>
-              <v-list-item-subtitle class="text-secondary-editorial">Algiers, Algeria</v-list-item-subtitle>
+              <v-list-item-subtitle class="text-secondary-editorial">El Hidab, Sétif, Algeria</v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item class="px-0 mb-3">
@@ -94,18 +94,35 @@
                   <v-icon color="deepGreen" size="22">mdi-phone-outline</v-icon>
                 </v-avatar>
               </template>
-              <v-list-item-title class="font-weight-bold text-forest">Telephone</v-list-item-title>
-              <v-list-item-subtitle class="text-secondary-editorial">+213 550 000 000</v-list-item-subtitle>
+              <v-list-item-title class="font-weight-bold text-forest">Phone / WhatsApp</v-list-item-title>
+              <v-list-item-subtitle class="text-secondary-editorial">
+                <a href="tel:+213552569654" class="text-decoration-none text-secondary-editorial font-weight-medium">0552 56 96 54</a>
+                <a href="https://wa.me/213552569654" target="_blank" rel="noopener noreferrer" class="text-forest text-caption font-weight-bold ml-2">(WhatsApp)</a>
+              </v-list-item-subtitle>
             </v-list-item>
 
-            <v-list-item class="px-0">
+            <v-list-item class="px-0 mb-3">
               <template #prepend>
                 <v-avatar color="sandLight" size="44" class="mr-3">
                   <v-icon color="deepGreen" size="22">mdi-email-outline</v-icon>
                 </v-avatar>
               </template>
               <v-list-item-title class="font-weight-bold text-forest">Email Support</v-list-item-title>
-              <v-list-item-subtitle class="text-secondary-editorial">support@touriva.com</v-list-item-subtitle>
+              <v-list-item-subtitle>
+                <a href="mailto:nextchallenge2021@gmail.com" class="text-decoration-none text-secondary-editorial font-weight-medium">nextchallenge2021@gmail.com</a>
+              </v-list-item-subtitle>
+            </v-list-item>
+
+            <v-list-item class="px-0">
+              <template #prepend>
+                <v-avatar color="sandLight" size="44" class="mr-3">
+                  <v-icon color="deepGreen" size="22">mdi-web</v-icon>
+                </v-avatar>
+              </template>
+              <v-list-item-title class="font-weight-bold text-forest">Official Website</v-list-item-title>
+              <v-list-item-subtitle>
+                <a href="https://nextchallenge.tech" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-secondary-editorial font-weight-medium">nextchallenge.tech</a>
+              </v-list-item-subtitle>
             </v-list-item>
           </v-list>
         </v-card>
@@ -122,7 +139,7 @@
       </v-col>
     </v-row>
 
-    <!-- Map -->
+    <!-- Map (El Hidab, Sétif) -->
     <v-row class="mt-6">
       <v-col cols="12">
         <v-card class="editorial-card overflow-hidden">
@@ -131,11 +148,11 @@
               width="100%"
               height="300"
               frameborder="0"
-              style="border:0;"
+              style="border:0; display:block;"
               allowfullscreen
               loading="lazy"
               referrerpolicy="no-referrer-when-downgrade"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d102286.38283832167!2d3.003923377759567!3d36.75988981440751!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x128fb2f570773d57%3A0x8670df550d53c7a0!2sAlgiers!5e0!3m2!1sen!2sdz!4v1711123456789"
+              src="https://www.openstreetmap.org/export/embed.html?bbox=5.4150%2C36.1950%2C5.4480%2C36.2220&amp;layer=mapnik&amp;marker=36.2087%2C5.4319"
             ></iframe>
           </v-card-text>
         </v-card>

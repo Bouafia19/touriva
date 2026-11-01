@@ -776,17 +776,30 @@
           <!-- Col 4: Platform & Support -->
           <v-col cols="12" sm="4" md="3" class="mt-4 mt-sm-0">
             <div class="footer-col-title text-sand mb-4">CONTACT & SUPPORT</div>
-            <div class="text-caption text-grey-lighten-1 mb-2">
+            <div class="text-caption text-grey-lighten-1 mb-2 d-flex align-center">
               <v-icon size="16" color="#D9B98C" class="mr-2">mdi-email-outline</v-icon>
-              support@touriva.com
+              <a href="mailto:nextchallenge2021@gmail.com" class="text-grey-lighten-1 text-decoration-none hover-sand">
+                nextchallenge2021@gmail.com
+              </a>
             </div>
-            <div class="text-caption text-grey-lighten-1 mb-2">
+            <div class="text-caption text-grey-lighten-1 mb-2 d-flex align-center">
               <v-icon size="16" color="#D9B98C" class="mr-2">mdi-phone-outline</v-icon>
-              +213 (0) 550 000 000
+              <a href="tel:+213552569654" class="text-grey-lighten-1 text-decoration-none hover-sand">
+                0552 56 96 54
+              </a>
+              <a href="https://wa.me/213552569654" target="_blank" rel="noopener noreferrer" class="text-sand text-caption text-decoration-none hover-sand ml-1">
+                (WhatsApp)
+              </a>
             </div>
-            <div class="text-caption text-grey-lighten-1 mb-4">
+            <div class="text-caption text-grey-lighten-1 mb-2 d-flex align-center">
+              <v-icon size="16" color="#D9B98C" class="mr-2">mdi-web</v-icon>
+              <a href="https://nextchallenge.tech" target="_blank" rel="noopener noreferrer" class="text-grey-lighten-1 text-decoration-none hover-sand">
+                nextchallenge.tech
+              </a>
+            </div>
+            <div class="text-caption text-grey-lighten-1 mb-4 d-flex align-center">
               <v-icon size="16" color="#D9B98C" class="mr-2">mdi-map-marker-outline</v-icon>
-              Algiers, People’s Democratic Republic of Algeria
+              <span>El Hidab, Sétif, Algeria</span>
             </div>
             <v-btn
               to="/contactSupport"
@@ -805,7 +818,7 @@
         <!-- Copyright & Bottom Bar -->
         <div class="d-flex flex-column flex-sm-row justify-space-between align-center text-caption text-grey-lighten-2 ga-2">
           <div>
-            &copy; 2026 Touriva Tourism Platform. All rights reserved.
+            &copy; 2026 Touriva — Next Challenge. All rights reserved.
           </div>
           <div class="d-flex ga-4">
             <router-link to="/terms&conditions" class="text-grey-lighten-2 hover-sand">Terms & Conditions</router-link>

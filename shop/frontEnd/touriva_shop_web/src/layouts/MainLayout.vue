@@ -634,15 +634,20 @@
             <h4 class="editorial-tag text-sand mb-3 font-weight-bold">{{ $t('Contact') || 'CONTACT' }}</h4>
             <div class="text-body-2 text-sand-light mb-2 d-flex align-center">
               <v-icon size="18" color="sand" class="mr-2">mdi-email-outline</v-icon>
-              <span>support@touriva.com</span>
+              <a href="mailto:nextchallenge2021@gmail.com" class="footer-link">nextchallenge2021@gmail.com</a>
             </div>
             <div class="text-body-2 text-sand-light mb-2 d-flex align-center">
               <v-icon size="18" color="sand" class="mr-2">mdi-phone-outline</v-icon>
-              <span>+213 550 000 000</span>
+              <a href="tel:+213552569654" class="footer-link">0552 56 96 54</a>
+              <a href="https://wa.me/213552569654" target="_blank" rel="noopener noreferrer" class="footer-link text-sand ml-1 text-caption">(WhatsApp)</a>
+            </div>
+            <div class="text-body-2 text-sand-light mb-2 d-flex align-center">
+              <v-icon size="18" color="sand" class="mr-2">mdi-web</v-icon>
+              <a href="https://nextchallenge.tech" target="_blank" rel="noopener noreferrer" class="footer-link">nextchallenge.tech</a>
             </div>
             <div class="text-body-2 text-sand-light d-flex align-center">
               <v-icon size="18" color="sand" class="mr-2">mdi-map-marker-outline</v-icon>
-              <span>Algiers, Algeria</span>
+              <span>El Hidab, Sétif, Algeria</span>
             </div>
           </v-col>
         </v-row>
@@ -651,7 +656,7 @@
 
         <div class="d-flex flex-column flex-sm-row justify-space-between align-center text-caption text-sand">
           <div>
-            &copy; {{ new Date().getFullYear() }} Touriva. {{ $t('AllRightsReserved') || 'All rights reserved.' }}
+            &copy; {{ new Date().getFullYear() }} Touriva — Next Challenge. {{ $t('AllRightsReserved') || 'All rights reserved.' }}
           </div>
           <div class="d-flex align-center mt-2 mt-sm-0 ga-4">
             <span>DZD (Algerian Dinar)</span>

@@ -411,5 +411,9 @@ export default {
   b2bLiveStatPackages: "باقات تجريبية",
   b2bLiveStatDepartures: "مواعيد تجريبية",
   b2bLiveStatBookings: "مسافرون تجريبيون",
-  b2bLiveStatLedger: "الدفتر المالي (دج)"
+  b2bLiveStatLedger: "الدفتر المالي (دج)",
+  companyAddress: "الهضاب، سطيف، الجزائر",
+  companyWebsite: "https://nextchallenge.tech",
+  companyPhone: "0552 56 96 54",
+  companyEmail: "nextchallenge2021@gmail.com"
 }
