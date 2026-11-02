@@ -418,5 +418,19 @@ export default {
   companyAddress: "الهضاب، سطيف، الجزائر",
   companyWebsite: "https://nextchallenge.tech",
   companyPhone: "0552 56 96 54",
-  companyEmail: "nextchallenge2021@gmail.com"
+  companyEmail: "nextchallenge2021@gmail.com",
+  // PWA Progressive Web App keys
+  installTouriva: "تثبيت تريفا",
+  installTourivaDesc: "قم بتثبيت تريفا على جهازك للوصول السريع وتجربة تطبيق سلسة.",
+  installTourivaIos: "تثبيت تريفا على آيفون",
+  iosShareStep: "اضغط على زر المشاركة في متصفح Safari.",
+  iosAddStep: "مرر للأسفل واختر 'إضافة إلى الصفحة الرئيسية'.",
+  iosConfirmStep: "اضغط على 'إضافة' في الزاوية العلوية.",
+  newVersionAvailable: "يتوفر إصدار جديد من تريفا.",
+  refresh: "تحديث",
+  youAreOffline: "أنت غير متصل بالإنترنت",
+  offlineBanner: "بعض ميزات تريفا تتطلب اتصالاً بالإنترنت.",
+  reconnected: "تمت استعادة الاتصال",
+  dismiss: "إغلاق",
+  close: "إغلاق"
 }

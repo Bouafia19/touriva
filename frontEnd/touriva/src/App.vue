@@ -1,5 +1,6 @@
 <template>
   <router-view />
+  <PwaManager />
 </template>
 
 <script setup>
@@ -9,8 +10,11 @@
   import { Capacitor } from '@capacitor/core'
   import { Filesystem, Directory } from '@capacitor/filesystem'
   import { App } from '@capacitor/app'
+  import { usePwaStore } from '@/stores/pwa'
+  import PwaManager from '@/components/PwaManager.vue'
 
   const router = useRouter()
+  const pwaStore = usePwaStore()
   let backButtonListener = null
   
   const setStatusBarStyle = async () => {
@@ -66,6 +70,9 @@
   }
 
   onMounted(() => {
+    // Initialize PWA installation, offline tracking, and update listeners
+    pwaStore.initPwa()
+
     // Only execute native Capacitor platform plugins on native runtime
     if (Capacitor.isNativePlatform()) {
       setStatusBarStyle()

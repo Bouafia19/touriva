@@ -409,5 +409,19 @@ export default {
   companyAddress: "El Hidab, Sétif, Algeria",
   companyWebsite: "https://nextchallenge.tech",
   companyPhone: "0552 56 96 54",
-  companyEmail: "nextchallenge2021@gmail.com"
+  companyEmail: "nextchallenge2021@gmail.com",
+  // PWA Progressive Web App keys
+  installTouriva: "Install Touriva",
+  installTourivaDesc: "Install Touriva on your device for faster access and an app-like experience.",
+  installTourivaIos: "Install Touriva on your iPhone",
+  iosShareStep: "Tap the Share button in Safari.",
+  iosAddStep: "Scroll down and select 'Add to Home Screen'.",
+  iosConfirmStep: "Tap 'Add' in the top right corner.",
+  newVersionAvailable: "A new version of Touriva is available.",
+  refresh: "Refresh",
+  youAreOffline: "You're offline",
+  offlineBanner: "Some Touriva features require an internet connection.",
+  reconnected: "Connection restored",
+  dismiss: "Dismiss",
+  close: "Close"
 }

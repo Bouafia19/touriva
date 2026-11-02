@@ -25,7 +25,7 @@
           <v-card
             class="editorial-card pa-6 text-center cursor-pointer h-100 w-100"
             elevation="0"
-            @click.stop="drawer = !drawer"
+            @click="router.push('/tripBuilder?mode=manual')"
           >
             <div class="category-icon-box mx-auto mb-4" style="width: 64px; height: 64px; border-radius: 16px;">
               <v-icon size="32" color="#173F35">mdi-plus-circle-outline</v-icon>
@@ -44,7 +44,7 @@
           <v-card
             class="editorial-card pa-6 text-center cursor-pointer h-100 w-100"
             elevation="0"
-            @click="router.push('/tripBuilder')"
+            @click="router.push('/tripBuilder?mode=ai')"
           >
             <div class="category-icon-box mx-auto mb-4" style="width: 64px; height: 64px; border-radius: 16px; background: #F0E8F5;">
               <v-icon size="32" color="#6B21A8">mdi-creation</v-icon>
@@ -481,7 +481,7 @@
     try {
       const createdTrip = await tripStore.createTrip(trip.value)
       console.log('✅ Trip saved to DB:', createdTrip)
-      tripStore.setTrip(createTrip)
+      tripStore.setTrip(createdTrip)
       snackbarText.value = 'Trip created successfully!'
       snackbarColor.value = '#173F35'
       snackbar.value = true

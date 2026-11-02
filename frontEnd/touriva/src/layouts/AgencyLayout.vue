@@ -58,6 +58,20 @@
         </v-chip>
       </div>
 
+      <!-- Install Touriva PWA Button -->
+      <v-btn
+        v-if="pwaStore.showInstallButton && !pwaStore.isStandalone"
+        variant="outlined"
+        color="#D9B98C"
+        size="small"
+        rounded="pill"
+        class="text-caption font-weight-bold mr-2 text-sand"
+        @click="pwaStore.promptInstall"
+      >
+        <v-icon start size="16">mdi-arrow-down-bold-circle-outline</v-icon>
+        <span class="d-none d-sm-inline">Installer Touriva</span>
+      </v-btn>
+
       <!-- Public Site Link -->
       <v-btn
         variant="text"
@@ -194,6 +208,17 @@
           rounded="lg"
           active-color="#D9B98C"
         />
+
+        <v-list-item
+          v-if="pwaStore.showInstallButton && !pwaStore.isStandalone"
+          prepend-icon="mdi-cellphone-arrow-down"
+          title="Installer l'Application"
+          value="installPwa"
+          rounded="lg"
+          class="text-emerald-light font-weight-bold"
+          style="background: rgba(33, 134, 107, 0.15); border: 1px solid rgba(33, 134, 107, 0.3);"
+          @click="pwaStore.promptInstall()"
+        />
       </v-list>
 
       <template #append>
@@ -225,10 +250,12 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAgencyStore } from '@/stores/agency'
+import { usePwaStore } from '@/stores/pwa'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const agencyStore = useAgencyStore()
+const pwaStore = usePwaStore()
 
 const drawer = ref(true)
 

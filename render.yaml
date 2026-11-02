@@ -26,6 +26,13 @@ services:
     rootDir: frontEnd/touriva
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
+    headers:
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /manifest.webmanifest
+        name: Content-Type
+        value: application/manifest+json
     routes:
       - type: rewrite
         source: /*

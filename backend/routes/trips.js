@@ -21,7 +21,7 @@ router.get('/:id', getTripById)
 router.get('/:id/departures', getPublicTripDepartures)
 
 // Protected routes
-router.post('/', requireAuth, requireRole('partner', 'administrator'), createTrip)
+router.post('/', requireAuth, createTrip)
 router.put('/:id', requireAuth, updateTrip)
 router.delete('/:id', requireAuth, deleteTrip)
 router.get('/user/:userId', requireAuth, getTripsByUser)

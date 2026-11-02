@@ -1,4 +1,5 @@
 const Trip = require('../models/Trip')
+const Wilaya = require('../models/Wilaya')
 
 // GET all trips
 const getTrips = async (req, res) => {
@@ -63,8 +64,58 @@ const createTrip = async (req, res) => {
       ...req.body,
       creator: req.user.role === 'administrator' && req.body.creator ? req.body.creator : req.user._id
     }
+
+    // Clients / regular travelers cannot publish marketplace packages directly
+    if (req.user.role === 'client' || req.user.role === 'tourist') {
+      tripPayload.published = false
+      tripPayload.status = 'created'
+    }
+
+    // Resolve destination if string or name was passed
+    if (tripPayload.destination && typeof tripPayload.destination === 'string' && !tripPayload.destination.match(/^[0-9a-fA-F]{24}$/)) {
+      try {
+        const query = tripPayload.destination.trim()
+        const found = await Wilaya.findOne({
+          $or: [
+            { name: { $regex: new RegExp(query, 'i') } },
+            { nameFr: { $regex: new RegExp(query, 'i') } }
+          ]
+        }).select('_id')
+        tripPayload.destination = found ? found._id : null
+      } catch (wErr) {
+        tripPayload.destination = null
+      }
+    }
+
+    // Synchronize durationDays and days array
+    if (tripPayload.durationDays && (!tripPayload.days || !tripPayload.days.length)) {
+      const d = Math.max(1, parseInt(tripPayload.durationDays, 10) || 1)
+      tripPayload.days = Array.from({ length: d }, (_, i) => i + 1)
+    } else if (Array.isArray(tripPayload.days) && tripPayload.days.length > 0) {
+      tripPayload.durationDays = tripPayload.days.length
+    }
+
+    // Normalize item activities to guarantee schema conformity (title vs name)
+    if (Array.isArray(tripPayload.items)) {
+      tripPayload.items = tripPayload.items.map((d, dIdx) => ({
+        day: d.day || (dIdx + 1),
+        items: Array.isArray(d.items) ? d.items.map(it => ({
+          title: it.title || it.name || 'Sightseeing Stop',
+          time: it.time || '10:00',
+          description: it.description || '',
+          lat: it.lat || 0,
+          lng: it.lng || 0,
+          image: it.image || ''
+        })) : []
+      }))
+    }
+
     const trip = await Trip.create(tripPayload)
-    res.status(201).json(trip)
+    const populated = await Trip.findById(trip._id)
+      .populate('creator', '_id firstName lastName companyName phone typeAccount')
+      .populate('destination', '_id name nameFr nameAr')
+
+    res.status(201).json(populated || trip)
   } catch (error) {
     res.status(400).json({ message: 'Trip creation failed', error: error.message })
   }
