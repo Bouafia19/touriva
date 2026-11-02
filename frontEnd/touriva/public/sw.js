@@ -9,7 +9,7 @@
  * - Background revalidation for static icons, fonts, and brand assets
  */
 
-const CACHE_VERSION = 'touriva-pwa-v1.0.0';
+const CACHE_VERSION = 'touriva-pwa-v1.0.1';
 const STATIC_CACHE = `touriva-static-${CACHE_VERSION}`;
 const ASSETS_CACHE = `touriva-assets-${CACHE_VERSION}`;
 const IMAGES_CACHE = `touriva-images-${CACHE_VERSION}`;
@@ -109,15 +109,15 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(async () => {
-          // Offline fallback: try matched cached page, then cached SPA shell, then offline.html
+          // Offline fallback: try matched cached page, then offline fallback page, then cached SPA shell
           const cachedPage = await caches.match(request);
           if (cachedPage) return cachedPage;
 
-          const cachedIndex = await caches.match('/index.html');
-          if (cachedIndex) return cachedIndex;
-
           const offlinePage = await caches.match('/offline.html');
           if (offlinePage) return offlinePage;
+
+          const cachedIndex = await caches.match('/index.html');
+          if (cachedIndex) return cachedIndex;
 
           return new Response('You are offline. Please reconnect to use Touriva.', {
             headers: { 'Content-Type': 'text/plain; charset=utf-8' }
