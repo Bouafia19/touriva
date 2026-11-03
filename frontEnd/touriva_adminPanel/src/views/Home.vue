@@ -42,7 +42,7 @@
         <v-col cols="12" md="4" class="text-center d-none d-md-block">
           <div class="hero-emblem-container">
             <v-avatar size="100" color="forestGreen" class="elevation-3 hero-avatar">
-              <v-icon icon="mdi-compass" color="sand" size="56"></v-icon>
+              <v-icon icon="mdi-compass-rose" color="sand" size="56"></v-icon>
             </v-avatar>
             <div class="font-serif font-weight-bold text-forest mt-2 text-h6">
               TOU<span class="text-sand-dark">RIVA</span>

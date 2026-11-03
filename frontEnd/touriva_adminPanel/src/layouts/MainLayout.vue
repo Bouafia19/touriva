@@ -12,7 +12,7 @@
       <div class="sidebar-header d-flex align-center px-5 py-4">
         <div class="brand-logo mr-3">
           <v-avatar size="40" rounded="lg" class="elevation-1" color="deepGreen">
-            <v-icon icon="mdi-compass" color="sand" size="26"></v-icon>
+            <v-icon icon="mdi-compass-rose" color="sand" size="26"></v-icon>
           </v-avatar>
         </div>
         <div class="brand-meta">

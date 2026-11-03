@@ -1,0 +1,336 @@
+[
+  {
+    "appId": "web",
+    "appName": "TOURIVA Web & PWA",
+    "port": 4173,
+    "routesTested": [
+      {
+        "route": "/",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/web_root.png",
+        "domDetails": {
+          "images": [
+            {
+              "tag": "img",
+              "src": "http://127.0.0.1:4173/logo-dark.svg",
+              "naturalWidth": 440,
+              "naturalHeight": 120,
+              "displayWidth": 145,
+              "displayHeight": 38,
+              "complete": true
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&w=2000&q=85",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 43.63636363636364 43.63636363636364",
+              "width": 48,
+              "height": 48,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1572252009286-268acec5ca0a?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 45.714285714285715 45.714285714285715",
+              "width": 32,
+              "height": 32,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 45.714285714285715 45.714285714285715",
+              "width": 32,
+              "height": 32,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 45.714285714285715 45.714285714285715",
+              "width": 32,
+              "height": 32,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 45.714285714285715 45.714285714285715",
+              "width": 32,
+              "height": 32,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 45.714285714285715 45.714285714285715",
+              "width": 32,
+              "height": 32,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "svg",
+              "viewBox": "0 0 45.714285714285715 45.714285714285715",
+              "width": 32,
+              "height": 32,
+              "pathD": null,
+              "fill": null
+            },
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1200&q=80",
+              "naturalWidth": 0,
+              "naturalHeight": 0,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            },
+            {
+              "tag": "img",
+              "src": "http://127.0.0.1:4173/logo-dark.svg",
+              "naturalWidth": 440,
+              "naturalHeight": 120,
+              "displayWidth": 160,
+              "displayHeight": 45,
+              "complete": true
+            },
+            {
+              "tag": "img",
+              "src": "http://127.0.0.1:4173/icons/icon-192.png",
+              "naturalWidth": 192,
+              "naturalHeight": 192,
+              "displayWidth": 42,
+              "displayHeight": 42,
+              "complete": true
+            }
+          ],
+          "favicon": "http://127.0.0.1:4173/favicon.svg",
+          "appleTouch": "http://127.0.0.1:4173/icons/apple-touch-icon.png",
+          "manifest": "http://127.0.0.1:4173/manifest.webmanifest",
+          "hasMonogram": false,
+          "monogramHtml": null
+        }
+      },
+      {
+        "route": "/login",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/web__login.png",
+        "domDetails": {
+          "images": [
+            {
+              "tag": "img",
+              "src": "http://127.0.0.1:4173/logo.svg",
+              "naturalWidth": 440,
+              "naturalHeight": 120,
+              "displayWidth": 170,
+              "displayHeight": 45,
+              "complete": true
+            },
+            {
+              "tag": "img",
+              "src": "http://127.0.0.1:4173/icons/icon-192.png",
+              "naturalWidth": 192,
+              "naturalHeight": 192,
+              "displayWidth": 42,
+              "displayHeight": 42,
+              "complete": true
+            }
+          ],
+          "favicon": "http://127.0.0.1:4173/favicon.svg",
+          "appleTouch": "http://127.0.0.1:4173/icons/apple-touch-icon.png",
+          "manifest": "http://127.0.0.1:4173/manifest.webmanifest",
+          "hasMonogram": false,
+          "monogramHtml": null
+        }
+      }
+    ],
+    "brandingAssetsFound": [],
+    "faviconStatus": null,
+    "manifestStatus": null,
+    "brokenImages": [],
+    "monogramFound": false,
+    "status": "PASS"
+  },
+  {
+    "appId": "admin",
+    "appName": "TOURIVA Admin Panel",
+    "port": 4174,
+    "routesTested": [
+      {
+        "route": "/login",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/admin__login.png",
+        "domDetails": {
+          "images": [],
+          "favicon": "http://127.0.0.1:4174/favicon.svg",
+          "appleTouch": null,
+          "manifest": null,
+          "hasMonogram": false,
+          "monogramHtml": null
+        }
+      }
+    ],
+    "brandingAssetsFound": [],
+    "faviconStatus": null,
+    "manifestStatus": null,
+    "brokenImages": [],
+    "monogramFound": false,
+    "status": "PASS"
+  },
+  {
+    "appId": "shop_web",
+    "appName": "TOURIVA Shop Web",
+    "port": 4175,
+    "routesTested": [
+      {
+        "route": "/",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/shop_web_root.png",
+        "domDetails": {
+          "images": [
+            {
+              "tag": "img",
+              "src": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1600&q=85",
+              "naturalWidth": 1600,
+              "naturalHeight": 1069,
+              "displayWidth": 0,
+              "displayHeight": 0,
+              "complete": false
+            }
+          ],
+          "favicon": "http://127.0.0.1:4175/favicon.svg",
+          "appleTouch": null,
+          "manifest": null,
+          "hasMonogram": false,
+          "monogramHtml": null
+        }
+      },
+      {
+        "route": "/login",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/shop_web__login.png",
+        "domDetails": {
+          "images": [],
+          "favicon": "http://127.0.0.1:4175/favicon.svg",
+          "appleTouch": null,
+          "manifest": null,
+          "hasMonogram": false,
+          "monogramHtml": null
+        }
+      }
+    ],
+    "brandingAssetsFound": [],
+    "faviconStatus": null,
+    "manifestStatus": null,
+    "brokenImages": [],
+    "monogramFound": false,
+    "status": "PASS"
+  },
+  {
+    "appId": "shop_admin",
+    "appName": "TOURIVA Shop Admin",
+    "port": 4176,
+    "routesTested": [
+      {
+        "route": "/login",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/shop_admin__login.png",
+        "domDetails": {
+          "images": [],
+          "favicon": "http://127.0.0.1:4176/favicon.svg",
+          "appleTouch": null,
+          "manifest": null,
+          "hasMonogram": true,
+          "monogramHtml": "<div data-v-2accd2d5=\"\" class=\"brand-monogram\"><i data-v-2accd2d5=\"\" class=\"mdi-compass-rose mdi v-icon notranslate v-theme--tourivaShopAdminTheme text-sand\" aria-hidden=\"true\" style=\"font-size: 26px; height: 26px; width: 26px;\"></i></div>"
+        }
+      }
+    ],
+    "brandingAssetsFound": [],
+    "faviconStatus": null,
+    "manifestStatus": null,
+    "brokenImages": [],
+    "monogramFound": true,
+    "status": "PASS"
+  },
+  {
+    "appId": "seller_admin",
+    "appName": "TOURIVA Shop Seller Admin",
+    "port": 4177,
+    "routesTested": [
+      {
+        "route": "/login",
+        "screenshot": "/home/next/next projects/touriva/branding/screenshots/runtime_audit/seller_admin__login.png",
+        "domDetails": {
+          "images": [],
+          "favicon": "http://127.0.0.1:4177/favicon.svg",
+          "appleTouch": null,
+          "manifest": null,
+          "hasMonogram": true,
+          "monogramHtml": "<div data-v-1344bd3d=\"\" class=\"brand-monogram\"><i data-v-1344bd3d=\"\" class=\"mdi-compass-rose mdi v-icon notranslate v-theme--tourivaSellerTheme text-sand\" aria-hidden=\"true\" style=\"font-size: 26px; height: 26px; width: 26px;\"></i></div>"
+        }
+      }
+    ],
+    "brandingAssetsFound": [],
+    "faviconStatus": null,
+    "manifestStatus": null,
+    "brokenImages": [],
+    "monogramFound": true,
+    "status": "PASS"
+  }
+]
