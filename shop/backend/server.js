@@ -28,11 +28,21 @@ const productRouters = require('./routes/products')
 const categoriesProductsRouters = require('./routes/categoriesProducts')
 const orderRouters = require('./routes/orders')
 
+// Touriva Independent Marketplace Modules
+const marketplaceRouters = require('./routes/marketplace')
+const sellerRouters = require('./routes/seller')
+const marketplaceAdminRouters = require('./routes/marketplaceAdmin')
+const { apiLimiter, authLimiter, checkoutLimiter } = require('./middleware/rateLimiter')
+
 // express app
 const app = express()
 
 // CORS configuration - explicit production and development allowlist
 const defaultAllowedOrigins = [
+  'https://market.touriva.nextchallenge.tech',
+  'https://api.market.touriva.nextchallenge.tech',
+  'https://seller.market.touriva.nextchallenge.tech',
+  'https://admin.market.touriva.nextchallenge.tech',
   'https://touriva-web.onrender.com',
   'https://touriva-admin.onrender.com',
   'https://touriva-shop-web.onrender.com',
@@ -92,9 +102,20 @@ app.use(express.urlencoded({ extended: true, limit: defaultBodyLimit }))
 
 
 // health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', service: 'touriva-shop-backend', timestamp: new Date().toISOString() })
+app.get(['/health', '/api/health'], (req, res) => {
+    res.json({
+        status: 'ok',
+        service: 'touriva-shop-backend',
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        timestamp: new Date().toISOString()
+    })
 })
+
+// Rate limiting
+app.use('/api/', apiLimiter)
+app.use('/api/users/login', authLimiter)
+app.use('/api/marketplace/checkout', checkoutLimiter)
+app.use('/api/marketplace/seller-application', checkoutLimiter)
 
 // routes
 app.use('/api/users', userRouters)
@@ -120,20 +141,27 @@ app.use('/api/products', productRouters)
 app.use('/api/catprod', categoriesProductsRouters)
 app.use('/api/orders', orderRouters)
 
+// Independent Marketplace Routes
+app.use('/api/marketplace', marketplaceRouters)
+app.use('/api/seller', sellerRouters)
+app.use('/api/admin/marketplace', marketplaceAdminRouters)
+
 // connect to db
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGO_URI)
     .then(() => {
         if (process.env.NODE_ENV !== 'test') {
-            console.log('connected to database')
+            const dbName = mongoose.connection.name || 'touriva_shop'
+            console.log(`[Touriva Marketplace API] Connected to database: ${dbName}`)
+            const PORT = process.env.PORT || 5000
             // listen to port
-            app.listen(process.env.PORT, () => {
-                console.log('listening for requests on port', process.env.PORT)
+            app.listen(PORT, () => {
+                console.log(`[Touriva Marketplace API] Listening for requests on port ${PORT}`)
             })
         }
     })
     .catch((err) => {
-        console.error('Database connection error:', err)
+        console.error('[Touriva Marketplace API] Database connection error:', err)
     })
 
 module.exports = app 

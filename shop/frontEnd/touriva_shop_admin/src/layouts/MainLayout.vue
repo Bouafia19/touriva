@@ -14,7 +14,7 @@
           <div class="brand-monogram">T</div>
           <div class="brand-text">
             <div class="brand-title">TOU<span>RIVA</span></div>
-            <div class="brand-badge">SHOP ADMIN</div>
+            <div class="brand-badge">MARKETPLACE ADMIN</div>
           </div>
         </div>
       </div>
@@ -276,39 +276,42 @@
   const dialog = ref(false)
   const dialogInbox = ref(false)
 
-  // Navigation structure grouped logically
+  // Navigation structure grouped logically for Owner Marketplace Operator
   const navGroups = ref([
     {
-      label: 'Dashboard',
+      label: 'Marketplace Operations',
       items: [
-        { title: 'Home', icon: 'mdi-compass-outline', to: '/' },
-        { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' }
+        { title: 'Executive Dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' }
       ]
     },
     {
-      label: 'Products',
+      label: 'Vendor Management',
       items: [
-        { title: 'Products', icon: 'mdi-package-variant-closed', to: '/products' },
-        { title: 'Categories', icon: 'mdi-format-list-bulleted-type', to: '/admin/categories' },
-        { title: 'Brands', icon: 'mdi-tag-outline', to: '/brands' },
-        { title: 'Orders', icon: 'mdi-receipt-text-outline', to: '/orders' }
+        { title: 'Seller Applications', icon: 'mdi-account-clock-outline', to: '/admin/seller-applications' },
+        { title: 'Vendors & Sellers', icon: 'mdi-store-outline', to: '/admin/sellers' }
       ]
     },
     {
-      label: 'Marketing & Comms',
+      label: 'Catalog & Moderation',
       items: [
-        { title: 'Ads', icon: 'mdi-bullhorn-outline', to: '/ads' },
-        { title: 'Notifications', icon: 'mdi-bell-outline', to: '/notifications' }
+        { title: 'Product Moderation', icon: 'mdi-shield-check-outline', to: '/admin/products/moderation' },
+        { title: 'All Products', icon: 'mdi-package-variant-closed', to: '/products' },
+        { title: 'Categories', icon: 'mdi-format-list-bulleted-type', to: '/admin/categories' }
       ]
     },
     {
-      label: 'Settings',
+      label: 'Orders & Financials',
       items: [
-        { title: 'Users', icon: 'mdi-account-group-outline', to: '/users' },
-        { title: 'Billing', icon: 'mdi-credit-card-outline', to: '/billing' },
-        { title: 'TermsConditions', icon: 'mdi-file-document-outline', to: '/terms&conditions' },
-        { title: 'Settings', icon: 'mdi-cog-outline', to: '/setting' },
-        { title: 'About', icon: 'mdi-information-outline', to: '/about' }
+        { title: 'Customer Orders', icon: 'mdi-receipt-text-check-outline', to: '/admin/orders' },
+        { title: 'Commission Ledger', icon: 'mdi-scale-balance', to: '/admin/commissions' }
+      ]
+    },
+    {
+      label: 'Platform Administration',
+      items: [
+        { title: 'Marketplace Settings', icon: 'mdi-tune-vertical', to: '/admin/marketplace-settings' },
+        { title: 'User Accounts', icon: 'mdi-account-group-outline', to: '/users' },
+        { title: 'About System', icon: 'mdi-information-outline', to: '/about' }
       ]
     }
   ])

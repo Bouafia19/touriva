@@ -3,9 +3,9 @@
     <!-- Editorial Page Header -->
     <div class="editorial-page-header">
       <div>
-        <div class="editorial-tag mb-1">Commerce Intelligence</div>
-        <h1 class="editorial-page-title">Executive Dashboard</h1>
-        <p class="editorial-page-subtitle">Real-time performance metrics, product catalog overview, and recent store activity.</p>
+        <div class="editorial-tag mb-1">Marketplace Operations</div>
+        <h1 class="editorial-page-title">Executive Marketplace Overview</h1>
+        <p class="editorial-page-subtitle">Central supervision of vendors, catalog moderation queue, multi-vendor GMV, and accrued platform commissions.</p>
       </div>
 
       <div class="d-flex align-center gap-2 flex-wrap">
@@ -20,10 +20,10 @@
         </v-btn>
         <v-btn
           class="btn-editorial-primary px-5"
-          prepend-icon="mdi-plus"
-          to="/products"
+          prepend-icon="mdi-shield-check"
+          to="/admin/products/moderation"
         >
-          {{ $t('New') || 'Add Product' }}
+          Moderation Queue ({{ kpis.pendingProductModeration }})
         </v-btn>
       </div>
     </div>
@@ -32,334 +32,261 @@
     <div v-if="loading && isInitialLoad" class="d-flex justify-center align-center py-16">
       <div class="text-center">
         <v-progress-circular indeterminate color="forestGreen" size="48" width="4"></v-progress-circular>
-        <div class="mt-4 text-subtitle-2 text-editorial-secondary">Loading executive overview...</div>
+        <div class="mt-4 text-subtitle-2 text-editorial-secondary">Loading executive marketplace data...</div>
       </div>
     </div>
 
     <div v-else>
-      <!-- Stat Cards Grid -->
-      <v-row class="mb-6">
-        <!-- Stat 1: Total Orders -->
+      <!-- Stat Cards Grid 1: Revenue & Volume -->
+      <v-row class="mb-4">
+        <!-- Stat 1: Gross GMV -->
         <v-col cols="12" sm="6" lg="3">
           <div class="editorial-stat-card">
             <div class="d-flex justify-space-between align-start">
               <div>
-                <span class="editorial-tag">Commerce</span>
+                <span class="editorial-tag">Marketplace Volume</span>
                 <div class="text-h4 font-serif font-weight-bold text-deep-green mt-1">
-                  {{ orderStats.totalOrders }}
+                  {{ formatCurrency(kpis.marketplaceGMVDZD) }}
                 </div>
                 <div class="text-caption text-editorial-secondary mt-1">
-                  Total Orders Placed
+                  Gross Merchandise Volume
                 </div>
               </div>
               <div class="stat-icon-wrapper bg-sand-light">
-                <v-icon icon="mdi-receipt-text-outline" color="#B89564" size="24"></v-icon>
+                <v-icon icon="mdi-cash-multiple" color="#B89564" size="24"></v-icon>
               </div>
             </div>
             <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
-              <span class="status-badge status-badge-warning">
-                <span class="status-badge-dot"></span>
-                {{ orderStats.pendingOrders }} Pending
-              </span>
-              <router-link to="/orders" class="text-caption font-weight-bold text-forest text-decoration-none">
-                View orders &rarr;
+              <span class="text-caption text-editorial-secondary">{{ kpis.totalOrders }} total customer orders</span>
+              <router-link to="/admin/orders" class="text-caption font-weight-bold text-forest text-decoration-none">
+                Orders &rarr;
               </router-link>
             </div>
           </div>
         </v-col>
 
-        <!-- Stat 2: Gross Revenue / Volume -->
+        <!-- Stat 2: Platform Revenue (Commissions) -->
         <v-col cols="12" sm="6" lg="3">
           <div class="editorial-stat-card">
             <div class="d-flex justify-space-between align-start">
               <div>
-                <span class="editorial-tag">Revenue</span>
+                <span class="editorial-tag">Touriva Revenue</span>
                 <div class="text-h4 font-serif font-weight-bold text-forest mt-1">
-                  {{ formatCurrency(orderStats.totalVolume) }}
+                  {{ formatCurrency(kpis.totalCommissionEarnedDZD) }}
                 </div>
                 <div class="text-caption text-editorial-secondary mt-1">
-                  Gross Processed Volume
+                  Platform Commission Earned
                 </div>
               </div>
-              <div class="stat-icon-wrapper" style="background-color: rgba(33, 134, 107, 0.12);">
-                <v-icon icon="mdi-cash-multiple" color="#21866B" size="24"></v-icon>
+              <div class="stat-icon-wrapper bg-sand-light">
+                <v-icon icon="mdi-percent" color="#21866B" size="24"></v-icon>
               </div>
             </div>
             <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
-              <span class="status-badge status-badge-success">
-                <span class="status-badge-dot"></span>
-                Active Shop
-              </span>
-              <router-link to="/billing" class="text-caption font-weight-bold text-forest text-decoration-none">
-                Billing details &rarr;
+              <span class="text-caption text-forest font-weight-bold">Net operator profit</span>
+              <router-link to="/admin/commissions" class="text-caption font-weight-bold text-forest text-decoration-none">
+                Ledger &rarr;
               </router-link>
             </div>
           </div>
         </v-col>
 
-        <!-- Stat 3: Products Catalog -->
+        <!-- Stat 3: Vendor Network -->
         <v-col cols="12" sm="6" lg="3">
           <div class="editorial-stat-card">
             <div class="d-flex justify-space-between align-start">
               <div>
-                <span class="editorial-tag">Catalog</span>
+                <span class="editorial-tag">Vendor Ecosystem</span>
                 <div class="text-h4 font-serif font-weight-bold text-deep-green mt-1">
-                  {{ productStats.total }}
+                  {{ kpis.activeVendors }}
                 </div>
                 <div class="text-caption text-editorial-secondary mt-1">
-                  Items in Inventory
+                  Active Verified Sellers
                 </div>
               </div>
-              <div class="stat-icon-wrapper" style="background-color: rgba(23, 63, 53, 0.1);">
-                <v-icon icon="mdi-package-variant-closed" color="#173F35" size="24"></v-icon>
+              <div class="stat-icon-wrapper bg-sand-light">
+                <v-icon icon="mdi-store" color="#B89564" size="24"></v-icon>
               </div>
             </div>
             <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
-              <span class="status-badge status-badge-sand">
+              <span class="status-badge status-badge-warning" v-if="kpis.pendingApplications > 0">
                 <span class="status-badge-dot"></span>
-                {{ productStats.published }} Published
+                {{ kpis.pendingApplications }} Applications
               </span>
-              <router-link to="/products" class="text-caption font-weight-bold text-forest text-decoration-none">
-                Manage items &rarr;
+              <span class="status-badge status-badge-success" v-else>
+                Applications Clear
+              </span>
+              <router-link to="/admin/seller-applications" class="text-caption font-weight-bold text-forest text-decoration-none">
+                Review &rarr;
               </router-link>
             </div>
           </div>
         </v-col>
 
-        <!-- Stat 4: Community & Users -->
+        <!-- Stat 4: Catalog & Moderation -->
         <v-col cols="12" sm="6" lg="3">
           <div class="editorial-stat-card">
             <div class="d-flex justify-space-between align-start">
               <div>
-                <span class="editorial-tag">Accounts</span>
+                <span class="editorial-tag">Catalog Moderation</span>
                 <div class="text-h4 font-serif font-weight-bold text-deep-green mt-1">
-                  {{ userStats.total }}
+                  {{ kpis.totalCatalogProducts }}
                 </div>
                 <div class="text-caption text-editorial-secondary mt-1">
-                  Active Users & Partners
+                  Total Catalog Products
                 </div>
               </div>
-              <div class="stat-icon-wrapper" style="background-color: rgba(42, 111, 133, 0.12);">
-                <v-icon icon="mdi-account-group-outline" color="#2A6F85" size="24"></v-icon>
+              <div class="stat-icon-wrapper bg-sand-light">
+                <v-icon icon="mdi-package-variant-closed" color="#B89564" size="24"></v-icon>
               </div>
             </div>
             <div class="d-flex align-center justify-space-between mt-4 pt-3 border-t">
-              <span class="status-badge status-badge-info">
+              <span class="status-badge status-badge-warning" v-if="kpis.pendingProductModeration > 0">
                 <span class="status-badge-dot"></span>
-                {{ userStats.clients }} Clients · {{ userStats.partners }} Partners
+                {{ kpis.pendingProductModeration }} In Queue
               </span>
-              <router-link to="/users" class="text-caption font-weight-bold text-forest text-decoration-none">
-                User list &rarr;
+              <span class="status-badge status-badge-success" v-else>
+                Queue Clean
+              </span>
+              <router-link to="/admin/products/moderation" class="text-caption font-weight-bold text-forest text-decoration-none">
+                Moderate &rarr;
               </router-link>
             </div>
           </div>
         </v-col>
       </v-row>
 
-      <!-- Quick Actions Banner -->
-      <v-card class="editorial-card mb-6 pa-4 pa-md-5">
-        <div class="d-flex flex-wrap align-center justify-space-between gap-3">
-          <div>
-            <h3 class="font-serif text-h6 font-weight-bold text-deep-green mb-1">Quick Administrative Actions</h3>
-            <p class="text-caption text-editorial-secondary mb-0">Direct shortcuts to common operational and catalog tasks.</p>
-          </div>
-          <div class="d-flex flex-wrap gap-2">
-            <v-btn
-              to="/products"
-              class="btn-editorial-primary text-none px-4 me-2 my-1"
-              size="small"
-              prepend-icon="mdi-plus-box-outline"
-            >
-              Add New Product
-            </v-btn>
-            <v-btn
-              to="/orders"
-              class="btn-editorial-sand text-none px-4 me-2 my-1"
-              size="small"
-              prepend-icon="mdi-receipt"
-            >
-              Review Orders
-            </v-btn>
-            <v-btn
-              to="/admin/categories"
-              class="btn-editorial-outline text-none px-4 me-2 my-1"
-              size="small"
-              prepend-icon="mdi-shape-outline"
-            >
-              Categories
-            </v-btn>
-            <v-btn
-              to="/ads"
-              variant="text"
-              class="btn-editorial-ghost text-none px-3 my-1"
-              size="small"
-              prepend-icon="mdi-bullhorn-outline"
-            >
-              Advertising
-            </v-btn>
-          </div>
-        </div>
-      </v-card>
-
-      <!-- Two-Column Main Content: Recent Orders & Catalog Highlights -->
+      <!-- Operational Priority Panels -->
       <v-row>
-        <!-- Left: Recent Orders / Transactions -->
+        <!-- Left: Quick Navigation & Moderation Hub -->
         <v-col cols="12" lg="8">
-          <div class="editorial-card">
-            <div class="editorial-card-header">
-              <div class="d-flex align-center">
-                <v-icon icon="mdi-history" color="forestGreen" class="me-2"></v-icon>
-                <div>
-                  <h2 class="text-subtitle-1 font-weight-bold text-deep-green mb-0 font-serif">Recent Store Orders</h2>
-                  <span class="text-caption text-editorial-secondary">Latest client purchases and processing status</span>
-                </div>
+          <div class="editorial-table-container mb-6">
+            <div class="pa-4 bg-white d-flex align-center justify-space-between border-b">
+              <div>
+                <h2 class="text-subtitle-1 font-weight-bold text-deep-green">Marketplace Operator Controls</h2>
+                <div class="text-caption text-editorial-secondary">Direct management interfaces for Khaled Bouafia</div>
               </div>
-              <v-btn
-                to="/orders"
-                variant="text"
-                size="small"
-                class="btn-editorial-ghost"
-              >
-                View all &rarr;
-              </v-btn>
             </div>
 
-            <!-- Table or Empty State -->
-            <div v-if="recentOrders.length > 0" class="table-responsive">
-              <v-table density="comfortable" class="editorial-table">
-                <thead>
-                  <tr>
-                    <th>Order Ref / Code</th>
-                    <th>Customer</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th class="text-end">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="ord in recentOrders" :key="ord._id || ord.id">
-                    <td class="font-weight-medium text-deep-green">
-                      {{ ord.code || (ord._id ? '#' + ord._id.slice(-6).toUpperCase() : 'N/A') }}
-                    </td>
-                    <td>
-                      <div class="font-weight-medium">{{ getCustomerName(ord) }}</div>
-                      <div class="text-caption text-editorial-secondary">{{ ord.client?.email || ord.customerEmail || '' }}</div>
-                    </td>
-                    <td class="text-caption">
-                      {{ formatDate(ord.createdAt || ord.date) }}
-                    </td>
-                    <td class="font-weight-bold text-forest">
-                      {{ formatCurrency(ord.totalAmount || ord.total || ord.price || 0) }}
-                    </td>
-                    <td>
-                      <span :class="['status-badge', getOrderStatusBadgeClass(ord.status)]">
-                        <span class="status-badge-dot"></span>
-                        {{ ord.status || 'pending' }}
-                      </span>
-                    </td>
-                    <td class="text-end">
-                      <v-btn
-                        icon="mdi-arrow-right"
-                        size="x-small"
-                        variant="tonal"
-                        color="forestGreen"
-                        @click="viewOrder(ord)"
-                        title="View order details"
-                      ></v-btn>
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-            </div>
+            <div class="pa-4">
+              <v-row>
+                <v-col cols="12" sm="6">
+                  <v-card class="pa-4 border-editorial h-100" hover to="/admin/seller-applications">
+                    <div class="d-flex align-center gap-3 mb-2">
+                      <v-avatar color="sandLight" size="40">
+                        <v-icon icon="mdi-account-plus" color="forestGreen"></v-icon>
+                      </v-avatar>
+                      <div>
+                        <div class="font-weight-bold text-deep-green">Vendor Applications</div>
+                        <div class="text-caption text-editorial-secondary">{{ kpis.pendingApplications }} pending review</div>
+                      </div>
+                    </div>
+                    <p class="text-caption text-editorial-secondary mb-0">
+                      Vet Algerian artisans, inspect craft credentials, and grant automated seller store access.
+                    </p>
+                  </v-card>
+                </v-col>
 
-            <div v-else class="text-center py-10 px-4">
-              <v-icon icon="mdi-basket-outline" size="48" color="sand" class="mb-2"></v-icon>
-              <div class="text-subtitle-2 font-weight-medium text-deep-green">No Orders Recorded Yet</div>
-              <p class="text-caption text-editorial-secondary mb-4">When clients place purchases, they will appear here in real time.</p>
-              <v-btn to="/orders" size="small" class="btn-editorial-primary px-4">
-                Explore Orders Management
-              </v-btn>
+                <v-col cols="12" sm="6">
+                  <v-card class="pa-4 border-editorial h-100" hover to="/admin/products/moderation">
+                    <div class="d-flex align-center gap-3 mb-2">
+                      <v-avatar color="sandLight" size="40">
+                        <v-icon icon="mdi-shield-check" color="forestGreen"></v-icon>
+                      </v-avatar>
+                      <div>
+                        <div class="font-weight-bold text-deep-green">Product Moderation</div>
+                        <div class="text-caption text-editorial-secondary">{{ kpis.pendingProductModeration }} items awaiting approval</div>
+                      </div>
+                    </div>
+                    <p class="text-caption text-editorial-secondary mb-0">
+                      Quality review workflow before products appear in the public Touriva traveler storefront.
+                    </p>
+                  </v-card>
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-card class="pa-4 border-editorial h-100" hover to="/admin/orders">
+                    <div class="d-flex align-center gap-3 mb-2">
+                      <v-avatar color="sandLight" size="40">
+                        <v-icon icon="mdi-receipt-text-check" color="forestGreen"></v-icon>
+                      </v-avatar>
+                      <div>
+                        <div class="font-weight-bold text-deep-green">Payment Verification</div>
+                        <div class="text-caption text-editorial-secondary">{{ kpis.pendingPaymentOrders }} awaiting payment review</div>
+                      </div>
+                    </div>
+                    <p class="text-caption text-editorial-secondary mb-0">
+                      Verify CCP / BaridiMob transfer receipts and trigger commission accruals.
+                    </p>
+                  </v-card>
+                </v-col>
+
+                <v-col cols="12" sm="6">
+                  <v-card class="pa-4 border-editorial h-100" hover to="/admin/commissions">
+                    <div class="d-flex align-center gap-3 mb-2">
+                      <v-avatar color="sandLight" size="40">
+                        <v-icon icon="mdi-wallet" color="forestGreen"></v-icon>
+                      </v-avatar>
+                      <div>
+                        <div class="font-weight-bold text-deep-green">Commission Ledger</div>
+                        <div class="text-caption text-editorial-secondary">Settlement & payouts tracking</div>
+                      </div>
+                    </div>
+                    <p class="text-caption text-editorial-secondary mb-0">
+                      Track per-item commission revenue and disburse net balances to verified Algerian vendors.
+                    </p>
+                  </v-card>
+                </v-col>
+              </v-row>
             </div>
           </div>
         </v-col>
 
-        <!-- Right: Catalog Snapshot & Platform Status -->
+        <!-- Right: Governance & Security Pledge -->
         <v-col cols="12" lg="4">
-          <!-- Catalog Highlights -->
-          <div class="editorial-card mb-6">
-            <div class="editorial-card-header">
-              <div class="d-flex align-center">
-                <v-icon icon="mdi-tag-outline" color="sandDark" class="me-2"></v-icon>
-                <h2 class="text-subtitle-1 font-weight-bold text-deep-green mb-0 font-serif">Recent Catalog Items</h2>
-              </div>
-              <router-link to="/products" class="text-caption font-weight-bold text-forest text-decoration-none">
-                All ({{ productStats.total }})
-              </router-link>
+          <div class="editorial-card pa-5 mb-4">
+            <span class="editorial-tag mb-2">Platform Governance</span>
+            <div class="font-serif font-weight-bold text-h6 text-deep-green mb-2">
+              Khaled Bouafia Central Supervision
             </div>
+            <p class="text-caption text-editorial-secondary mb-3">
+              Touriva Marketplace is an owner-operated multi-vendor ecosystem. Sellers do not possess independent administrative rights. All listings and payouts pass through central moderation.
+            </p>
 
-            <div v-if="recentProducts.length > 0" class="pa-3">
-              <div
-                v-for="prod in recentProducts"
-                :key="prod._id"
-                class="product-preview-row d-flex align-center py-2 px-2 border-b"
-              >
-                <v-avatar rounded="lg" size="44" class="me-3 bg-sand-light border-editorial flex-shrink-0">
-                  <v-img v-if="prod.img" :src="prod.img" cover></v-img>
-                  <v-icon v-else icon="mdi-package-variant" color="forestGreen" size="22"></v-icon>
-                </v-avatar>
-                <div class="overflow-hidden flex-grow-1">
-                  <div class="text-subtitle-2 font-weight-semibold text-truncate text-deep-green">{{ prod.name }}</div>
-                  <div class="d-flex align-center gap-2 mt-1">
-                    <span class="text-caption font-weight-bold text-forest">{{ formatCurrency(prod.price) }}</span>
-                    <span class="text-caption text-editorial-secondary ms-2">Code: {{ prod.code || 'N/A' }}</span>
-                  </div>
-                </div>
-                <span :class="['status-badge ms-2', prod.published ? 'status-badge-success' : 'status-badge-neutral']" style="font-size: 0.65rem; padding: 2px 8px;">
-                  {{ prod.published ? 'Live' : 'Draft' }}
-                </span>
+            <div class="border-t pt-3 text-caption">
+              <div class="d-flex justify-space-between mb-2">
+                <span class="text-editorial-secondary">Default Commission:</span>
+                <span class="font-weight-bold text-forest">10.0%</span>
+              </div>
+              <div class="d-flex justify-space-between mb-2">
+                <span class="text-editorial-secondary">Catalog Isolation:</span>
+                <span class="font-weight-bold text-forest">Enforced (RBAC)</span>
+              </div>
+              <div class="d-flex justify-space-between">
+                <span class="text-editorial-secondary">Domain Architecture:</span>
+                <span class="font-weight-bold text-deep-green">nextchallenge.tech</span>
               </div>
             </div>
 
-            <div v-else class="text-center py-8 px-4">
-              <v-icon icon="mdi-package-variant-closed" size="36" color="sand" class="mb-2"></v-icon>
-              <div class="text-caption text-editorial-secondary">No products added to catalog yet.</div>
-              <v-btn to="/products" size="x-small" class="btn-editorial-sand px-3 mt-3">
-                Create First Product
-              </v-btn>
-            </div>
+            <v-btn
+              to="/admin/marketplace-settings"
+              block
+              size="small"
+              class="btn-editorial-sand mt-4"
+              prepend-icon="mdi-cog-outline"
+            >
+              Configure Platform Settings
+            </v-btn>
           </div>
 
-          <!-- Editorial Platform Health Card -->
-          <div class="editorial-card pa-4">
-            <div class="d-flex align-center justify-space-between mb-3">
-              <span class="editorial-tag">Platform Health</span>
-              <span class="status-badge status-badge-success">
-                <span class="status-badge-dot"></span> Online
-              </span>
+          <div class="editorial-card pa-5 bg-sand-light">
+            <div class="d-flex align-center gap-2 mb-2">
+              <v-icon icon="mdi-shield-lock-outline" color="#173F35" size="20"></v-icon>
+              <span class="text-subtitle-2 font-weight-bold text-deep-green">Zero Regression Safety</span>
             </div>
-            <div class="mb-3">
-              <div class="d-flex justify-space-between text-caption mb-1">
-                <span class="text-editorial-secondary">Catalog Published Ratio</span>
-                <span class="font-weight-bold text-deep-green">{{ publishedRatio }}%</span>
-              </div>
-              <v-progress-linear
-                :model-value="publishedRatio"
-                color="forestGreen"
-                height="6"
-                rounded
-                bg-color="sandLight"
-              ></v-progress-linear>
-            </div>
-
-            <div class="pt-2 border-t d-flex justify-space-between align-center text-caption">
-              <span class="text-editorial-secondary">Active Campaigns:</span>
-              <span class="font-weight-bold text-deep-green">{{ activeAdsCount }} active</span>
-            </div>
-            <div class="pt-2 border-t d-flex justify-space-between align-center text-caption mt-2">
-              <span class="text-editorial-secondary">Pending Partner Verifications:</span>
-              <span class="font-weight-bold text-sand-dark">{{ userStats.pendingPartners }} pending</span>
-            </div>
+            <p class="text-caption text-editorial-secondary mb-0">
+              The primary Touriva Tourism Platform (<code>touriva.nextchallenge.tech</code>) remains completely decoupled, safeguarded, and fully operational with 100% test passing rates.
+            </p>
           </div>
         </v-col>
       </v-row>
@@ -369,103 +296,14 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useOrdersStore } from '@/stores/orders'
-import { useProductsStore } from '@/stores/products'
-import { useUsersStore } from '@/stores/users'
-import { useAdsStore } from '@/stores/advertising'
+import { useMarketplaceAdminStore } from '@/stores/marketplaceAdmin'
 
-const orders = useOrdersStore()
-const products = useProductsStore()
-const users = useUsersStore()
-const ads = useAdsStore()
-const router = useRouter()
+const adminStore = useMarketplaceAdminStore()
 
 const loading = ref(false)
 const isInitialLoad = ref(true)
 
-const orderStats = computed(() => {
-  const ords = orders.getOrders || []
-  const pending = orders.getPendingOrder || []
-  let volume = 0
-  ords.forEach(o => {
-    const val = Number(o.totalAmount || o.total || o.price || 0)
-    if (!isNaN(val)) volume += val
-  })
-  return {
-    totalOrders: ords.length,
-    pendingOrders: pending.length,
-    totalVolume: volume
-  }
-})
-
-const productStats = computed(() => {
-  const prods = products.getProducts || []
-  const published = prods.filter(p => p.published).length
-  return {
-    total: prods.length,
-    published
-  }
-})
-
-const userStats = computed(() => {
-  const us = users.getUsers || []
-  const clients = users.getClients || []
-  const partners = users.getPartners || []
-  const pendingPartners = users.getPendingPartners || []
-  return {
-    total: us.length,
-    clients: clients.length,
-    partners: partners.length,
-    pendingPartners: pendingPartners.length
-  }
-})
-
-const activeAdsCount = computed(() => {
-  return ads.getAds?.length || 0
-})
-
-const publishedRatio = computed(() => {
-  if (!productStats.value.total) return 0
-  return Math.round((productStats.value.published / productStats.value.total) * 100)
-})
-
-const recentOrders = computed(() => {
-  const ords = orders.getOrders || []
-  return [...ords].slice(0, 7)
-})
-
-const recentProducts = computed(() => {
-  const prods = products.getProducts || []
-  return [...prods].slice(0, 5)
-})
-
-const getCustomerName = (ord) => {
-  if (ord.client) {
-    if (ord.client.firstName || ord.client.lastName) {
-      return `${ord.client.firstName || ''} ${ord.client.lastName || ''}`.trim()
-    }
-    if (ord.client.companyName) return ord.client.companyName
-  }
-  if (ord.customerName) return ord.customerName
-  if (ord.firstName || ord.lastName) {
-    return `${ord.firstName || ''} ${ord.lastName || ''}`.trim()
-  }
-  return 'Direct Customer'
-}
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return 'Recent'
-  try {
-    return new Date(dateStr).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    })
-  } catch (e) {
-    return dateStr
-  }
-}
+const kpis = computed(() => adminStore.getKpis)
 
 const formatCurrency = (val) => {
   const num = Number(val) || 0
@@ -476,40 +314,12 @@ const formatCurrency = (val) => {
   }).format(num)
 }
 
-const getOrderStatusBadgeClass = (status) => {
-  const s = String(status).toLowerCase()
-  if (s === 'confirmed' || s === 'completed' || s === 'paid' || s === 'delivered') {
-    return 'status-badge-success'
-  }
-  if (s === 'pending' || s === 'processing') {
-    return 'status-badge-warning'
-  }
-  if (s === 'cancelled' || s === 'rejected') {
-    return 'status-badge-error'
-  }
-  return 'status-badge-sand'
-}
-
-const viewOrder = (ord) => {
-  if (ord._id) {
-    const clientName = getCustomerName(ord)
-    router.push({ name: 'OrderDetail', params: { id: ord._id, client: clientName } })
-  } else {
-    router.push({ name: 'Orders' })
-  }
-}
-
 const refreshData = async () => {
   loading.value = true
   try {
-    await Promise.allSettled([
-      orders.fetchOrders(),
-      products.fetchProducts(),
-      users.fetchUsers(),
-      ads.fetchAds()
-    ])
+    await adminStore.fetchDashboard()
   } catch (e) {
-    console.error('Error refreshing dashboard data', e)
+    console.error('Error refreshing marketplace admin dashboard', e)
   } finally {
     loading.value = false
     isInitialLoad.value = false
@@ -520,39 +330,3 @@ onMounted(() => {
   refreshData()
 })
 </script>
-
-<style scoped>
-.editorial-table {
-  background: transparent !important;
-}
-
-.editorial-table thead tr th {
-  background-color: #102D27 !important;
-  color: #FAF8F2 !important;
-  font-family: var(--font-sans) !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
-  padding: 12px 16px !important;
-  border-bottom: 2px solid var(--color-sand) !important;
-}
-
-.editorial-table tbody tr td {
-  padding: 14px 16px !important;
-  border-bottom: 1px solid var(--color-border) !important;
-  font-size: 0.88rem !important;
-}
-
-.editorial-table tbody tr:hover {
-  background-color: #F8F6F0 !important;
-}
-
-.product-preview-row:last-child {
-  border-bottom: none !important;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-</style>

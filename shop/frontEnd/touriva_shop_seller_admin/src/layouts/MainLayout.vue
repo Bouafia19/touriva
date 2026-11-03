@@ -276,39 +276,32 @@
   const dialog = ref(false)
   const dialogInbox = ref(false)
 
-  // Navigation structure grouped logically
+  // Navigation structure grouped logically for Sellers
   const navGroups = ref([
     {
-      label: 'Dashboard',
+      label: 'Storefront & Overview',
       items: [
-        { title: 'Home', icon: 'mdi-compass-outline', to: '/' },
         { title: 'Dashboard', icon: 'mdi-view-dashboard-outline', to: '/dashboard' }
       ]
     },
     {
-      label: 'Products',
+      label: 'Inventory & Commerce',
       items: [
-        { title: 'Products', icon: 'mdi-package-variant-closed', to: '/products' },
-        { title: 'Categories', icon: 'mdi-format-list-bulleted-type', to: '/admin/categories' },
-        { title: 'Brands', icon: 'mdi-tag-outline', to: '/brands' },
-        { title: 'Orders', icon: 'mdi-receipt-text-outline', to: '/orders' }
+        { title: 'My Products', icon: 'mdi-package-variant-closed', to: '/products' },
+        { title: 'Customer Orders', icon: 'mdi-receipt-text-outline', to: '/orders' }
       ]
     },
     {
-      label: 'Marketing & Comms',
+      label: 'Finance & Payouts',
       items: [
-        { title: 'Ads', icon: 'mdi-bullhorn-outline', to: '/ads' },
-        { title: 'Notifications', icon: 'mdi-bell-outline', to: '/notifications' }
+        { title: 'Earnings & Commissions', icon: 'mdi-wallet-outline', to: '/finances' }
       ]
     },
     {
       label: 'Settings',
       items: [
-        { title: 'Users', icon: 'mdi-account-group-outline', to: '/users' },
-        { title: 'Billing', icon: 'mdi-credit-card-outline', to: '/billing' },
-        { title: 'TermsConditions', icon: 'mdi-file-document-outline', to: '/terms&conditions' },
-        { title: 'Settings', icon: 'mdi-cog-outline', to: '/setting' },
-        { title: 'About', icon: 'mdi-information-outline', to: '/about' }
+        { title: 'Store Profile', icon: 'mdi-store-cog-outline', to: '/store-profile' },
+        { title: 'About Marketplace', icon: 'mdi-information-outline', to: '/about' }
       ]
     }
   ])
@@ -381,9 +374,10 @@
   }
 
   onMounted(() => {
-    user.fetchUsers()
-    orders.fetchOrders()
-    inboxes.fetchInboxes()
+    try {
+      orders.fetchOrders().catch(() => {})
+      inboxes.fetchInboxes().catch(() => {})
+    } catch (e) {}
     if (typeof document !== 'undefined' && locale.value === 'ar') {
       document.documentElement.setAttribute('dir', 'rtl')
     }

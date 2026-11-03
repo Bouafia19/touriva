@@ -115,10 +115,19 @@
 
         <v-list-item
           prepend-icon="mdi-face-agent"
-          :title="$t('contactSupport')"
+          :title="$t('contactSupport') || 'Contact & Support'"
           @click="navigateTo('/contactSupport')"
           rounded="lg"
           class="mb-1 drawer-nav-item"
+        />
+
+        <v-list-item
+          prepend-icon="mdi-store-plus-outline"
+          title="Devenir Vendeur"
+          @click="navigateTo('/apply-seller')"
+          :active="$route.path === '/apply-seller'"
+          rounded="lg"
+          class="mb-1 drawer-nav-item text-sand font-weight-bold"
         />
 
         <v-list-item
@@ -800,29 +809,9 @@
     window.location.reload()
   }
 
-  const proceedToCheckout = async () => {
+  const proceedToCheckout = () => {
     cartStore.closeDrawer()
-    if (!ls.value?.token) {
-      router.push('/login')
-      return
-    }
-
-    for (const item of cartStore.items) {
-      try {
-        await orders.addOrders({
-          userId: ls.value.user._id,
-          productId: item.product._id,
-          amount: (item.product.price || 0) * item.quantity,
-          date: Date.now(),
-          description: `Ordered via Shopping Bag (${item.quantity}x ${item.product.name || item.product.code})`,
-          status: 'pending'
-        })
-      } catch (e) {
-        console.error('Error placing order for item:', item, e)
-      }
-    }
-    cartStore.clearCart()
-    router.push('/orders')
+    router.push('/checkout')
   }
 
   // Set active mobile nav on route change

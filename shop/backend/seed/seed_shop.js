@@ -23,6 +23,12 @@ const Brand = require('../models/Brand')
 const Term = require('../models/Term')
 const Billing = require('../models/Billing')
 const Wilaya = require('../models/Wilaya')
+const SellerApplication = require('../models/SellerApplication')
+const SellerProfile = require('../models/SellerProfile')
+const OrderItem = require('../models/OrderItem')
+const Commission = require('../models/Commission')
+const MarketplaceSettings = require('../models/MarketplaceSettings')
+const AuditLog = require('../models/AuditLog')
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/touriva_shop'
 const TARGET_DB_NAME = 'touriva_shop'
@@ -73,6 +79,12 @@ async function cleanOldShopData(db) {
     'products',
     'categories',
     'orders',
+    'orderitems',
+    'commissions',
+    'sellerapplications',
+    'sellerprofiles',
+    'marketplacesettings',
+    'auditlogs',
     'users',
     'roles',
     'brands',
@@ -166,7 +178,7 @@ async function seedFreshShopData(db) {
     lastName: 'Mansouri',
     phone: '+213550000021',
     password: passwordHash,
-    role: 'administrator', // Seller portal uses administrator role for CASL access
+    role: 'seller',
     companyName: 'Sahara Expedition Outfitters DZ',
     rc: '16/00-7788991A25',
     nif: '002016077889912',
@@ -185,7 +197,7 @@ async function seedFreshShopData(db) {
     lastName: 'Bensalem',
     phone: '+213550000022',
     password: passwordHash,
-    role: 'administrator',
+    role: 'seller',
     companyName: 'Atlas Mountain & Trekking Pro',
     rc: '16/00-8899002B25',
     activated: true,
@@ -202,7 +214,7 @@ async function seedFreshShopData(db) {
     lastName: 'Kaddour',
     phone: '+213550000023',
     password: passwordHash,
-    role: 'administrator',
+    role: 'seller',
     companyName: 'Artisans du M’Zab & Terroir Saharien',
     rc: '47/00-9900113C25',
     activated: true,
@@ -239,6 +251,118 @@ async function seedFreshShopData(db) {
     status: true,
     fileStatus: 'confirmed'
   })
+
+  // 4b. Multi-Vendor Marketplace Settings & Seller Profiles
+  console.log(`-> Seeding Marketplace Settings & Multi-Vendor Profiles...`)
+  await MarketplaceSettings.create({
+    defaultCommissionRate: 10,
+    supportPhone: '+213 550 00 00 00',
+    supportEmail: 'contact@touriva.dz',
+    enableCod: true,
+    enableBaridiMob: true,
+    enableCcp: true,
+    announcement: 'Bienvenue sur Touriva Marketplace — Le carrefour de l\'artisanat et de l\'aventure algérienne.'
+  })
+
+  const profile1 = await SellerProfile.create({
+    userId: seller1._id,
+    storeName: 'Sahara Expedition Outfitters DZ',
+    storeSlug: 'sahara-expedition',
+    phone: seller1.phone,
+    wilaya: 'Djanet',
+    address: 'Zone Artisanale, Djanet, Illizi',
+    bio: 'Pionniers de l\'équipement saharien et artisanat touareg d\'exception. Bivouac, tentes de trek et artisanat du Tassili n\'Ajjer.',
+    logoUrl: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=400&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80',
+    rating: 4.9,
+    reviewCount: 38,
+    commissionRate: 10,
+    isSuspended: false
+  })
+
+  const profile2 = await SellerProfile.create({
+    userId: seller2._id,
+    storeName: 'Atlas Mountain & Trekking Pro',
+    storeSlug: 'atlas-trekking',
+    phone: seller2.phone,
+    wilaya: 'Blida',
+    address: 'Chréa Boulevard, Blida',
+    bio: 'Spécialiste de la randonnée en haute montagne et des expéditions dans les massifs du Djurdjura, Babors et Chréa.',
+    logoUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=400&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
+    rating: 4.8,
+    reviewCount: 29,
+    commissionRate: 10,
+    isSuspended: false
+  })
+
+  const profile3 = await SellerProfile.create({
+    userId: seller3._id,
+    storeName: 'Artisans du M’Zab & Terroir Saharien',
+    storeSlug: 'artisans-mzab',
+    phone: seller3.phone,
+    wilaya: 'Ghardaïa',
+    address: 'Ksar de Beni Isguen, Ghardaïa',
+    bio: 'Héritiers du savoir-faire séculaire mozabite. Poteries, tapis tissés à la main, dinanderie et délices culinaires du terroir.',
+    logoUrl: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=400&q=80',
+    bannerUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+    rating: 5.0,
+    reviewCount: 42,
+    commissionRate: 8,
+    isSuspended: false
+  })
+
+  // Historical Approved & Live Pending Vendor Applications
+  await SellerApplication.create([
+    {
+      applicantName: 'Amine Mansouri',
+      applicantEmail: seller1.email,
+      applicantPhone: seller1.phone,
+      storeName: 'Sahara Expedition Outfitters DZ',
+      businessCategory: 'Outdoor Gear & Sahara Equipment',
+      wilaya: 'Djanet',
+      businessDescription: 'Fabrication et distribution d\'équipements de randonnée désertique.',
+      status: 'approved',
+      assignedSellerId: profile1._id,
+      assignedUserId: seller1._id,
+      commissionRate: 10,
+      reviewNotes: 'Verified Sahara artisan credentials'
+    },
+    {
+      applicantName: 'Karim Bensalem',
+      applicantEmail: seller2.email,
+      applicantPhone: seller2.phone,
+      storeName: 'Atlas Mountain & Trekking Pro',
+      businessCategory: 'Mountain & Climbing Equipment',
+      wilaya: 'Blida',
+      businessDescription: 'Équipementier pour clubs de montagne et randonneurs en Algérie.',
+      status: 'approved',
+      assignedSellerId: profile2._id,
+      assignedUserId: seller2._id,
+      commissionRate: 10,
+      reviewNotes: 'Verified trade register 16/00-8899002B25'
+    },
+    {
+      applicantName: 'Farida Ait Ahmed',
+      applicantEmail: 'farida.kabylie@artisanat.dz',
+      applicantPhone: '+213550000031',
+      storeName: 'Bijoux d\'Argent & Fibules de Beni Yenni',
+      businessCategory: 'Artisanal Jewelry & Silvercraft',
+      wilaya: 'Tizi Ouzou',
+      businessDescription: 'Atelier familial de bijouterie kabyle traditionnelle en argent massif et corail naturel méditerranéen.',
+      status: 'pending'
+    },
+    {
+      applicantName: 'Moussa Ag Othman',
+      applicantEmail: 'moussa.tamanrasset@nomadcraft.dz',
+      applicantPhone: '+213550000032',
+      storeName: 'Hoggar Cuir & Maroquinerie Nomade',
+      businessCategory: 'Traditional Leatherwork & Accessories',
+      wilaya: 'Tamanrasset',
+      businessDescription: 'Sacs de voyage, ceintures et sandales en cuir saharien tanné à l\'écorce végétale d\'acacia.',
+      status: 'pending'
+    }
+  ])
 
   // 5. Shop Brands
   console.log(`-> Seeding Outdoor & Travel Equipment Brands...`)
@@ -729,17 +853,24 @@ async function seedFreshShopData(db) {
   ]
 
   const seededProducts = []
-  for (const p of productsData) {
+  for (let i = 0; i < productsData.length; i++) {
+    const p = productsData[i]
     const category = seededCategories[p.categoryIndex]
     const brand = seededBrands[p.brandIndex]
+    const assignedProfile = i < 12 ? profile1 : (i < 24 ? profile2 : profile3)
+
     const product = await Product.create({
       code: p.code,
       name: p.name,
       price: p.price,
+      discountPrice: p.price > 10000 ? p.price - 1500 : undefined,
+      stockQuantity: 20,
       description: p.description,
       img: p.img,
       categoryId: category ? category._id : null,
       brandId: brand ? brand._id : null,
+      sellerId: assignedProfile._id,
+      status: 'approved',
       thumbnails: p.thumbnails || [p.img],
       features: p.features || [],
       published: true
@@ -747,102 +878,175 @@ async function seedFreshShopData(db) {
     seededProducts.push(product)
   }
 
-  // 8. Demo Shop Customer Orders (10 realistic orders)
-  console.log(`-> Seeding Verified Shop Orders...`)
+  // Live products pending review for the Product Moderation queue demo
+  const pendingProduct1 = await Product.create({
+    code: 'TRV-REV-001',
+    name: 'Collier Traditionnel Agate du Tassili & Argent Pur',
+    price: 12500,
+    stockQuantity: 5,
+    description: 'Bijou d\'artisanat saharien sculpté à la main, monté avec de l\'argent 925 et une agate naturelle du Tassili.',
+    img: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=800&q=80',
+    categoryId: seededCategories[1]._id,
+    brandId: seededBrands[2]._id,
+    sellerId: profile1._id,
+    status: 'pending_review',
+    published: false
+  })
+  seededProducts.push(pendingProduct1)
+
+  const pendingProduct2 = await Product.create({
+    code: 'TRV-REV-002',
+    name: 'Bâtons de Randonnée Carbone Procolis Ultralight',
+    price: 9800,
+    stockQuantity: 15,
+    description: 'Bâtons télescopiques 3 brins en fibre de carbone avec poignée liège naturel et système de verrouillage rapide.',
+    img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80',
+    categoryId: seededCategories[0]._id,
+    brandId: seededBrands[4]._id,
+    sellerId: profile2._id,
+    status: 'pending_review',
+    published: false
+  })
+  seededProducts.push(pendingProduct2)
+
+  // 8. Demo Marketplace Multi-Vendor Orders
+  console.log(`-> Seeding Verified Multi-Vendor Orders & Commission Ledger...`)
   const ordersData = [
     {
-      user: customer1._id,
-      productIndex: 0, // Sahara tent
-      quantity: 1,
+      user: customer1,
+      orderNumber: 'TRV-MKT-2026-00001',
+      productIndices: [0, 8], // Sahara tent (Seller 1) & Tuareg chèche (Seller 1)
       status: 'confirmed',
+      paymentStatus: 'paid',
+      paymentMethod: 'baridimob',
       date: new Date('2026-02-10T11:30:00Z'),
-      description: 'Delivery to Hydra, Alger. Contact before arrival.'
+      customerInfo: {
+        fullName: 'Lynda Meziani',
+        email: customer1.email,
+        phone: customer1.phone,
+        wilaya: 'Algiers',
+        address: '14 Rue Didouche Mourad, Alger Centre'
+      }
     },
     {
-      user: customer1._id,
-      productIndex: 8, // Tuareg chèche
-      quantity: 2,
-      status: 'completed',
-      date: new Date('2026-02-14T09:15:00Z'),
-      description: 'Gift packaging requested.'
-    },
-    {
-      user: customer2._id,
-      productIndex: 4, // Atlas 65L backpack
-      quantity: 1,
+      user: customer2,
+      orderNumber: 'TRV-MKT-2026-00002',
+      productIndices: [4, 12], // Atlas 65L backpack (Seller 1) & Brass teapot (Seller 2) -> Multi-vendor!
       status: 'confirmed',
+      paymentStatus: 'paid',
+      paymentMethod: 'ccp',
       date: new Date('2026-02-20T16:45:00Z'),
-      description: 'Express shipping to Oran Centre.'
+      customerInfo: {
+        fullName: 'Mehdi Larbi',
+        email: customer2.email,
+        phone: customer2.phone,
+        wilaya: 'Oran',
+        address: 'Boulevard de la Soummam, Oran'
+      }
     },
     {
-      user: customer2._id,
-      productIndex: 12, // Brass teapot set
-      quantity: 1,
-      status: 'completed',
-      date: new Date('2026-03-01T14:20:00Z'),
-      description: 'Fragile handling required.'
-    },
-    {
-      user: customer1._id,
-      productIndex: 16, // Stainless flask
-      quantity: 2,
+      user: customer1,
+      orderNumber: 'TRV-MKT-2026-00003',
+      productIndices: [16, 22], // Flask & Dates box (Seller 2 & Seller 3)
       status: 'pending',
+      paymentStatus: 'payment_submitted',
+      paymentMethod: 'baridimob',
       date: new Date('2026-03-05T10:00:00Z'),
-      description: 'Payment via Edahabia card pending confirmation.'
+      customerInfo: {
+        fullName: 'Lynda Meziani',
+        email: customer1.email,
+        phone: customer1.phone,
+        wilaya: 'Algiers',
+        address: '14 Rue Didouche Mourad, Alger Centre'
+      },
+      paymentProof: {
+        imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        transactionRef: 'BM-TRF-98204910'
+      }
     },
     {
-      user: customer2._id,
-      productIndex: 22, // Deglet Nour dates box
-      quantity: 4,
-      status: 'completed',
-      date: new Date('2026-03-10T12:00:00Z'),
-      description: 'Ramadan gift order.'
-    },
-    {
-      user: customer1._id,
-      productIndex: 25, // Solar power bank
-      quantity: 1,
-      status: 'confirmed',
-      date: new Date('2026-03-15T08:30:00Z'),
-      description: 'Delivery before weekend desert trip.'
-    },
-    {
-      user: customer2._id,
-      productIndex: 27, // Trekking poles
-      quantity: 1,
-      status: 'cancelled',
-      date: new Date('2026-03-18T19:00:00Z'),
-      description: 'Customer selected alternative model.'
-    },
-    {
-      user: customer1._id,
-      productIndex: 28, // First aid kit
-      quantity: 1,
+      user: customer2,
+      orderNumber: 'TRV-MKT-2026-00004',
+      productIndices: [25, 27], // Solar power bank & Trekking poles
       status: 'pending',
-      date: new Date('2026-03-22T17:10:00Z'),
-      description: 'Standard delivery to Kouba, Alger.'
-    },
-    {
-      user: customer2._id,
-      productIndex: 5, // Leather duffel
-      quantity: 1,
-      status: 'confirmed',
-      date: new Date('2026-03-25T13:40:00Z'),
-      description: 'Priority courier delivery to Tlemcen.'
+      paymentStatus: 'pending_payment',
+      paymentMethod: 'cod',
+      date: new Date('2026-03-15T08:30:00Z'),
+      customerInfo: {
+        fullName: 'Mehdi Larbi',
+        email: customer2.email,
+        phone: customer2.phone,
+        wilaya: 'Constantine',
+        address: 'Cité Bellevue, Constantine'
+      }
     }
   ]
 
   for (const ord of ordersData) {
-    const product = seededProducts[ord.productIndex]
-    if (product) {
-      await Order.create({
-        userId: ord.user,
-        productId: product._id,
-        amount: product.price * ord.quantity,
-        date: ord.date,
-        description: ord.description,
-        status: ord.status
+    const itemIds = []
+    let subtotal = 0
+
+    for (const pIdx of ord.productIndices) {
+      const prod = seededProducts[pIdx]
+      if (!prod) continue
+      const itemPrice = prod.discountPrice || prod.price
+      subtotal += itemPrice
+
+      const orderItem = await OrderItem.create({
+        orderId: new mongoose.Types.ObjectId(), // placeholder, linked below
+        productId: prod._id,
+        sellerId: prod.sellerId,
+        productTitle: prod.name,
+        productCode: prod.code,
+        productImage: prod.img,
+        unitPriceDZD: itemPrice,
+        quantity: 1,
+        totalPriceDZD: itemPrice,
+        fulfillmentStatus: ord.status === 'confirmed' ? 'shipped' : 'pending'
       })
+      itemIds.push(orderItem._id)
+    }
+
+    const firstProduct = seededProducts[ord.productIndices[0]]
+    const orderDoc = await Order.create({
+      userId: ord.user._id,
+      productId: firstProduct ? firstProduct._id : null,
+      amount: subtotal + 600,
+      orderNumber: ord.orderNumber,
+      items: itemIds,
+      customerInfo: ord.customerInfo,
+      subtotalDZD: subtotal,
+      deliveryFeeDZD: 600,
+      totalAmountDZD: subtotal + 600,
+      paymentMethod: ord.paymentMethod,
+      paymentStatus: ord.paymentStatus,
+      paymentProof: ord.paymentProof,
+      status: ord.status,
+      date: ord.date
+    })
+
+    // Update orderId on OrderItems
+    await OrderItem.updateMany({ _id: { $in: itemIds } }, { $set: { orderId: orderDoc._id } })
+
+    // If order is paid, create Commission records
+    if (ord.paymentStatus === 'paid') {
+      const createdItems = await OrderItem.find({ _id: { $in: itemIds } })
+      for (const itm of createdItems) {
+        const rate = 10
+        const commAmt = Math.round((itm.totalPriceDZD * rate) / 100)
+        const netAmt = itm.totalPriceDZD - commAmt
+
+        await Commission.create({
+          orderId: orderDoc._id,
+          orderItemId: itm._id,
+          sellerId: itm.sellerId,
+          grossAmountDZD: itm.totalPriceDZD,
+          ratePercentage: rate,
+          commissionAmountDZD: commAmt,
+          netSellerAmountDZD: netAmt,
+          settlementStatus: 'accrued'
+        })
+      }
     }
   }
 
@@ -893,9 +1097,18 @@ async function validateShopRelationships(db) {
   for (const o of orders) {
     const user = await User.findById(o.userId)
     if (!user) errors.push(`Order '${o._id}' references non-existent user ${o.userId}`)
-    const product = await Product.findById(o.productId)
-    if (!product) errors.push(`Order '${o._id}' references non-existent product ${o.productId}`)
-    if (o.amount <= 0) errors.push(`Order '${o._id}' has invalid amount: ${o.amount}`)
+    if (o.productId) {
+      const product = await Product.findById(o.productId)
+      if (!product) errors.push(`Order '${o._id}' references non-existent product ${o.productId}`)
+    }
+    if (o.items && o.items.length > 0) {
+      const itemsCount = await OrderItem.countDocuments({ _id: { $in: o.items } })
+      if (itemsCount !== o.items.length) {
+        errors.push(`Order '${o._id}' has dangling OrderItem references`)
+      }
+    }
+    const orderTotal = o.totalAmountDZD || o.amount || 0
+    if (orderTotal <= 0) errors.push(`Order '${o._id}' has invalid amount: ${orderTotal}`)
   }
 
   // Check users & password hash

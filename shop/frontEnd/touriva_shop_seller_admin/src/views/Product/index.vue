@@ -4,8 +4,8 @@
     <div class="editorial-page-header">
       <div>
         <div class="editorial-tag mb-1">Catalog Management</div>
-        <h1 class="editorial-page-title">Products Catalog</h1>
-        <p class="editorial-page-subtitle">Curate and manage your merchandise inventory, pricing, and visual assets.</p>
+        <h1 class="editorial-page-title">My Store Products</h1>
+        <p class="editorial-page-subtitle">Manage your merchandise catalog, track moderation review status, and update inventory.</p>
       </div>
 
       <div class="d-flex align-center gap-2 flex-wrap">
@@ -14,7 +14,7 @@
           prepend-icon="mdi-plus"
           @click="openNewDialog"
         >
-          {{ $t('New') || 'Add Product' }}
+          Add Product
         </v-btn>
       </div>
     </div>
@@ -28,25 +28,47 @@
       class="mb-4 rounded-lg"
       @click:close="err = ''"
     >
-      {{ $t(err) || err }}
+      {{ err }}
+    </v-alert>
+
+    <v-alert
+      v-if="successMsg"
+      type="success"
+      variant="tonal"
+      closable
+      class="mb-4 rounded-lg"
+      @click:close="successMsg = ''"
+    >
+      {{ successMsg }}
     </v-alert>
 
     <!-- Table Container -->
     <div class="editorial-table-container">
       <!-- Table Controls Toolbar -->
       <div class="pa-4 bg-white d-flex align-center justify-space-between flex-wrap gap-3 border-b">
-        <div class="d-flex align-center">
+        <div class="d-flex align-center gap-3 flex-wrap">
           <v-text-field
             v-model="search"
             prepend-inner-icon="mdi-magnify"
-            :placeholder="$t('Search') + ' products by title or code...'"
+            placeholder="Search products by title or code..."
             variant="outlined"
             density="compact"
             hide-details
             rounded="pill"
-            style="min-width: 280px; max-width: 400px;"
+            style="min-width: 260px; max-width: 360px;"
             class="editorial-search-input"
           ></v-text-field>
+
+          <v-chip-group
+            v-model="statusFilter"
+            selected-class="chip-active-editorial"
+            density="compact"
+          >
+            <v-chip value="all" filter variant="tonal" rounded="pill">All ({{ productsList.length }})</v-chip>
+            <v-chip value="approved" filter variant="tonal" rounded="pill">Approved</v-chip>
+            <v-chip value="pending_review" filter variant="tonal" rounded="pill">In Review</v-chip>
+            <v-chip value="rejected" filter variant="tonal" rounded="pill">Rejected</v-chip>
+          </v-chip-group>
         </div>
 
         <div class="d-flex align-center gap-2">
@@ -64,9 +86,8 @@
       <!-- V-Data-Table -->
       <v-data-table
         :headers="headers"
-        :items="products.getProducts || []"
-        :loading="products.loading"
-        :search="search"
+        :items="filteredProducts"
+        :loading="loading"
         class="editorial-table"
       >
         <!-- Product Image Preview -->
@@ -77,48 +98,46 @@
           </v-avatar>
         </template>
 
-        <!-- Product Code -->
-        <template v-slot:[`item.code`]="{ item }">
-          <span class="font-weight-medium text-deep-green">{{ item.code || '—' }}</span>
-        </template>
-
         <!-- Product Name & Description -->
         <template v-slot:[`item.name`]="{ item }">
           <div>
             <div class="font-weight-bold text-deep-green">{{ item.name }}</div>
-            <div class="text-caption text-editorial-secondary text-truncate" style="max-width: 280px;">
+            <div class="text-caption text-editorial-secondary text-truncate" style="max-width: 240px;">
               {{ item.description || '' }}
             </div>
           </div>
         </template>
 
-        <!-- Price -->
+        <!-- Price & Discount -->
         <template v-slot:[`item.price`]="{ item }">
-          <span class="font-weight-bold text-forest">
-            {{ formatPrice(item.price) }}
+          <div>
+            <span class="font-weight-bold text-forest">
+              {{ formatPrice(item.discountPrice || item.price) }}
+            </span>
+            <div v-if="item.discountPrice && item.discountPrice < item.price" class="text-caption text-decoration-line-through text-editorial-secondary">
+              {{ formatPrice(item.price) }}
+            </div>
+          </div>
+        </template>
+
+        <!-- Stock Quantity -->
+        <template v-slot:[`item.stockQuantity`]="{ item }">
+          <span :class="['font-weight-medium', (item.stockQuantity ?? 10) < 5 ? 'text-error font-weight-bold' : 'text-deep-green']">
+            {{ item.stockQuantity ?? 10 }} in stock
           </span>
         </template>
 
-        <!-- Brand -->
-        <template v-slot:[`item.brandId`]="{ item }">
-          <span class="text-caption font-weight-medium">
-            {{ getBrandName(item.brandId) }}
-          </span>
-        </template>
-
-        <!-- Category -->
-        <template v-slot:[`item.categoryId`]="{ item }">
-          <span class="text-caption font-weight-medium">
-            {{ getCategoryName(item.categoryId) }}
-          </span>
-        </template>
-
-        <!-- Published Status Badge -->
-        <template v-slot:[`item.published`]="{ item }">
-          <span :class="['status-badge', item.published ? 'status-badge-success' : 'status-badge-neutral']">
-            <span class="status-badge-dot"></span>
-            {{ item.published ? 'Published' : 'Draft' }}
-          </span>
+        <!-- Moderation Status Badge -->
+        <template v-slot:[`item.status`]="{ item }">
+          <div>
+            <span :class="['status-badge', getStatusBadgeClass(item.status || (item.published ? 'approved' : 'draft'))]">
+              <span class="status-badge-dot"></span>
+              {{ formatStatus(item.status || (item.published ? 'approved' : 'draft')) }}
+            </span>
+            <div v-if="item.status === 'rejected' && item.rejectionReason" class="text-caption text-error mt-1" style="max-width: 200px;">
+              Reason: {{ item.rejectionReason }}
+            </div>
+          </div>
         </template>
 
         <!-- Action Buttons -->
@@ -147,8 +166,8 @@
         <template v-slot:no-data>
           <div class="text-center py-12 px-4">
             <v-icon icon="mdi-package-variant-closed" size="48" color="sand" class="mb-2"></v-icon>
-            <div class="text-subtitle-1 font-weight-medium text-deep-green">No Products Found</div>
-            <p class="text-caption text-editorial-secondary mb-4">Start creating merchandise items to populate your shop catalog.</p>
+            <div class="text-subtitle-1 font-weight-medium text-deep-green">No Products in Catalog</div>
+            <p class="text-caption text-editorial-secondary mb-4">Start creating merchandise items to sell to Touriva travelers.</p>
             <v-btn class="btn-editorial-primary px-5" size="small" @click="openNewDialog">
               Add First Product
             </v-btn>
@@ -161,154 +180,108 @@
     <v-dialog v-model="dialog" max-width="720px">
       <v-card class="editorial-dialog-card">
         <div class="editorial-dialog-header">
-          <span class="dialog-title font-serif">{{ formTitle }}</span>
+          <span class="dialog-title font-serif">{{ editedIndex > -1 ? 'Edit Product' : 'New Marketplace Product' }}</span>
           <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="close"></v-btn>
         </div>
 
         <v-card-text class="pa-5">
           <v-row>
-            <!-- Code Generator -->
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="editedItem.code"
-                :label="$t('Code') || 'Product Code'"
-                variant="outlined"
-                density="comfortable"
-                class="editorial-input"
-                append-inner-icon="mdi-qrcode-scan"
-                @click:append-inner="generateCode"
-                hint="Click icon to auto-generate code"
-                persistent-hint
-              ></v-text-field>
-            </v-col>
-
             <!-- Product Name -->
-            <v-col cols="12" sm="6">
+            <v-col cols="12">
+              <label class="input-label">Product Title *</label>
               <v-text-field
                 v-model="editedItem.name"
-                :label="$t('Name') || 'Product Title'"
+                placeholder="e.g. Traditional Hand-Woven Touareg Blanket"
                 variant="outlined"
                 density="comfortable"
                 class="editorial-input"
+                required
               ></v-text-field>
             </v-col>
 
             <!-- Price -->
             <v-col cols="12" sm="6">
+              <label class="input-label">Price (DZD) *</label>
               <v-text-field
                 v-model="editedItem.price"
-                :label="$t('Price') || 'Price (DZD)'"
                 type="number"
+                placeholder="4500"
                 variant="outlined"
                 density="comfortable"
                 class="editorial-input"
+                suffix="DZD"
+                required
               ></v-text-field>
             </v-col>
 
-            <!-- Brand Selection -->
+            <!-- Discount Price -->
             <v-col cols="12" sm="6">
-              <v-autocomplete
-                v-model="editedItem.brandId"
-                :items="brands.getBrands || []"
-                item-title="name"
-                item-value="_id"
-                :label="$t('Brands') || 'Brand'"
+              <label class="input-label">Promotional Price (DZD) (Optional)</label>
+              <v-text-field
+                v-model="editedItem.discountPrice"
+                type="number"
+                placeholder="3900"
                 variant="outlined"
                 density="comfortable"
                 class="editorial-input"
-                clearable
-              ></v-autocomplete>
+                suffix="DZD"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Stock Quantity -->
+            <v-col cols="12" sm="6">
+              <label class="input-label">Available Stock Quantity *</label>
+              <v-text-field
+                v-model="editedItem.stockQuantity"
+                type="number"
+                placeholder="15"
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+                required
+              ></v-text-field>
+            </v-col>
+
+            <!-- Main Image URL -->
+            <v-col cols="12" sm="6">
+              <label class="input-label">Image URL</label>
+              <v-text-field
+                v-model="editedItem.img"
+                placeholder="https://..."
+                variant="outlined"
+                density="comfortable"
+                class="editorial-input"
+                prepend-inner-icon="mdi-image-outline"
+              ></v-text-field>
             </v-col>
 
             <!-- Description -->
             <v-col cols="12">
+              <label class="input-label">Detailed Product Description *</label>
               <v-textarea
                 v-model="editedItem.description"
-                :label="$t('Description') || 'Product Description'"
-                rows="3"
+                placeholder="Describe material, dimensions, regional provenance, care instructions..."
                 variant="outlined"
                 density="comfortable"
+                rows="4"
                 class="editorial-input"
+                required
               ></v-textarea>
             </v-col>
 
-            <!-- Category Selector -->
-            <v-col cols="12" sm="6">
-              <label class="text-caption font-weight-bold text-deep-green d-block mb-1">Product Category</label>
-              <select v-model="editedItem.categoryId" class="editorial-select-box">
-                <option :value="null">Root Category</option>
-                <CategoryOption v-for="cat in categories" :key="cat._id" :category="cat" />
-              </select>
-            </v-col>
-
-            <!-- Published Switch -->
-            <v-col cols="12" sm="6" class="d-flex align-center">
-              <v-switch
-                v-model="editedItem.published"
-                color="forestGreen"
-                :label="editedItem.published ? 'Live in Store' : 'Draft / Unpublished'"
-                hide-details
-                inset
-              ></v-switch>
-            </v-col>
-
-            <!-- Main Image Upload & Preview -->
-            <v-col cols="12" sm="6">
-              <v-file-input
-                v-model="imageFile"
-                accept="image/*"
-                :label="$t('Photo') || 'Main Product Image'"
-                variant="outlined"
-                density="comfortable"
-                prepend-icon=""
-                prepend-inner-icon="mdi-camera"
-                class="editorial-input"
-                @change="onImageFileChange"
-              ></v-file-input>
-
-              <div class="mt-2 text-center" v-if="editedItem.img">
-                <div class="image-preview-container">
-                  <v-img :src="editedItem.img" height="150" contain class="rounded-lg"></v-img>
-                </div>
-              </div>
-            </v-col>
-
-            <!-- Thumbnails Upload & Gallery -->
-            <v-col cols="12" sm="6">
-              <v-file-input
-                v-model="thumbnailFile"
-                accept="image/*"
-                :label="$t('UploadThumbnails') || 'Add Gallery Thumbnail'"
-                variant="outlined"
-                density="comfortable"
-                prepend-icon=""
-                prepend-inner-icon="mdi-image-multiple"
-                class="editorial-input"
-                @change="handleThumbnailUpload"
-              ></v-file-input>
-
-              <div class="d-flex flex-wrap gap-2 mt-2" v-if="editedItem.thumbnails?.length">
-                <div
-                  v-for="(thumb, idx) in editedItem.thumbnails"
-                  :key="idx"
-                  class="thumbnail-wrapper"
-                  @click="removeThumbnail(idx)"
-                  title="Click to remove"
-                >
-                  <v-img :src="thumb" width="48" height="48" cover class="rounded"></v-img>
-                  <v-icon icon="mdi-close" size="14" class="thumbnail-remove-icon"></v-icon>
-                </div>
+            <v-col cols="12">
+              <div class="text-caption text-editorial-secondary bg-sand-light pa-3 rounded-lg">
+                <v-icon icon="mdi-information-outline" size="16" class="me-1"></v-icon>
+                <strong>Moderation Notice:</strong> New and modified listings are placed in <strong>Pending Review</strong> status for compliance verification by Touriva administration prior to being shown to public travelers.
               </div>
             </v-col>
           </v-row>
         </v-card-text>
 
-        <div class="editorial-dialog-actions d-flex justify-end gap-2">
-          <v-btn class="btn-editorial-ghost px-4" @click="close">
-            {{ $t('Cancel') || 'Cancel' }}
-          </v-btn>
-          <v-btn class="btn-editorial-primary px-6" :loading="loading" @click="save">
-            {{ $t('Save') || 'Save Product' }}
+        <div class="editorial-dialog-actions d-flex justify-end gap-2 pa-4 border-t">
+          <v-btn variant="text" class="btn-editorial-sand px-4" @click="close">Cancel</v-btn>
+          <v-btn class="btn-editorial-primary px-6" :loading="saving" @click="save">
+            Submit for Review
           </v-btn>
         </div>
       </v-card>
@@ -316,21 +289,15 @@
 
     <!-- Delete Confirmation Modal -->
     <v-dialog v-model="dialogDelete" max-width="450px">
-      <v-card class="editorial-dialog-card">
-        <div class="editorial-dialog-header">
-          <span class="dialog-title font-serif">Confirm Deletion</span>
-          <v-btn icon="mdi-close" variant="text" density="compact" color="white" @click="closeDelete"></v-btn>
-        </div>
-        <v-card-text class="pa-5 text-center">
-          <v-icon icon="mdi-alert-circle-outline" color="warning" size="48" class="mb-3"></v-icon>
-          <div class="text-body-1 font-weight-medium">Are you sure you want to delete this product?</div>
-          <div class="text-caption text-editorial-secondary mt-1">This catalog item will be removed from store listings.</div>
-        </v-card-text>
-        <div class="editorial-dialog-actions d-flex justify-end gap-2">
-          <v-btn class="btn-editorial-ghost px-4" @click="closeDelete">Cancel</v-btn>
-          <v-btn color="error" variant="flat" rounded="pill" class="px-5" :loading="loadingDelete" @click="deleteItemConfirm">
-            Delete
-          </v-btn>
+      <v-card class="editorial-dialog-card pa-6 text-center">
+        <v-icon icon="mdi-alert-circle-outline" size="56" color="error" class="mb-3"></v-icon>
+        <h3 class="text-h6 font-serif font-weight-bold text-deep-green mb-2">Delete Product</h3>
+        <p class="text-caption text-editorial-secondary mb-6">
+          Are you sure you want to permanently remove this product from your inventory? This action cannot be undone.
+        </p>
+        <div class="d-flex justify-center gap-3">
+          <v-btn variant="outlined" class="btn-editorial-outline px-5" @click="dialogDelete = false">Cancel</v-btn>
+          <v-btn color="error" class="px-5 font-weight-bold" :loading="loadingDelete" @click="deleteItemConfirm">Delete</v-btn>
         </div>
       </v-card>
     </v-dialog>
@@ -338,91 +305,62 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed, watch } from 'vue'
-import { useProductsStore } from '@/stores/products'
-import { useBrandsStore } from '@/stores/brands'
-import CategoryOption from '@/components/CategoryOption.vue'
-import axios from 'axios'
+import { ref, onMounted, computed, nextTick } from 'vue'
+import { useSellerStore } from '@/stores/seller'
 
-const products = useProductsStore()
-const brands = useBrandsStore()
+const sellerStore = useSellerStore()
 
 const search = ref('')
+const statusFilter = ref('all')
+const loading = ref(false)
+const saving = ref(false)
+const loadingDelete = ref(false)
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const loading = ref(false)
-const loadingDelete = ref(false)
-const err = ref('')
-const editedIndex = ref(-1)
 const deleteId = ref(null)
-const imageFile = ref(null)
-const thumbnailFile = ref(null)
-const categories = ref([])
+const err = ref('')
+const successMsg = ref('')
+
+const editedIndex = ref(-1)
+const defaultItem = {
+  name: '',
+  description: '',
+  price: 0,
+  discountPrice: null,
+  stockQuantity: 10,
+  img: ''
+}
+const editedItem = ref({ ...defaultItem })
 
 const headers = ref([
   { title: 'Image', key: 'img', sortable: false, width: '70px' },
-  { title: 'Code', key: 'code', align: 'start', sortable: true },
-  { title: 'Title & Details', key: 'name', align: 'start', sortable: true },
+  { title: 'Product', key: 'name', sortable: true },
   { title: 'Price', key: 'price', sortable: true },
-  { title: 'Brand', key: 'brandId', sortable: false },
-  { title: 'Category', key: 'categoryId', sortable: false },
-  { title: 'Status', key: 'published', sortable: true },
+  { title: 'Stock', key: 'stockQuantity', sortable: true },
+  { title: 'Moderation Status', key: 'status', sortable: true },
   { title: 'Actions', key: 'actions', sortable: false, align: 'end' }
 ])
 
-const defaultItem = {
-  code: '',
-  name: '',
-  price: '',
-  description: '',
-  img: '',
-  categoryId: null,
-  brandId: null,
-  published: true,
-  thumbnails: []
-}
+const productsList = computed(() => sellerStore.getProducts || [])
 
-const editedItem = ref(Object.assign({}, defaultItem))
-
-const formTitle = computed(() => {
-  return editedIndex.value === -1 ? 'Add New Product' : 'Edit Product'
-})
-
-watch(dialog, (val) => {
-  if (!val) close()
-})
-
-watch(dialogDelete, (val) => {
-  if (!val) closeDelete()
-})
-
-const initialize = () => {
-  products.fetchProducts()
-  brands.fetchBrands()
-  fetchCategories()
-}
-
-const fetchCategories = async () => {
-  try {
-    const response = await axios.post('/api/categories/nested')
-    categories.value = response.data || []
-  } catch (error) {
-    console.error('Error fetching categories:', error)
+const filteredProducts = computed(() => {
+  let list = productsList.value
+  if (statusFilter.value && statusFilter.value !== 'all') {
+    list = list.filter(p => {
+      const s = p.status || (p.published ? 'approved' : 'draft')
+      return s === statusFilter.value
+    })
   }
-}
-
-const getBrandName = (brandId) => {
-  if (!brandId) return '—'
-  if (typeof brandId === 'object' && brandId.name) return brandId.name
-  const found = (brands.getBrands || []).find(b => b._id === brandId)
-  return found ? found.name : '—'
-}
-
-const getCategoryName = (catId) => {
-  if (!catId) return '—'
-  if (typeof catId === 'object' && catId.name) return catId.name
-  return 'Category'
-}
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    list = list.filter(p => {
+      const name = (p.name || '').toLowerCase()
+      const desc = (p.description || '').toLowerCase()
+      return name.includes(q) || desc.includes(q)
+    })
+  }
+  return list
+})
 
 const formatPrice = (val) => {
   const num = Number(val) || 0
@@ -433,119 +371,107 @@ const formatPrice = (val) => {
   }).format(num)
 }
 
-const generateCode = () => {
-  const count = (products.getProducts || []).length + 1
-  const str = String(count).padStart(5, '0')
-  editedItem.value.code = 'PRD-' + str
+const getStatusBadgeClass = (status) => {
+  const s = String(status).toLowerCase()
+  if (s === 'approved') return 'status-badge-success'
+  if (s === 'pending_review') return 'status-badge-warning'
+  if (s === 'rejected' || s === 'suspended') return 'status-badge-error'
+  return 'status-badge-sand'
 }
 
-const onImageFileChange = (e) => {
-  const file = imageFile.value?.[0] || imageFile.value
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    editedItem.value.img = event.target.result
-  }
-  reader.readAsDataURL(file)
-}
-
-const handleThumbnailUpload = (e) => {
-  const file = thumbnailFile.value?.[0] || thumbnailFile.value
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = (event) => {
-    if (!editedItem.value.thumbnails) editedItem.value.thumbnails = []
-    editedItem.value.thumbnails.push(event.target.result)
-    thumbnailFile.value = null
-  }
-  reader.readAsDataURL(file)
-}
-
-const removeThumbnail = (index) => {
-  if (editedItem.value.thumbnails) {
-    editedItem.value.thumbnails.splice(index, 1)
-  }
+const formatStatus = (status) => {
+  const s = String(status).toLowerCase()
+  if (s === 'approved') return 'Approved & Live'
+  if (s === 'pending_review') return 'In Review'
+  if (s === 'rejected') return 'Rejected'
+  if (s === 'suspended') return 'Suspended'
+  return 'Draft'
 }
 
 const openNewDialog = () => {
   editedIndex.value = -1
-  editedItem.value = Object.assign({}, defaultItem)
-  editedItem.value.thumbnails = []
-  imageFile.value = null
-  thumbnailFile.value = null
+  editedItem.value = { ...defaultItem }
   dialog.value = true
 }
 
 const editItem = (item) => {
-  const list = products.getProducts || []
+  const list = productsList.value
   editedIndex.value = list.indexOf(item)
-  editedItem.value = JSON.parse(JSON.stringify(item))
-  if (!editedItem.value.thumbnails) editedItem.value.thumbnails = []
-  imageFile.value = null
-  thumbnailFile.value = null
+  editedItem.value = {
+    _id: item._id,
+    name: item.name,
+    description: item.description,
+    price: item.price,
+    discountPrice: item.discountPrice,
+    stockQuantity: item.stockQuantity ?? 10,
+    img: item.img || ''
+  }
   dialog.value = true
 }
 
 const deleteItem = (item) => {
-  const list = products.getProducts || []
-  editedIndex.value = list.indexOf(item)
   deleteId.value = item._id
   dialogDelete.value = true
 }
 
-const deleteItemConfirm = () => {
+const deleteItemConfirm = async () => {
   loadingDelete.value = true
-  products.deleteProducts(deleteId.value).then(() => {
-    initialize()
+  try {
+    await sellerStore.deleteProduct(deleteId.value)
+    successMsg.value = 'Product deleted successfully'
+    dialogDelete.value = false
+  } catch (e) {
+    err.value = e.message || 'Error deleting product'
+  } finally {
     loadingDelete.value = false
-    closeDelete()
-  }).catch((e) => {
-    loadingDelete.value = false
-    err.value = e.message
-    closeDelete()
-  })
+  }
 }
 
 const close = () => {
   dialog.value = false
   nextTick(() => {
-    editedItem.value = Object.assign({}, defaultItem)
-    editedItem.value.thumbnails = []
-    editedIndex.value = -1
-    imageFile.value = null
-    thumbnailFile.value = null
-  })
-}
-
-const closeDelete = () => {
-  dialogDelete.value = false
-  nextTick(() => {
-    deleteId.value = null
+    editedItem.value = { ...defaultItem }
     editedIndex.value = -1
   })
 }
 
-const save = () => {
-  loading.value = true
+const save = async () => {
+  saving.value = true
   err.value = ''
-  if (editedIndex.value > -1) {
-    products.editProducts(editedItem.value).then(() => {
-      loading.value = false
-      close()
-      initialize()
-    }).catch((e) => {
-      loading.value = false
-      err.value = e.message || 'Error updating product'
-    })
-  } else {
-    products.addProducts(editedItem.value).then(() => {
-      loading.value = false
-      close()
-      initialize()
-    }).catch((e) => {
-      loading.value = false
-      err.value = e.message || 'Error creating product'
-    })
+  successMsg.value = ''
+  try {
+    const payload = {
+      name: editedItem.value.name,
+      description: editedItem.value.description,
+      price: Number(editedItem.value.price),
+      discountPrice: editedItem.value.discountPrice ? Number(editedItem.value.discountPrice) : undefined,
+      stockQuantity: Number(editedItem.value.stockQuantity),
+      img: editedItem.value.img
+    }
+
+    if (editedIndex.value > -1 && editedItem.value._id) {
+      await sellerStore.updateProduct(editedItem.value._id, payload)
+      successMsg.value = 'Product updated and submitted for moderation review!'
+    } else {
+      await sellerStore.addProduct(payload)
+      successMsg.value = 'Product created and submitted for moderation review!'
+    }
+    close()
+  } catch (e) {
+    err.value = e.response?.data?.message || e.message || 'Error saving product'
+  } finally {
+    saving.value = false
+  }
+}
+
+const initialize = async () => {
+  loading.value = true
+  try {
+    await sellerStore.fetchProducts()
+  } catch (e) {
+    err.value = e.message || 'Error fetching products'
+  } finally {
+    loading.value = false
   }
 }
 
@@ -553,59 +479,3 @@ onMounted(() => {
   initialize()
 })
 </script>
-
-<style scoped>
-.editorial-select-box {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-color: #FFFFFF;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 0.88rem;
-  color: var(--color-text-primary);
-  width: 100%;
-  height: 48px;
-  outline: none;
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23173F35'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 18px;
-}
-
-.editorial-select-box:focus {
-  border-color: var(--color-emerald);
-}
-
-.image-preview-container {
-  padding: 8px;
-  background-color: var(--color-warm-ivory);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-}
-
-.thumbnail-wrapper {
-  position: relative;
-  cursor: pointer;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.thumbnail-wrapper:hover {
-  border-color: var(--color-error);
-}
-
-.thumbnail-remove-icon {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background: rgba(194, 69, 69, 0.85);
-  color: white;
-  border-radius: 50%;
-  padding: 1px;
-}
-</style>
