@@ -1,0 +1,412 @@
+[
+  {
+    "name": "TOURIVA Web & PWA",
+    "productionUrl": "https://touriva-tourism-web.netlify.app",
+    "netlifyUrl": "https://touriva-tourism-web.netlify.app",
+    "assets": {
+      "svg": {
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "size": 412,
+        "hasSandColor": true,
+        "hasCompassRosePath": true,
+        "verdict": "PASS"
+      },
+      "ico": {
+        "status": 200,
+        "contentType": "image/vnd.microsoft.icon",
+        "size": 4186,
+        "isIcoHeader": true,
+        "verdict": "PASS"
+      },
+      "png32": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 1097,
+        "verdict": "PASS"
+      },
+      "png16": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 476,
+        "verdict": "PASS"
+      }
+    },
+    "browser": {
+      "error": "Execution context was destroyed, most likely because of a navigation.",
+      "status": "FAIL"
+    }
+  },
+  {
+    "name": "TOURIVA Admin Panel",
+    "productionUrl": "https://touriva-tourism-admin.netlify.app",
+    "netlifyUrl": "https://touriva-tourism-admin.netlify.app",
+    "assets": {
+      "svg": {
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "size": 412,
+        "hasSandColor": true,
+        "hasCompassRosePath": true,
+        "verdict": "PASS"
+      },
+      "ico": {
+        "status": 200,
+        "contentType": "image/vnd.microsoft.icon",
+        "size": 4186,
+        "isIcoHeader": true,
+        "verdict": "PASS"
+      },
+      "png32": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 1097,
+        "verdict": "PASS"
+      },
+      "png16": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 476,
+        "verdict": "PASS"
+      }
+    },
+    "browser": {
+      "title": "Touriva — Tourism Management Portal",
+      "domIconLinks": [
+        {
+          "rel": "icon",
+          "type": "image/svg+xml",
+          "href": "/favicon.svg?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/x-icon",
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "shortcut icon",
+          "type": null,
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-32x32.png?v=2",
+          "sizes": "32x32"
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-16x16.png?v=2",
+          "sizes": "16x16"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "type": null,
+          "href": "/apple-touch-icon.png?v=2",
+          "sizes": "180x180"
+        }
+      ],
+      "requestsIntercepted": [
+        {
+          "url": "https://touriva-tourism-admin.netlify.app/favicon.ico?v=2",
+          "status": 200,
+          "contentType": "image/vnd.microsoft.icon"
+        },
+        {
+          "url": "https://touriva-tourism-admin.netlify.app/favicon.ico?v=2",
+          "status": 304
+        },
+        {
+          "url": "https://touriva-tourism-admin.netlify.app/assets/materialdesignicons-webfont-Dp5v-WZN.woff2?v=7.4.47",
+          "status": 200,
+          "contentType": "font/woff2"
+        }
+      ],
+      "screenshot": "/home/next/next projects/touriva/branding/screenshots/netlify_favicon/touriva-admin_live_tab.png",
+      "status": "PASS"
+    }
+  },
+  {
+    "name": "TOURIVA Shop Web",
+    "productionUrl": "https://market.touriva.nextchallenge.tech",
+    "netlifyUrl": "https://touriva-market-web.netlify.app",
+    "assets": {
+      "svg": {
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "size": 412,
+        "hasSandColor": true,
+        "hasCompassRosePath": true,
+        "verdict": "PASS"
+      },
+      "ico": {
+        "status": 200,
+        "contentType": "image/vnd.microsoft.icon",
+        "size": 4186,
+        "isIcoHeader": true,
+        "verdict": "PASS"
+      },
+      "png32": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 1097,
+        "verdict": "PASS"
+      },
+      "png16": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 476,
+        "verdict": "PASS"
+      }
+    },
+    "browser": {
+      "title": "Touriva Travel Shop & Experiences",
+      "domIconLinks": [
+        {
+          "rel": "icon",
+          "type": "image/svg+xml",
+          "href": "/favicon.svg?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/x-icon",
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "shortcut icon",
+          "type": null,
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-32x32.png?v=2",
+          "sizes": "32x32"
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-16x16.png?v=2",
+          "sizes": "16x16"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "type": null,
+          "href": "/apple-touch-icon.png?v=2",
+          "sizes": "180x180"
+        }
+      ],
+      "requestsIntercepted": [
+        {
+          "url": "https://market.touriva.nextchallenge.tech/favicon.ico?v=2",
+          "status": 200,
+          "contentType": "image/vnd.microsoft.icon"
+        },
+        {
+          "url": "https://market.touriva.nextchallenge.tech/favicon.ico?v=2",
+          "status": 304
+        },
+        {
+          "url": "https://market.touriva.nextchallenge.tech/assets/materialdesignicons-webfont-Dp5v-WZN.woff2?v=7.4.47",
+          "status": 200,
+          "contentType": "font/woff2"
+        }
+      ],
+      "screenshot": "/home/next/next projects/touriva/branding/screenshots/netlify_favicon/touriva-shop-web_live_tab.png",
+      "status": "PASS"
+    }
+  },
+  {
+    "name": "TOURIVA Shop Admin",
+    "productionUrl": "https://admin.market.touriva.nextchallenge.tech",
+    "netlifyUrl": "https://touriva-market-admin.netlify.app",
+    "assets": {
+      "svg": {
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "size": 412,
+        "hasSandColor": true,
+        "hasCompassRosePath": true,
+        "verdict": "PASS"
+      },
+      "ico": {
+        "status": 200,
+        "contentType": "image/vnd.microsoft.icon",
+        "size": 4186,
+        "isIcoHeader": true,
+        "verdict": "PASS"
+      },
+      "png32": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 1097,
+        "verdict": "PASS"
+      },
+      "png16": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 476,
+        "verdict": "PASS"
+      }
+    },
+    "browser": {
+      "title": "Touriva Shop — Commerce Administration",
+      "domIconLinks": [
+        {
+          "rel": "icon",
+          "type": "image/svg+xml",
+          "href": "/favicon.svg?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/x-icon",
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "shortcut icon",
+          "type": null,
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-32x32.png?v=2",
+          "sizes": "32x32"
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-16x16.png?v=2",
+          "sizes": "16x16"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "type": null,
+          "href": "/apple-touch-icon.png?v=2",
+          "sizes": "180x180"
+        }
+      ],
+      "requestsIntercepted": [
+        {
+          "url": "https://admin.market.touriva.nextchallenge.tech/favicon.ico?v=2",
+          "status": 200,
+          "contentType": "image/vnd.microsoft.icon"
+        },
+        {
+          "url": "https://admin.market.touriva.nextchallenge.tech/favicon.ico?v=2",
+          "status": 304
+        },
+        {
+          "url": "https://admin.market.touriva.nextchallenge.tech/assets/materialdesignicons-webfont-Dp5v-WZN.woff2?v=7.4.47",
+          "status": 200,
+          "contentType": "font/woff2"
+        }
+      ],
+      "screenshot": "/home/next/next projects/touriva/branding/screenshots/netlify_favicon/touriva-shop-admin_live_tab.png",
+      "status": "PASS"
+    }
+  },
+  {
+    "name": "TOURIVA Shop Seller Admin",
+    "productionUrl": "https://seller.market.touriva.nextchallenge.tech",
+    "netlifyUrl": "https://touriva-market-seller.netlify.app",
+    "assets": {
+      "svg": {
+        "status": 200,
+        "contentType": "image/svg+xml",
+        "size": 412,
+        "hasSandColor": true,
+        "hasCompassRosePath": true,
+        "verdict": "PASS"
+      },
+      "ico": {
+        "status": 200,
+        "contentType": "image/vnd.microsoft.icon",
+        "size": 4186,
+        "isIcoHeader": true,
+        "verdict": "PASS"
+      },
+      "png32": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 1097,
+        "verdict": "PASS"
+      },
+      "png16": {
+        "status": 200,
+        "contentType": "image/png",
+        "size": 476,
+        "verdict": "PASS"
+      }
+    },
+    "browser": {
+      "title": "Touriva Partner & Merchant Portal",
+      "domIconLinks": [
+        {
+          "rel": "icon",
+          "type": "image/svg+xml",
+          "href": "/favicon.svg?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/x-icon",
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "shortcut icon",
+          "type": null,
+          "href": "/favicon.ico?v=2",
+          "sizes": null
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-32x32.png?v=2",
+          "sizes": "32x32"
+        },
+        {
+          "rel": "icon",
+          "type": "image/png",
+          "href": "/favicon-16x16.png?v=2",
+          "sizes": "16x16"
+        },
+        {
+          "rel": "apple-touch-icon",
+          "type": null,
+          "href": "/apple-touch-icon.png?v=2",
+          "sizes": "180x180"
+        }
+      ],
+      "requestsIntercepted": [
+        {
+          "url": "https://seller.market.touriva.nextchallenge.tech/favicon.ico?v=2",
+          "status": 200,
+          "contentType": "image/vnd.microsoft.icon"
+        },
+        {
+          "url": "https://seller.market.touriva.nextchallenge.tech/favicon.ico?v=2",
+          "status": 304
+        },
+        {
+          "url": "https://seller.market.touriva.nextchallenge.tech/assets/materialdesignicons-webfont-Dp5v-WZN.woff2?v=7.4.47",
+          "status": 200,
+          "contentType": "font/woff2"
+        }
+      ],
+      "screenshot": "/home/next/next projects/touriva/branding/screenshots/netlify_favicon/touriva-shop-seller-admin_live_tab.png",
+      "status": "PASS"
+    }
+  }
+]
