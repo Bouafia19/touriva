@@ -76,6 +76,34 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         
+        // 1-Click Demo Sign In for Marketplace Buyers
+        async demoSignIn (demoType) {
+            try {
+                const response = await axios.post("api/users/demo-login", { demoType, role: 'client' }, {
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                })
+                if (response && response.data) {
+                    this.user = response.data
+                    this.auth_login = true
+                    try {
+                        localStorage.setItem('userInfo', JSON.stringify(response.data))
+                    } catch (e) {}
+                    await this.setLSUserInfo(response.data)
+                    this.router.push('/tabs')
+                    return response.data
+                } else {
+                    throw new Error('Could not complete demo login')
+                }
+            } catch (error) {
+                const err = error.response?.data?.error || error.message || 'Demo login failed'
+                throw new Error(err)
+            }
+        },
+
         // login to user account 
         async account_sign_in (params) {
             try {
@@ -90,15 +118,11 @@ export const useAuthStore = defineStore('auth', {
                 if(response){
                     this.user = response.data
                     this.auth_login = true
-                    // localStorage.setItem('userInfo', JSON.stringify(response.data))
+                    try {
+                        localStorage.setItem('userInfo', JSON.stringify(response.data))
+                    } catch (e) {}
                     this.setLSUserInfo(response.data).then(() => {
-                    //     dispatch('getLSUserInfo').then((ls) => {
-                            // if(ls.user.complete === false){
-                            //     router.push('/documents')
-                            // }else{
-                                this.router.push('/tabs')
-                            // }
-                    //     })
+                        this.router.push('/tabs')
                     })
                 }else{
                     throw new Error('could not complete login')

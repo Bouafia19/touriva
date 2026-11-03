@@ -29,10 +29,79 @@
 
           <!-- Right Login Form Panel -->
           <v-col cols="12" md="7" class="auth-form-panel pa-8 pa-lg-12 d-flex flex-column justify-center">
-            <div class="mb-6">
+            <div class="mb-5">
               <span class="editorial-tag">Partner Access</span>
               <h1 class="auth-title font-serif mt-1">Merchant Sign In</h1>
               <p class="auth-subtitle">Enter your merchant credentials to manage your store and orders.</p>
+            </div>
+
+            <!-- Explore the Seller Portal — Demo Accounts -->
+            <div class="demo-section pa-4 mb-5 rounded-lg border-subtle bg-sand-light">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center ga-2">
+                  <v-icon color="#173F35" size="20">mdi-storefront-outline</v-icon>
+                  <span class="text-caption font-weight-bold text-forest text-uppercase">
+                    Explore the Seller Portal — Demo Accounts
+                  </span>
+                </div>
+                <v-chip size="x-small" color="#173F35" variant="flat" class="font-weight-bold text-white">
+                  1-CLICK DEMO
+                </v-chip>
+              </div>
+              <p class="text-caption text-secondary-editorial mb-3">
+                Click any independent Algerian merchant store to explore seller catalog management and incoming orders.
+              </p>
+
+              <!-- Demo Error Banner -->
+              <v-alert
+                v-if="demoErr"
+                type="error"
+                variant="tonal"
+                closable
+                class="mb-3 rounded-lg text-caption"
+                @click:close="demoErr = ''"
+              >
+                {{ demoErr }}
+              </v-alert>
+
+              <div class="d-flex flex-column ga-2">
+                <v-btn
+                  v-for="s in demoSellers"
+                  :key="s.key"
+                  variant="flat"
+                  color="#FFFFFF"
+                  rounded="lg"
+                  class="text-none justify-start px-3 py-2 border-subtle demo-seller-btn"
+                  elevation="0"
+                  :loading="demoLoadingKey === s.key"
+                  :disabled="loading || (demoLoadingKey !== null && demoLoadingKey !== s.key)"
+                  @click="quickDemoSignIn(s.key)"
+                >
+                  <v-avatar size="32" :color="s.avatarColor" class="me-2 text-white">
+                    <v-icon size="18">{{ s.icon }}</v-icon>
+                  </v-avatar>
+                  <div class="text-left flex-grow-1">
+                    <div class="text-caption font-weight-bold text-forest line-height-tight">
+                      {{ s.name }}
+                    </div>
+                    <div class="text-caption text-secondary-editorial text-xs line-height-tight">
+                      {{ s.location }} • {{ s.category }}
+                    </div>
+                  </div>
+                  <v-chip size="x-small" color="#D9B98C" variant="flat" class="text-deep-green font-weight-bold me-2">
+                    VERIFIED
+                  </v-chip>
+                  <v-icon color="#C2A87E" size="18">mdi-arrow-right</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <div class="d-flex align-center my-4">
+              <v-divider class="border-subtle"></v-divider>
+              <span class="mx-3 text-caption text-secondary-editorial font-weight-medium text-center text-uppercase">
+                Or sign in with email
+              </span>
+              <v-divider class="border-subtle"></v-divider>
             </div>
 
             <!-- Error Banner -->
@@ -117,6 +186,56 @@ const password = ref('')
 const show = ref(false)
 const loading = ref(false)
 const err = ref('')
+const demoLoadingKey = ref(null)
+const demoErr = ref('')
+
+const demoSellers = [
+  {
+    key: 'seller1',
+    name: 'Atlas Electronics DZ',
+    location: 'Alger (16)',
+    category: 'High-Tech & Electronics',
+    icon: 'mdi-laptop',
+    avatarColor: '#173F35'
+  },
+  {
+    key: 'seller2',
+    name: 'Artisan DZ & Traditions',
+    location: 'Tlemcen (13)',
+    category: 'Handicrafts & Rugs',
+    icon: 'mdi-palette-swatch-outline',
+    avatarColor: '#21866B'
+  },
+  {
+    key: 'seller3',
+    name: 'Maison El Bahdja Déco',
+    location: 'Alger (16)',
+    category: 'Ceramics & Home Decor',
+    icon: 'mdi-home-heart',
+    avatarColor: '#102D27'
+  },
+  {
+    key: 'seller4',
+    name: 'Sahara Outdoor Expeditions',
+    location: 'Tamanrasset (11)',
+    category: 'Desert Trekking & Gear',
+    icon: 'mdi-compass-outline',
+    avatarColor: '#B89564'
+  }
+]
+
+const quickDemoSignIn = async (key) => {
+  try {
+    demoLoadingKey.value = key
+    demoErr.value = ''
+    await auth.demoSignIn(key)
+  } catch (error) {
+    demoErr.value = error.message || 'Demo login failed'
+    setTimeout(() => { demoErr.value = '' }, 6000)
+  } finally {
+    demoLoadingKey.value = null
+  }
+}
 
 const logIn = async () => {
   try {
@@ -240,5 +359,27 @@ const submit = () => {
   font-weight: 600;
   color: var(--color-deep-green);
   margin-bottom: 6px;
+}
+
+.demo-section {
+  background: #FAF8F2;
+  border: 1px solid rgba(217, 185, 140, 0.45);
+  box-shadow: 0 2px 8px rgba(16, 45, 39, 0.04);
+}
+
+.demo-seller-btn {
+  border: 1px solid rgba(16, 45, 39, 0.08) !important;
+  transition: all 0.2s ease;
+}
+
+.demo-seller-btn:hover {
+  border-color: rgba(217, 185, 140, 0.85) !important;
+  background-color: #FAF8F2 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 45, 39, 0.08);
+}
+
+.line-height-tight {
+  line-height: 1.25;
 }
 </style>

@@ -346,6 +346,15 @@
                 Touriva
               </span>
               <span class="shop-badge ml-2">SHOP</span>
+              <v-chip
+                v-if="isDemoSession"
+                size="x-small"
+                color="error"
+                variant="flat"
+                class="ml-2 font-weight-bold"
+              >
+                DEMO
+              </v-chip>
             </div>
           </div>
         </div>
@@ -719,6 +728,10 @@
   // Responsive display logic
   const { smAndDown } = useDisplay()
   const isMobile = computed(() => smAndDown.value)
+
+  const isDemoSession = computed(() => {
+    return Boolean(auth.user?.isDemo || auth.user?.user?.isDemo || ls.value?.isDemo || ls.value?.user?.isDemo)
+  })
 
   const selectedLanguage = computed(() =>
     locals.value.find((lang) => lang.value === locale.value) || locals.value[0]

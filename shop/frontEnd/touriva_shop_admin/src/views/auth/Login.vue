@@ -29,10 +29,75 @@
 
           <!-- Right Login Form Panel -->
           <v-col cols="12" md="7" class="auth-form-panel pa-8 pa-lg-12 d-flex flex-column justify-center">
-            <div class="mb-6">
+            <div class="mb-5">
               <span class="editorial-tag">Authentication</span>
               <h1 class="auth-title font-serif mt-1">Welcome Back</h1>
               <p class="auth-subtitle">Enter your administrative credentials to access the commerce portal.</p>
+            </div>
+
+            <!-- Marketplace Administration — Demo Access -->
+            <div class="demo-section pa-4 mb-5 rounded-lg border-subtle bg-sand-light">
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div class="d-flex align-center ga-2">
+                  <v-icon color="#173F35" size="20">mdi-shield-crown-outline</v-icon>
+                  <span class="text-caption font-weight-bold text-forest text-uppercase">
+                    Marketplace Administration — Demo Access
+                  </span>
+                </div>
+                <v-chip size="x-small" color="#173F35" variant="flat" class="font-weight-bold text-white">
+                  GOVERNANCE DEMO
+                </v-chip>
+              </div>
+              <p class="text-caption text-secondary-editorial mb-3">
+                Experience owner controls, seller approvals, product moderation queues, and live GMV analytics.
+              </p>
+
+              <!-- Demo Error Banner -->
+              <v-alert
+                v-if="demoErr"
+                type="error"
+                variant="tonal"
+                closable
+                class="mb-3 rounded-lg text-caption"
+                @click:close="demoErr = ''"
+              >
+                {{ demoErr }}
+              </v-alert>
+
+              <v-btn
+                variant="flat"
+                color="#FFFFFF"
+                rounded="lg"
+                class="text-none justify-start px-3 py-3 border-subtle demo-admin-btn w-100"
+                elevation="0"
+                :loading="demoLoading"
+                :disabled="loading"
+                @click="quickDemoSignIn"
+              >
+                <v-avatar size="36" color="#173F35" class="me-3 text-white">
+                  <v-icon size="20" color="#D9B98C">mdi-shield-crown</v-icon>
+                </v-avatar>
+                <div class="text-left flex-grow-1">
+                  <div class="text-subtitle-2 font-weight-bold text-forest line-height-tight">
+                    Touriva Demo Administrator
+                  </div>
+                  <div class="text-caption text-secondary-editorial text-xs line-height-tight mt-1">
+                    Role: Marketplace Administrator • Full Platform Oversight
+                  </div>
+                </div>
+                <v-chip size="x-small" color="#D9B98C" variant="flat" class="text-deep-green font-weight-bold me-2">
+                  1-CLICK ACCESS
+                </v-chip>
+                <v-icon color="#C2A87E" size="20">mdi-arrow-right</v-icon>
+              </v-btn>
+            </div>
+
+            <div class="d-flex align-center my-4">
+              <v-divider class="border-subtle"></v-divider>
+              <span class="mx-3 text-caption text-secondary-editorial font-weight-medium text-center text-uppercase">
+                Or sign in with credentials
+              </span>
+              <v-divider class="border-subtle"></v-divider>
             </div>
 
             <!-- Error Banner -->
@@ -117,6 +182,21 @@ const password = ref('')
 const show = ref(false)
 const loading = ref(false)
 const err = ref('')
+const demoLoading = ref(false)
+const demoErr = ref('')
+
+const quickDemoSignIn = async () => {
+  try {
+    demoLoading.value = true
+    demoErr.value = ''
+    await auth.demoSignIn('admin')
+  } catch (error) {
+    demoErr.value = error.message || 'Demo admin authentication failed'
+    setTimeout(() => { demoErr.value = '' }, 6000)
+  } finally {
+    demoLoading.value = false
+  }
+}
 
 const logIn = async () => {
   try {
@@ -240,5 +320,27 @@ const submit = () => {
   font-weight: 600;
   color: var(--color-deep-green);
   margin-bottom: 6px;
+}
+
+.demo-section {
+  background: #FAF8F2;
+  border: 1px solid rgba(217, 185, 140, 0.45);
+  box-shadow: 0 2px 8px rgba(16, 45, 39, 0.04);
+}
+
+.demo-admin-btn {
+  border: 1px solid rgba(16, 45, 39, 0.1) !important;
+  transition: all 0.2s ease;
+}
+
+.demo-admin-btn:hover {
+  border-color: rgba(217, 185, 140, 0.85) !important;
+  background-color: #FAF8F2 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 45, 39, 0.08);
+}
+
+.line-height-tight {
+  line-height: 1.25;
 }
 </style>

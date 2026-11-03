@@ -20,7 +20,11 @@ const {
     loginUserWeb,
     signupUserWeb,
     uploadPartnerImages,
-    loadPartnerPhotos } = require('../controllers/usersController')
+    loadPartnerPhotos,
+    demoLogin } = require('../controllers/usersController')
+
+// demo login route (1-Click demonstration access)
+router.post('/demo-login', demoLogin)
 
 // login via web route
 router.post('/loginWeb', loginUserWeb)

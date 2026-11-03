@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const Role = require('../models/Role')
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
@@ -394,12 +395,16 @@ const deleteUser = async (req, res) => {
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-    const user = await User.findOneAndDelete({_id: id})
 
-    if(!user){
+    const target = await User.findById(id)
+    if(!target){
         return res.status(404).json({error: 'no such user'})
     }
+    if (target.isDemo) {
+        return res.status(403).json({ error: 'Demo accounts are protected from deletion.' })
+    }
 
+    await User.findByIdAndDelete(id)
     res.status(200).json({ message: 'User deleted successfully', _id: id })
 }
 
@@ -414,6 +419,14 @@ const updateUser = async (req, res) => {
     const isAdmin = req.user && req.user.role === 'administrator'
     if (!isSelf && !isAdmin) {
         return res.status(403).json({ error: 'Access forbidden: You cannot modify another user' })
+    }
+
+    const target = await User.findById(id)
+    if (!target) {
+        return res.status(404).json({ error: 'no such user' })
+    }
+    if (target.isDemo && (req.body.password || req.body.email)) {
+        return res.status(403).json({ error: 'Demo accounts are protected: password and email changes are disabled in demonstration mode.' })
     }
 
     const updates = { ...req.body }
@@ -452,6 +465,14 @@ const update_existing_user = async (req, res) => {
     const isAdmin = req.user && req.user.role === 'administrator'
     if (!isSelf && !isAdmin) {
         return res.status(403).json({ error: 'Access forbidden: You cannot modify another user' })
+    }
+
+    const target = await User.findById(id)
+    if (!target) {
+        return res.status(404).json({ error: 'no such user' })
+    }
+    if (target.isDemo && (req.body.password || req.body.email)) {
+        return res.status(403).json({ error: 'Demo accounts are protected: password and email changes are disabled in demonstration mode.' })
     }
 
     const updates = { ...req.body }
@@ -513,6 +534,116 @@ const loadPartnerPhotos = async (req, res) => {
     res.status(200).json(images)
 }
 
+// Whitelist of valid demo accounts for Touriva Independent Marketplace
+const APPROVED_DEMO_ACCOUNTS = {
+    // Administrator
+    'admin': { email: 'demo.admin@touriva.example', role: 'administrator', type: 'admin', name: 'Touriva Demo Administrator' },
+    'administrator': { email: 'demo.admin@touriva.example', role: 'administrator', type: 'admin', name: 'Touriva Demo Administrator' },
+
+    // Sellers
+    'seller1': { email: 'demo.seller1@touriva.example', role: 'seller', type: 'seller', storeName: 'Atlas Electronics DZ' },
+    'atlas': { email: 'demo.seller1@touriva.example', role: 'seller', type: 'seller', storeName: 'Atlas Electronics DZ' },
+    'atlas-electronics-dz': { email: 'demo.seller1@touriva.example', role: 'seller', type: 'seller', storeName: 'Atlas Electronics DZ' },
+
+    'seller2': { email: 'demo.seller2@touriva.example', role: 'seller', type: 'seller', storeName: 'Artisan DZ & Traditions' },
+    'artisan': { email: 'demo.seller2@touriva.example', role: 'seller', type: 'seller', storeName: 'Artisan DZ & Traditions' },
+    'artisan-dz-traditions': { email: 'demo.seller2@touriva.example', role: 'seller', type: 'seller', storeName: 'Artisan DZ & Traditions' },
+
+    'seller3': { email: 'demo.seller3@touriva.example', role: 'seller', type: 'seller', storeName: 'Maison El Bahdja Déco' },
+    'bahdja': { email: 'demo.seller3@touriva.example', role: 'seller', type: 'seller', storeName: 'Maison El Bahdja Déco' },
+    'maison-el-bahdja-deco': { email: 'demo.seller3@touriva.example', role: 'seller', type: 'seller', storeName: 'Maison El Bahdja Déco' },
+
+    'seller4': { email: 'demo.seller4@touriva.example', role: 'seller', type: 'seller', storeName: 'Sahara Outdoor Expeditions' },
+    'sahara': { email: 'demo.seller4@touriva.example', role: 'seller', type: 'seller', storeName: 'Sahara Outdoor Expeditions' },
+    'sahara-outdoor-expeditions': { email: 'demo.seller4@touriva.example', role: 'seller', type: 'seller', storeName: 'Sahara Outdoor Expeditions' },
+
+    // Buyers
+    'buyer1': { email: 'demo.buyer1@touriva.example', role: 'client', type: 'buyer', name: 'Yasmine Benali', phone: '+213550000001' },
+    'yasmine': { email: 'demo.buyer1@touriva.example', role: 'client', type: 'buyer', name: 'Yasmine Benali', phone: '+213550000001' },
+
+    'buyer2': { email: 'demo.buyer2@touriva.example', role: 'client', type: 'buyer', name: 'Rachid Khellaf', phone: '+213550000002' },
+    'rachid': { email: 'demo.buyer2@touriva.example', role: 'client', type: 'buyer', name: 'Rachid Khellaf', phone: '+213550000002' },
+
+    'buyer3': { email: 'demo.buyer3@touriva.example', role: 'client', type: 'buyer', name: 'Amina Bouzid', phone: '+213550000003' },
+    'amina': { email: 'demo.buyer3@touriva.example', role: 'client', type: 'buyer', name: 'Amina Bouzid', phone: '+213550000003' },
+
+    'buyer4': { email: 'demo.buyer4@touriva.example', role: 'client', type: 'buyer', name: 'Sofiane Zerrouki', phone: '+213550000004' },
+    'sofiane': { email: 'demo.buyer4@touriva.example', role: 'client', type: 'buyer', name: 'Sofiane Zerrouki', phone: '+213550000004' },
+
+    'buyer5': { email: 'demo.buyer5@touriva.example', role: 'client', type: 'buyer', name: 'Nour El Houda Belkacem', phone: '+213550000005' },
+    'nour': { email: 'demo.buyer5@touriva.example', role: 'client', type: 'buyer', name: 'Nour El Houda Belkacem', phone: '+213550000005' }
+}
+
+// 1-Click Demo Authentication for Touriva Independent Marketplace
+const demoLogin = async (req, res) => {
+    try {
+        const { demoType, role: requestedRole } = req.body
+        const key = String(demoType || '').toLowerCase().trim()
+
+        // Match against whitelist by key or email
+        let account = APPROVED_DEMO_ACCOUNTS[key]
+        if (!account) {
+            account = Object.values(APPROVED_DEMO_ACCOUNTS).find(a => a.email === key)
+        }
+
+        if (!account) {
+            return res.status(400).json({
+                error: 'Invalid demoType. Permitted options: admin, seller1, seller2, seller3, seller4, buyer1, buyer2, buyer3, buyer4, buyer5.'
+            })
+        }
+
+        // Enforce role consistency if requestedRole is provided
+        if (requestedRole && requestedRole !== account.role) {
+            return res.status(403).json({
+                error: `Role mismatch: demo account '${key}' has role '${account.role}', cannot authenticate as '${requestedRole}'.`
+            })
+        }
+
+        // Query database with strict demo verification
+        const item = await User.findOne({
+            email: account.email,
+            role: account.role,
+            isDemo: true,
+            seedId: 'TOURIVA-DEMO-2026'
+        }).populate('authorizationIds')
+
+        if (!item) {
+            return res.status(404).json({
+                error: `Demo account (${account.email}) not found or uninitialized. Please run demo seeder.`
+            })
+        }
+
+        if (item.status === false || item.activated === false) {
+            return res.status(403).json({ error: 'This demo account is currently disabled.' })
+        }
+
+        const token = createToken(item._id)
+        const rules = (item.authorizationIds && item.authorizationIds.length > 0) ? defineRulesFor(item) : []
+
+        const user = {
+            _id: item._id,
+            email: item.email,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            language: item.language,
+            phone: item.phone,
+            role: item.role,
+            complete: item.complete,
+            status: item.status,
+            fileStatus: item.fileStatus,
+            companyName: item.companyName,
+            expirationOfSubscription: item.expirationOfSubscription,
+            isDemo: true,
+            seedId: item.seedId,
+            demoRole: account.type
+        }
+
+        res.status(200).json({ rules, user, token, isDemo: true })
+    } catch (error) {
+        res.status(500).json({ error: error.message || 'Demo authentication failed.' })
+    }
+}
+
 module.exports = {
     loginUser,
     signupUser,
@@ -528,5 +659,6 @@ module.exports = {
     loginUserWeb,
     signupUserWeb,
     uploadPartnerImages,
-    loadPartnerPhotos
+    loadPartnerPhotos,
+    demoLogin
 }

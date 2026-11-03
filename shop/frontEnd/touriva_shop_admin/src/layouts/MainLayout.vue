@@ -83,6 +83,15 @@
       <div class="d-flex align-center">
         <span class="app-bar-title font-serif">{{ currentRouteTitle }}</span>
         <span class="app-bar-tag ms-3 d-none d-sm-inline-block">Editorial Shop</span>
+        <v-chip
+          v-if="isDemoSession"
+          size="x-small"
+          color="error"
+          variant="flat"
+          class="ms-2 font-weight-bold"
+        >
+          DEMO MODE
+        </v-chip>
       </div>
 
       <v-spacer></v-spacer>
@@ -330,6 +339,16 @@
 
   const currentLocaleText = computed(() => {
     return locale.value || 'en'
+  })
+
+  const isDemoSession = computed(() => {
+    try {
+      const stored = localStorage.getItem('userInfo')
+      const parsed = stored ? JSON.parse(stored) : null
+      return Boolean(auth.user?.isDemo || auth.user?.user?.isDemo || parsed?.isDemo || parsed?.user?.isDemo)
+    } catch (e) {
+      return false
+    }
   })
 
   const setLanguage = (lang) => {

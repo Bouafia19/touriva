@@ -32,7 +32,7 @@ const orderRouters = require('./routes/orders')
 const marketplaceRouters = require('./routes/marketplace')
 const sellerRouters = require('./routes/seller')
 const marketplaceAdminRouters = require('./routes/marketplaceAdmin')
-const { apiLimiter, authLimiter, checkoutLimiter } = require('./middleware/rateLimiter')
+const { apiLimiter, authLimiter, demoLimiter, checkoutLimiter } = require('./middleware/rateLimiter')
 
 // express app
 const app = express()
@@ -117,6 +117,7 @@ app.get(['/health', '/api/health'], (req, res) => {
 // Rate limiting
 app.use('/api/', apiLimiter)
 app.use('/api/users/login', authLimiter)
+app.use('/api/users/demo-login', demoLimiter)
 app.use('/api/marketplace/checkout', checkoutLimiter)
 app.use('/api/marketplace/seller-application', checkoutLimiter)
 
