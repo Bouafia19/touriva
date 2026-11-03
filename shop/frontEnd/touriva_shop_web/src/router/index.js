@@ -109,11 +109,13 @@ const router = createRouter({
       // },
       children: [
         { path: '/login', 
+          alias: ['/user/login'],
           name: 'Login',  
           meta: { title: 'Login' }, 
           component: () => import('@/views/user/Login.vue') 
         },
         { path: '/signup',
+          alias: ['/user/signup'],
           name: 'Signup',  
           meta: { title: 'SignUp' }, 
           component: () => import('@/views/user/Signup.vue') 

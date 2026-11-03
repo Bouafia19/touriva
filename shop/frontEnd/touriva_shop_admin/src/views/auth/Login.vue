@@ -8,7 +8,7 @@
             <div>
               <div class="d-flex align-center gap-3 mb-6">
                 <div class="brand-monogram">
-                  <v-icon color="sand" size="26">mdi-compass-rose</v-icon>
+                  <v-icon icon="mdi-compass-rose" color="sand" size="26"></v-icon>
                 </div>
                 <div>
                   <div class="hero-brand-name font-serif">TOU<span>RIVA</span></div>

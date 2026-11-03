@@ -12,7 +12,7 @@
       <div class="sidebar-brand-wrapper">
         <div class="sidebar-brand-inner">
           <div class="brand-monogram">
-            <v-icon color="sand" size="24">mdi-compass-rose</v-icon>
+            <v-icon icon="mdi-compass-rose" color="sand" size="24"></v-icon>
           </div>
           <div class="brand-text">
             <div class="brand-title">TOU<span>RIVA</span></div>
@@ -78,6 +78,17 @@
         class="me-2"
         @click="drawer = !drawer"
       ></v-app-bar-nav-icon>
+
+      <!-- App Bar Brand Emblem -->
+      <div class="d-flex align-center me-3">
+        <div class="app-bar-brand-emblem me-2">
+          <v-icon icon="mdi-compass-rose" color="sand" size="22"></v-icon>
+        </div>
+        <div class="app-bar-brand-title d-none d-sm-flex flex-column">
+          <span class="font-serif text-caption font-weight-bold text-forest">TOU<span class="text-sand">RIVA</span></span>
+        </div>
+      </div>
+      <v-divider vertical class="my-3 me-3 d-none d-sm-block"></v-divider>
 
       <!-- Page / Breadcrumb Indicator -->
       <div class="d-flex align-center">
@@ -437,6 +448,17 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(217, 185, 140, 0.15);
+}
+
+.app-bar-brand-emblem {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(217, 185, 140, 0.15);
+  border: 1px solid rgba(217, 185, 140, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand-text {
