@@ -85,46 +85,51 @@ const verifyUser = async (req, res) => {
 
 // login user
 const loginUser = async (req, res) => {
-    const { role } = req.body
     try {
-        if(role != 'administrator'){
-            const { phone, password } = req.body
-            const item = await User.loginPhone(phone, password, role)
-            // create token
-            const token = createToken(item._id)
-            
-            
-                let user = {
-                    _id: item._id,
-                    email: item.email,
-                    firstName: item.firstName,
-                    lastName: item.lastName,
-                    language: item.language,
-                    phone: item.phone,
-                    role: item.role,
-                    complete: item.complete,
-                    status: item.status,
-                    fileStatus: item.fileStatus,
-                    companyName: item.companyName,
-                    typeAccount: item.typeAccount,
-                    expirationOfSubscription: item.expirationOfSubscription,
-                    sectorActivity: item.sectorActivity
-                    // categoryId: item.categoryId,
-                    
-                }
-               
-                res.status(200).json({ user, token})
-          
-            
-        }else{
-            const { email, password } = req.body
+        const { email, phone, password, role } = req.body
+
+        // Email-based login for Admin and Sellers
+        if (email) {
             const user = await User.loginEmail(email, password, role)
-            // create token
             const token = createToken(user._id)
             const rules = defineRulesFor(user)
-            res.status(200).json({ rules, user, token})
+            let userObj = {
+                _id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                language: user.language,
+                phone: user.phone,
+                role: user.role,
+                complete: user.complete,
+                status: user.status,
+                fileStatus: user.fileStatus,
+                companyName: user.companyName,
+                expirationOfSubscription: user.expirationOfSubscription
+            }
+            return res.status(200).json({ rules, user: userObj, token })
         }
 
+        // Phone-based login for client / partner accounts
+        const item = await User.loginPhone(phone, password, role)
+        const token = createToken(item._id)
+        let user = {
+            _id: item._id,
+            email: item.email,
+            firstName: item.firstName,
+            lastName: item.lastName,
+            language: item.language,
+            phone: item.phone,
+            role: item.role,
+            complete: item.complete,
+            status: item.status,
+            fileStatus: item.fileStatus,
+            companyName: item.companyName,
+            typeAccount: item.typeAccount,
+            expirationOfSubscription: item.expirationOfSubscription,
+            sectorActivity: item.sectorActivity
+        }
+        res.status(200).json({ user, token })
     } catch (error) {
         res.status(400).json({error: error.message})
     }

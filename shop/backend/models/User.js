@@ -245,17 +245,21 @@ UserSchema.statics.loginPhone = async function( phone, password, role) {
 }
 
 // static loginEmail method
-UserSchema.statics.loginEmail = async function( email, password ) {
+UserSchema.statics.loginEmail = async function( email, password, role ) {
   if(!email || !password){
     throw Error('All field must be filled')
   }
-  const user = await this.findOne({ email, role: 'administrator' }).select('+password').populate("authorizationIds")
+  const query = { email: email.toLowerCase().trim() }
+  if (role) {
+    query.role = role
+  }
+  const user = await this.findOne(query).select('+password').populate("authorizationIds")
   if(!user){
-    throw Error('ie')
+    throw Error('Invalid email or password')
   }
   const match = await bcrypt.compare(password, user.password) 
   if(!match){
-    throw Error('ipass')
+    throw Error('Invalid email or password')
   }
   return user
 }

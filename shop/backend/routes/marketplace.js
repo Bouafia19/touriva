@@ -30,9 +30,11 @@ router.get('/sellers/:slug', getPublicSellerStore)
 
 // Seller Application
 router.post('/sellers/apply', applyForSeller)
+router.post('/seller-application', applyForSeller)
 
 // Cart & Orders
 router.post('/orders', optionalAuth, createMarketplaceOrder)
+router.post('/checkout', optionalAuth, createMarketplaceOrder)
 router.get('/orders/my', requireAuth, getMyOrders)
 router.get('/orders/:id', optionalAuth, getOrderDetails)
 router.post('/orders/:id/payment-proof', optionalAuth, submitPaymentProof)
