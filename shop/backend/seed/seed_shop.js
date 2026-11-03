@@ -268,6 +268,7 @@ async function seedFreshShopData(db) {
     userId: seller1._id,
     storeName: 'Sahara Expedition Outfitters DZ',
     storeSlug: 'sahara-expedition',
+    email: seller1.email,
     phone: seller1.phone,
     wilaya: 'Djanet',
     address: 'Zone Artisanale, Djanet, Illizi',
@@ -284,6 +285,7 @@ async function seedFreshShopData(db) {
     userId: seller2._id,
     storeName: 'Atlas Mountain & Trekking Pro',
     storeSlug: 'atlas-trekking',
+    email: seller2.email,
     phone: seller2.phone,
     wilaya: 'Blida',
     address: 'Chréa Boulevard, Blida',
@@ -300,6 +302,7 @@ async function seedFreshShopData(db) {
     userId: seller3._id,
     storeName: 'Artisans du M’Zab & Terroir Saharien',
     storeSlug: 'artisans-mzab',
+    email: seller3.email,
     phone: seller3.phone,
     wilaya: 'Ghardaïa',
     address: 'Ksar de Beni Isguen, Ghardaïa',
@@ -315,37 +318,38 @@ async function seedFreshShopData(db) {
   // Historical Approved & Live Pending Vendor Applications
   await SellerApplication.create([
     {
-      applicantName: 'Amine Mansouri',
-      applicantEmail: seller1.email,
-      applicantPhone: seller1.phone,
+      legalRepresentativeName: 'Amine Mansouri',
+      email: seller1.email,
+      phone: seller1.phone,
+      address: 'Zone Artisanale, Djanet',
       storeName: 'Sahara Expedition Outfitters DZ',
       businessCategory: 'Outdoor Gear & Sahara Equipment',
       wilaya: 'Djanet',
       businessDescription: 'Fabrication et distribution d\'équipements de randonnée désertique.',
       status: 'approved',
       assignedSellerId: profile1._id,
-      assignedUserId: seller1._id,
       commissionRate: 10,
       reviewNotes: 'Verified Sahara artisan credentials'
     },
     {
-      applicantName: 'Karim Bensalem',
-      applicantEmail: seller2.email,
-      applicantPhone: seller2.phone,
+      legalRepresentativeName: 'Karim Bensalem',
+      email: seller2.email,
+      phone: seller2.phone,
+      address: 'Chréa Boulevard, Blida',
       storeName: 'Atlas Mountain & Trekking Pro',
       businessCategory: 'Mountain & Climbing Equipment',
       wilaya: 'Blida',
       businessDescription: 'Équipementier pour clubs de montagne et randonneurs en Algérie.',
       status: 'approved',
       assignedSellerId: profile2._id,
-      assignedUserId: seller2._id,
       commissionRate: 10,
       reviewNotes: 'Verified trade register 16/00-8899002B25'
     },
     {
-      applicantName: 'Farida Ait Ahmed',
-      applicantEmail: 'farida.kabylie@artisanat.dz',
-      applicantPhone: '+213550000031',
+      legalRepresentativeName: 'Farida Ait Ahmed',
+      email: 'farida.kabylie@artisanat.dz',
+      phone: '+213550000031',
+      address: 'Village Beni Yenni, Grande Kabylie',
       storeName: 'Bijoux d\'Argent & Fibules de Beni Yenni',
       businessCategory: 'Artisanal Jewelry & Silvercraft',
       wilaya: 'Tizi Ouzou',
@@ -353,9 +357,10 @@ async function seedFreshShopData(db) {
       status: 'pending'
     },
     {
-      applicantName: 'Moussa Ag Othman',
-      applicantEmail: 'moussa.tamanrasset@nomadcraft.dz',
-      applicantPhone: '+213550000032',
+      legalRepresentativeName: 'Moussa Ag Othman',
+      email: 'moussa.tamanrasset@nomadcraft.dz',
+      phone: '+213550000032',
+      address: 'Quartier Tahaggart, Tamanrasset',
       storeName: 'Hoggar Cuir & Maroquinerie Nomade',
       businessCategory: 'Traditional Leatherwork & Accessories',
       wilaya: 'Tamanrasset',
@@ -917,7 +922,7 @@ async function seedFreshShopData(db) {
       orderNumber: 'TRV-MKT-2026-00001',
       productIndices: [0, 8], // Sahara tent (Seller 1) & Tuareg chèche (Seller 1)
       status: 'confirmed',
-      paymentStatus: 'paid',
+      paymentStatus: 'verified',
       paymentMethod: 'baridimob',
       date: new Date('2026-02-10T11:30:00Z'),
       customerInfo: {
@@ -933,7 +938,7 @@ async function seedFreshShopData(db) {
       orderNumber: 'TRV-MKT-2026-00002',
       productIndices: [4, 12], // Atlas 65L backpack (Seller 1) & Brass teapot (Seller 2) -> Multi-vendor!
       status: 'confirmed',
-      paymentStatus: 'paid',
+      paymentStatus: 'verified',
       paymentMethod: 'ccp',
       date: new Date('2026-02-20T16:45:00Z'),
       customerInfo: {
@@ -949,7 +954,7 @@ async function seedFreshShopData(db) {
       orderNumber: 'TRV-MKT-2026-00003',
       productIndices: [16, 22], // Flask & Dates box (Seller 2 & Seller 3)
       status: 'pending',
-      paymentStatus: 'payment_submitted',
+      paymentStatus: 'pending_verification',
       paymentMethod: 'baridimob',
       date: new Date('2026-03-05T10:00:00Z'),
       customerInfo: {
@@ -960,8 +965,8 @@ async function seedFreshShopData(db) {
         address: '14 Rue Didouche Mourad, Alger Centre'
       },
       paymentProof: {
-        imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
-        transactionRef: 'BM-TRF-98204910'
+        receiptImageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+        transactionReference: 'BM-TRF-98204910'
       }
     },
     {
@@ -969,8 +974,8 @@ async function seedFreshShopData(db) {
       orderNumber: 'TRV-MKT-2026-00004',
       productIndices: [25, 27], // Solar power bank & Trekking poles
       status: 'pending',
-      paymentStatus: 'pending_payment',
-      paymentMethod: 'cod',
+      paymentStatus: 'pending_verification',
+      paymentMethod: 'cash_on_delivery',
       date: new Date('2026-03-15T08:30:00Z'),
       customerInfo: {
         fullName: 'Mehdi Larbi',
@@ -996,12 +1001,12 @@ async function seedFreshShopData(db) {
         orderId: new mongoose.Types.ObjectId(), // placeholder, linked below
         productId: prod._id,
         sellerId: prod.sellerId,
-        productTitle: prod.name,
+        productName: prod.name,
         productCode: prod.code,
         productImage: prod.img,
         unitPriceDZD: itemPrice,
         quantity: 1,
-        totalPriceDZD: itemPrice,
+        totalItemPriceDZD: itemPrice,
         fulfillmentStatus: ord.status === 'confirmed' ? 'shipped' : 'pending'
       })
       itemIds.push(orderItem._id)
@@ -1029,22 +1034,22 @@ async function seedFreshShopData(db) {
     await OrderItem.updateMany({ _id: { $in: itemIds } }, { $set: { orderId: orderDoc._id } })
 
     // If order is paid, create Commission records
-    if (ord.paymentStatus === 'paid') {
+    if (ord.paymentStatus === 'verified') {
       const createdItems = await OrderItem.find({ _id: { $in: itemIds } })
       for (const itm of createdItems) {
         const rate = 10
-        const commAmt = Math.round((itm.totalPriceDZD * rate) / 100)
-        const netAmt = itm.totalPriceDZD - commAmt
+        const commAmt = Math.round((itm.totalItemPriceDZD * rate) / 100)
+        const netAmt = itm.totalItemPriceDZD - commAmt
 
         await Commission.create({
           orderId: orderDoc._id,
           orderItemId: itm._id,
           sellerId: itm.sellerId,
-          grossAmountDZD: itm.totalPriceDZD,
-          ratePercentage: rate,
+          grossAmountDZD: itm.totalItemPriceDZD,
+          commissionRatePercent: rate,
           commissionAmountDZD: commAmt,
-          netSellerAmountDZD: netAmt,
-          settlementStatus: 'accrued'
+          sellerPayoutDZD: netAmt,
+          status: 'accrued'
         })
       }
     }
@@ -1112,7 +1117,7 @@ async function validateShopRelationships(db) {
   }
 
   // Check users & password hash
-  const users = await User.find({})
+  const users = await User.find({}).select('+password')
   for (const u of users) {
     if (!u.password || !u.password.startsWith('$2')) {
       errors.push(`User '${u.email}' does not have valid bcrypt password hash`)
