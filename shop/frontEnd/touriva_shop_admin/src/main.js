@@ -63,7 +63,7 @@ const vuetify = createVuetify({
     },
 })
 
-let rawApiBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_SHOP_API_BASE_URL || 'https://touriva-api.onrender.com'
+let rawApiBase = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_SHOP_API_BASE_URL || 'https://touriva-shop-api.onrender.com'
 if (rawApiBase && !rawApiBase.startsWith('http://') && !rawApiBase.startsWith('https://')) {
     rawApiBase = `https://${rawApiBase}`
 }
