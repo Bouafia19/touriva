@@ -63,8 +63,8 @@ const vuetify = createVuetify({
     },
 })
 
-// Dynamic API Base URL from environment variable, LAN IP, or localhost fallback
-let rawApiBase = import.meta.env.DEV ? '/' : (import.meta.env.VITE_API_BASE_URL || 'https://touriva-api.onrender.com')
+// Dynamic API Base URL from environment variable, custom domain, or production fallback
+let rawApiBase = import.meta.env.DEV ? '/' : (import.meta.env.VITE_API_BASE_URL || 'https://api.touriva.nextchallenge.tech')
 if (rawApiBase && rawApiBase !== '/' && !rawApiBase.startsWith('http://') && !rawApiBase.startsWith('https://')) {
     rawApiBase = `https://${rawApiBase}`
 }

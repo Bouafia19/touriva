@@ -198,7 +198,7 @@ export async function searchNominatimExternal(rawQuery, options = {}) {
       },
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Touriva-Algeria-Platform/1.0 (https://touriva-web.onrender.com; contact: contact@touriva.dz)'
+        'User-Agent': 'Touriva-Algeria-Platform/1.0 (https://touriva.nextchallenge.tech; contact: contact@touriva.dz)'
       }
     })
 

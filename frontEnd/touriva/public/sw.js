@@ -9,7 +9,7 @@
  * - Background revalidation for static icons, fonts, and brand assets
  */
 
-const CACHE_VERSION = 'touriva-pwa-v1.0.2';
+const CACHE_VERSION = 'touriva-pwa-v1.0.3';
 const STATIC_CACHE = `touriva-static-${CACHE_VERSION}`;
 const ASSETS_CACHE = `touriva-assets-${CACHE_VERSION}`;
 const IMAGES_CACHE = `touriva-images-${CACHE_VERSION}`;
@@ -88,6 +88,7 @@ self.addEventListener('fetch', (event) => {
 
   // 2. CRITICAL API SAFETY: NEVER cache API requests, authentication, or live travel mutation endpoints
   const isApiRequest = url.pathname.startsWith('/api') ||
+                       url.hostname.includes('api.touriva') ||
                        url.hostname.includes('touriva-api') ||
                        url.hostname.includes('onrender.com') ||
                        request.headers.has('Authorization');

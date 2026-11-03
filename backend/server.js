@@ -57,6 +57,8 @@ if (process.env.NODE_ENV !== 'test') {
 
 // CORS configuration - explicit production and development allowlist
 const defaultAllowedOrigins = [
+  'https://touriva.nextchallenge.tech',
+  'https://api.touriva.nextchallenge.tech',
   'https://touriva-web.onrender.com',
   'https://touriva-admin.onrender.com',
   'https://touriva-shop-web.onrender.com',
@@ -136,8 +138,8 @@ const apiLimiter = rateLimit({
 })
 app.use('/api/', apiLimiter)
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint (both /api/health and /health supported)
+const healthHandler = (req, res) => {
   res.status(200).json({
     status: 'ok',
     service: 'Touriva Tourism API',
@@ -145,7 +147,9 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   })
-})
+}
+app.get('/api/health', healthHandler)
+app.get('/health', healthHandler)
 
 // Core API routes
 app.use('/api/users', userRouters)
