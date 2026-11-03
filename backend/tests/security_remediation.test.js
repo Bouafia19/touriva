@@ -203,11 +203,11 @@ describe('Touriva Phase 1 — Comprehensive Security Remediation Test Suite', ()
       await request(app).patch(`/api/restaurants/${new mongoose.Types.ObjectId()}`).send({ name: 'Hack' }).expect(401)
     })
 
-    it('3.5: Rejects client POST /api/trips with 403 (Partner or Admin required)', async () => {
+    it('3.5: Rejects client attempt to directly publish marketplace catalog trips with 403', async () => {
       await request(app)
         .post('/api/trips')
         .set('Authorization', `Bearer ${clientToken}`)
-        .send({ name: 'Unauthorized Trip' })
+        .send({ name: 'Unauthorized Marketplace Trip', published: true })
         .expect(403)
     })
 

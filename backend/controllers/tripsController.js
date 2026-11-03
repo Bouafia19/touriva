@@ -67,6 +67,9 @@ const createTrip = async (req, res) => {
 
     // Clients / regular travelers cannot publish marketplace packages directly
     if (req.user.role === 'client' || req.user.role === 'tourist') {
+      if (req.body.published === true || req.body.status === 'published') {
+        return res.status(403).json({ error: 'Access forbidden: Regular travelers cannot publish marketplace packages directly' })
+      }
       tripPayload.published = false
       tripPayload.status = 'created'
     }

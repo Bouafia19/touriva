@@ -3,17 +3,50 @@ const axios = require('axios')
 /**
  * Google Gemini Provider for Touriva Trip Itinerary Generation.
  * Communicates directly with Google Generative AI REST endpoints.
- * Keeps credentials server-side and enforces JSON-only output.
+ * Keeps credentials server-side and enforces strict OpenAPI JSON schema.
  */
 class GeminiProvider {
   constructor(config = {}) {
     this.apiKey = config.apiKey || process.env.GEMINI_API_KEY
-    this.model = config.model || process.env.GEMINI_MODEL || 'gemini-1.5-flash'
+    // Default to the modern, generally available gemini-3.8-flash model with env override support
+    this.model = config.model || process.env.GEMINI_MODEL || 'gemini-3.8-flash'
     this.timeout = config.timeout || 45000
   }
 
   isConfigured() {
     return Boolean(this.apiKey && this.apiKey.trim().length > 0)
+  }
+
+  /**
+   * Validate that the itinerary JSON matches required Touriva fields before persistence.
+   */
+  validateItineraryResponse(data, expectedDays = 1) {
+    if (!data || typeof data !== 'object') {
+      throw new Error('Gemini response is not a valid JSON object.')
+    }
+    if (!data.name || typeof data.name !== 'string' || data.name.trim().length < 3) {
+      throw new Error('Gemini response missing valid itinerary "name".')
+    }
+    if (!Array.isArray(data.items) || data.items.length === 0) {
+      throw new Error('Gemini response missing "items" daily itinerary array.')
+    }
+
+    for (const dayEntry of data.items) {
+      if (!dayEntry || typeof dayEntry !== 'object') {
+        throw new Error('Malformed day entry in Gemini response.')
+      }
+      const stops = Array.isArray(dayEntry.items) ? dayEntry.items : dayEntry.stops
+      if (!Array.isArray(stops) || stops.length === 0) {
+        throw new Error(`Day ${dayEntry.day || '?'} contains no itinerary stops.`)
+      }
+      for (const stop of stops) {
+        const title = stop.title || stop.name
+        if (!title || typeof title !== 'string' || !title.trim()) {
+          throw new Error('Itinerary stop missing required "title".')
+        }
+      }
+    }
+    return true
   }
 
   async generateItinerary({
@@ -33,7 +66,7 @@ class GeminiProvider {
     const systemPrompt = `You are Touriva's Expert Algerian Travel Concierge.
 Touriva is an authentic Algerian travel platform celebrating Algeria's UNESCO World Heritage, Roman ruins, Sahara desert, coastal Mediterranean gems, and culinary traditions.
 Your mission is to craft an inspiring, realistic, and culturally rich multi-day itinerary.
-You MUST output strictly valid JSON matching the exact schema provided. Do NOT output markdown code blocks, explanations, or prose outside the JSON.`
+You MUST output strictly valid JSON conforming exactly to the responseSchema provided. Do NOT output markdown code blocks, explanations, or prose outside the JSON.`
 
     const userPrompt = `Generate a ${days}-day itinerary for ${city}.
 Travel Party: ${partyType || 'Solo / Travelers'}
@@ -45,58 +78,69 @@ Reference local assets if relevant:
 - Dining / Restaurants: ${JSON.stringify((restaurants || []).slice(0, 5))}
 - Attractions / Sites: ${JSON.stringify((sites || []).slice(0, 5))}
 
-Return ONLY a JSON object with this EXACT structure:
-{
-  "name": "${days}-Day Heritage Expedition in ${city}",
-  "description": "Inspiring 2-3 sentence overview of this curated journey.",
-  "durationDays": ${days},
-  "price": "${days * 15000} DZD",
-  "rating": 4.9,
-  "theme": "Cultural Heritage & Discovery",
-  "meetingPoint": "Central ${city} Historic Center",
-  "cancellationPolicy": "Free cancellation up to 48 hours prior to start.",
-  "inclusions": [
-    "Certified multilingual escort guide",
-    "Private air-conditioned transport",
-    "Monument and museum entry tickets",
-    "Traditional regional lunch each day"
-  ],
-  "exclusions": [
-    "Flights to ${city}",
-    "Personal purchases & gratuities",
-    "Travel insurance"
-  ],
-  "image": "/casbah.jpeg",
-  "days": [${Array.from({ length: Number(days) || 1 }, (_, i) => i + 1).join(', ')}],
-  "items": [
-    {
-      "day": 1,
-      "items": [
-        {
-          "title": "Title of Morning Stop",
-          "time": "09:30",
-          "description": "Engaging description of this visit or activity.",
-          "lat": 36.75,
-          "lng": 3.05,
-          "image": "/casbah.jpeg"
-        },
-        {
-          "title": "Title of Afternoon Experience",
-          "time": "14:00",
-          "description": "Engaging description of the afternoon discovery.",
-          "lat": 36.76,
-          "lng": 3.06,
-          "image": "/monumentMartyrs.jpg"
-        }
-      ]
-    }
-  ]
-}
-IMPORTANT:
-- Ensure each day from 1 to ${days} has at least 2-3 distinct, chronologically ordered stops with realistic local coordinates.
-- Activity items MUST have "title" (not "name").`
+Return a comprehensive JSON itinerary for each day from 1 to ${days}.
+Ensure each day has at least 2 distinct stops with accurate local coordinates and specific times.`
 
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.model)}:generateContent?key=${this.apiKey}`
+
+    // Official Google Gemini OpenAPI 3.0 Structured Output Schema
+    const responseSchema = {
+      type: 'OBJECT',
+      properties: {
+        name: { type: 'STRING', description: 'Curated title of the itinerary' },
+        description: { type: 'STRING', description: 'Overview of the journey' },
+        durationDays: { type: 'INTEGER', description: 'Total number of days' },
+        price: { type: 'STRING', description: 'Price estimation with currency e.g. 45 000 DZD' },
+        rating: { type: 'NUMBER', description: 'Review rating from 1.0 to 5.0' },
+        theme: { type: 'STRING', description: 'Trip theme' },
+        meetingPoint: { type: 'STRING', description: 'Initial meeting point' },
+        cancellationPolicy: { type: 'STRING', description: 'Cancellation terms' },
+        inclusions: {
+          type: 'ARRAY',
+          items: { type: 'STRING' },
+          description: 'Included services and perks'
+        },
+        exclusions: {
+          type: 'ARRAY',
+          items: { type: 'STRING' },
+          description: 'Excluded services and personal expenses'
+        },
+        image: { type: 'STRING', description: 'Cover image asset path' },
+        days: {
+          type: 'ARRAY',
+          items: { type: 'INTEGER' },
+          description: 'Sequential array of day numbers'
+        },
+        items: {
+          type: 'ARRAY',
+          description: 'Daily itinerary items',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              day: { type: 'INTEGER', description: '1-indexed day number' },
+              items: {
+                type: 'ARRAY',
+                description: 'Chronological stops for this day',
+                items: {
+                  type: 'OBJECT',
+                  properties: {
+                    title: { type: 'STRING', description: 'Title of the stop or activity' },
+                    time: { type: 'STRING', description: 'Time e.g. 09:30 or 14:00' },
+                    description: { type: 'STRING', description: 'Engaging description of this stop' },
+                    lat: { type: 'NUMBER', description: 'Latitude coordinate' },
+                    lng: { type: 'NUMBER', description: 'Longitude coordinate' },
+                    image: { type: 'STRING', description: 'Image asset path' }
+                  },
+                  required: ['title', 'time', 'description', 'lat', 'lng', 'image']
+                }
+              }
+            },
+            required: ['day', 'items']
+          }
+        }
+      },
+      required: ['name', 'description', 'durationDays', 'days', 'items']
+    }
 
     const payload = {
       contents: [
@@ -110,15 +154,37 @@ IMPORTANT:
       },
       generationConfig: {
         temperature: 0.2,
-        responseMimeType: 'application/json'
+        responseMimeType: 'application/json',
+        responseSchema
       }
     }
 
     try {
-      const response = await axios.post(endpoint, payload, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: this.timeout
-      })
+      let response
+      try {
+        response = await axios.post(endpoint, payload, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: this.timeout
+        })
+      } catch (postErr) {
+        // Safe fallback if an endpoint does not support responseSchema
+        const errMsg = postErr.response?.data?.error?.message || ''
+        if (postErr.response?.status === 400 && /response_?schema/i.test(errMsg)) {
+          const fallbackPayload = {
+            ...payload,
+            generationConfig: {
+              temperature: 0.2,
+              responseMimeType: 'application/json'
+            }
+          }
+          response = await axios.post(endpoint, fallbackPayload, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: this.timeout
+          })
+        } else {
+          throw postErr
+        }
+      }
 
       const candidate = response.data?.candidates?.[0]
       if (!candidate || !candidate.content?.parts?.[0]?.text) {
@@ -141,6 +207,9 @@ IMPORTANT:
           throw new Error(`Failed to parse Gemini response as JSON: ${parseErr.message}`)
         }
       }
+
+      // Pre-persistence validation
+      this.validateItineraryResponse(parsed, days)
 
       return parsed
     } catch (err) {

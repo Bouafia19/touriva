@@ -1,4 +1,4 @@
-const { generateTripAI } = require('../services/aiTripGenerator')
+const { generateTripAIResult } = require('../services/aiTripGenerator')
 const Trip = require('../models/Trip')
 
 const createTripWithAI = async (req, res) => {
@@ -27,7 +27,7 @@ const createTripWithAI = async (req, res) => {
       return res.status(401).json({ message: 'User must be authenticated to generate and save a trip.' })
     }
 
-    const aiTrip = await generateTripAI({
+    const { trip: aiTrip, provider } = await generateTripAIResult({
       city: city.trim(),
       days: parseInt(days, 10) || 3,
       budget: budget || 'medium',
@@ -51,7 +51,14 @@ const createTripWithAI = async (req, res) => {
       .populate('creator', '_id firstName lastName companyName phone typeAccount')
       .populate('destination', '_id name nameFr nameAr')
 
-    res.status(201).json(populatedTrip || trip)
+    // Set provider transparency header
+    res.setHeader('X-AI-Provider', provider)
+
+    // Attach provider transparency property in response JSON without polluting DB schema
+    const responseData = populatedTrip ? populatedTrip.toObject() : trip.toObject()
+    responseData.aiProvider = provider
+
+    res.status(201).json(responseData)
   } catch (error) {
     console.error('AI trip generation error:', error)
     res.status(500).json({ message: 'AI trip generation failed', error: error.message })

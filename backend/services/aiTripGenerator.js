@@ -1,5 +1,6 @@
-const { generateTripAI } = require('./ai/index')
+const { generateTripAI, generateTripAIResult } = require('./ai/index')
 
 module.exports = {
-  generateTripAI
+  generateTripAI,
+  generateTripAIResult
 }

@@ -173,5 +173,8 @@ module.exports = {
   generateTripAI: async (params) => {
     const result = await defaultAIService.generateTripItinerary(params)
     return result.trip
+  },
+  generateTripAIResult: async (params) => {
+    return defaultAIService.generateTripItinerary(params)
   }
 }
