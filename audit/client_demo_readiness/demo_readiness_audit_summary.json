@@ -1,0 +1,75 @@
+{
+  "pwa": {
+    "manifest": {
+      "status": 200,
+      "name": "Touriva",
+      "short_name": "Touriva",
+      "start_url": "/",
+      "display": "standalone",
+      "theme_color": "#173F35",
+      "background_color": "#FAF8F2",
+      "iconsCount": 9
+    },
+    "serviceWorker": {
+      "status": 200,
+      "contentType": "application/javascript"
+    },
+    "offlineFallback": {
+      "status": 200,
+      "hasRetry": true,
+      "hasBrand": true
+    }
+  },
+  "multilingual": {
+    "fr": {
+      "docDir": "ltr",
+      "isRtl": false,
+      "sampleText": "Accueil Voyages Sites Hôtels Restaurants Abonnements Espace Agences Français Connexion Inscrivez-Vous DÉCOUVREZ L'ALGÉRIE INTEMPORELLE Unveil the Timeless Horizons of North Africa From the golden cre"
+    },
+    "ar": {
+      "docDir": "rtl",
+      "isRtl": true,
+      "sampleText": "الرئيسية الرحلات المواقع السياحية الفنادق المطاعم الاشتراكات فضاء الوكالات العربية تسجيل الدخول اشتراك اكتشف سحر الجزائر الخالدة Unveil the Timeless Horizons of North Africa From the golden crests of"
+    },
+    "en": {
+      "docDir": "ltr",
+      "isRtl": false,
+      "sampleText": "Home Trips Sites Hotels Restaurants Subscriptions For Agencies English Login Sign Up DISCOVER TIMELESS ALGERIA Unveil the Timeless Horizons of North Africa From the golden crests of the Great Western"
+    }
+  },
+  "viewports": {
+    "desktop": {
+      "headerFound": true,
+      "logoVisible": true,
+      "hasInstallCta": false,
+      "hasB2bBtn": true
+    },
+    "tablet": {
+      "headerFound": true,
+      "logoVisible": true,
+      "hasInstallCta": false,
+      "hasB2bBtn": false
+    },
+    "mobile": {
+      "headerFound": true,
+      "logoVisible": true,
+      "hasInstallCta": false,
+      "hasB2bBtn": false
+    }
+  },
+  "agency": {
+    "title": "Touriva — Plateforme Digitale pour Agences de Voyages & Tourisme",
+    "hasEspaceAgence": true,
+    "hasPackagesSection": false,
+    "hasDeparturesSection": false
+  },
+  "screenshots": [
+    "demo_landing_desktop_1280px.png",
+    "demo_landing_tablet_768px.png",
+    "demo_landing_mobile_390px.png",
+    "demo_multilang_fr_1280px.png",
+    "demo_multilang_ar_1280px.png",
+    "demo_multilang_en_1280px.png",
+    "demo_agency_dashboard_1280px.png"
+  ]
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "section": "Public Discovery",
+    "test": "Catalog Trips",
+    "status": "PASS",
+    "details": "HTTP 200, count: 12"
+  },
+  {
+    "section": "Public Discovery",
+    "test": "Cultural & Heritage Sites",
+    "status": "PASS",
+    "details": "HTTP 200, count: 18"
+  },
+  {
+    "section": "Public Discovery",
+    "test": "Hotel Accommodations",
+    "status": "PASS",
+    "details": "HTTP 200, count: 18"
+  },
+  {
+    "section": "Public Discovery",
+    "test": "Gastronomic Restaurants",
+    "status": "PASS",
+    "details": "HTTP 200, count: 18"
+  },
+  {
+    "section": "Tourist Auth",
+    "test": "Demo Customer Login",
+    "status": "PASS",
+    "details": "Logged in as demo.customer@touriva.test (Role: client)"
+  },
+  {
+    "section": "Tourist Journey",
+    "test": "My Bookings History",
+    "status": "PASS",
+    "details": "HTTP 200, retrieved 2 active booking(s)"
+  },
+  {
+    "section": "Manual Trip Builder",
+    "test": "Trip Creation & Persistence",
+    "status": "PASS",
+    "details": "Created Trip ID: 6ae95e277553cdc5c22d607a, Days: 2, Price: 15000 DZD"
+  },
+  {
+    "section": "Manual Trip Builder",
+    "test": "Schema Compatibility Validation",
+    "status": "PASS",
+    "details": "DaySchema items: true, Stops: true, Coordinates: true"
+  },
+  {
+    "section": "Manual Trip Builder",
+    "test": "Trip Updating",
+    "status": "PASS",
+    "details": "HTTP 200, Updated title confirmed"
+  },
+  {
+    "section": "Manual Trip Builder",
+    "test": "Trip Deletion",
+    "status": "PASS",
+    "details": "HTTP 200"
+  },
+  {
+    "section": "Agency Portal",
+    "test": "Agency Demo Login",
+    "status": "PASS",
+    "details": "Logged in as Touriva Horizons Voyages & Tourisme (License: true)"
+  },
+  {
+    "section": "Agency Portal",
+    "test": "Package & Circuit Inventory",
+    "status": "PASS",
+    "details": "HTTP 200, count: 3"
+  },
+  {
+    "section": "Agency Portal",
+    "test": "Scheduled Departures Calendar",
+    "status": "PASS",
+    "details": "HTTP 200, count: 4"
+  },
+  {
+    "section": "Agency Portal",
+    "test": "Official Passenger Manifest",
+    "status": "PASS",
+    "details": "HTTP 200, Passengers: 5, Seats booked: 0"
+  },
+  {
+    "section": "Agency Portal",
+    "test": "Financial Reconciliation Ledger",
+    "status": "PASS",
+    "details": "HTTP 200, Total Revenue: 0 DZD, Methods: "
+  },
+  {
+    "section": "Security Guard",
+    "test": "Tourist Blocked from Agency Departures",
+    "status": "PASS",
+    "details": "HTTP status: 403 (Expected 403 Forbidden)"
+  },
+  {
+    "section": "Security Guard",
+    "test": "Unauthenticated Access Blocked",
+    "status": "PASS",
+    "details": "HTTP status: 401 (Expected 401 Unauthorized)"
+  },
+  {
+    "section": "Security Guard",
+    "test": "Admin 1-Click Demo Login Strictly Blocked",
+    "status": "PASS",
+    "details": "HTTP status: 403 (Expected 403 Forbidden)"
+  }
+]

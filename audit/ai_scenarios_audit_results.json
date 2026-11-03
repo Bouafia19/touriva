@@ -1,0 +1,72 @@
+[
+  {
+    "scenario": "Scenario 1: Algiers Cultural 3-Day",
+    "city": "Algiers",
+    "daysRequested": 3,
+    "daysGenerated": 3,
+    "totalActivities": 0,
+    "validCoordinatesCount": 0,
+    "status": "PASS",
+    "durationMs": 18244,
+    "provider": "gemini",
+    "model": "gemini-3.6-flash",
+    "tripId": "6ae95dda7553cdc5c22d5ecd",
+    "sampleActivities": []
+  },
+  {
+    "scenario": "Scenario 2: Tlemcen Family 5-Day",
+    "city": "Tlemcen",
+    "daysRequested": 5,
+    "daysGenerated": 5,
+    "totalActivities": 0,
+    "validCoordinatesCount": 0,
+    "status": "PASS",
+    "durationMs": 14026,
+    "provider": "gemini",
+    "model": "gemini-3.6-flash",
+    "tripId": "6ae95de87553cdc5c22d5eec",
+    "sampleActivities": []
+  },
+  {
+    "scenario": "Scenario 3: Sahara / Djanet Adventure 4-Day",
+    "city": "Djanet",
+    "daysRequested": 4,
+    "daysGenerated": 4,
+    "totalActivities": 0,
+    "validCoordinatesCount": 0,
+    "status": "PASS",
+    "durationMs": 12872,
+    "provider": "gemini",
+    "model": "gemini-3.6-flash",
+    "tripId": "6ae95df57553cdc5c22d5f11",
+    "sampleActivities": []
+  },
+  {
+    "scenario": "Scenario 4: Istanbul International 7-Day",
+    "city": "Istanbul",
+    "daysRequested": 7,
+    "daysGenerated": 7,
+    "totalActivities": 0,
+    "validCoordinatesCount": 0,
+    "status": "PASS",
+    "durationMs": 19961,
+    "provider": "gemini",
+    "model": "gemini-3.6-flash",
+    "tripId": "6ae95e097553cdc5c22d5f36",
+    "sampleActivities": []
+  },
+  {
+    "scenario": "Scenario 5: Constantine Historical 2-Day",
+    "city": "Constantine",
+    "daysRequested": 2,
+    "daysGenerated": 2,
+    "totalActivities": 0,
+    "validCoordinatesCount": 0,
+    "status": "PASS",
+    "durationMs": 1476,
+    "provider": "touriva-engine",
+    "model": "touriva-engine",
+    "tripId": "6ae95e0a7553cdc5c22d5f74",
+    "sampleActivities": []
+  }
+]
