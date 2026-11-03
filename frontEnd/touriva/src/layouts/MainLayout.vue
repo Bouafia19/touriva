@@ -98,22 +98,6 @@
           <v-list-item-title>{{ $t('contactSupport') }}</v-list-item-title>
         </v-list-item>
 
-        <!-- Install Touriva Mobile Drawer Item -->
-        <v-list-item
-          v-if="pwaStore.showInstallButton && !pwaStore.isStandalone"
-          link
-          rounded="lg"
-          class="mb-1 text-white font-weight-bold"
-          style="background: rgba(33, 134, 107, 0.18); border: 1px solid rgba(33, 134, 107, 0.4);"
-          @click="drawer = false; pwaStore.promptInstall()"
-        >
-          <template #prepend>
-            <v-icon icon="mdi-cellphone-arrow-down" color="#21866B" class="me-3" size="20"></v-icon>
-          </template>
-          <v-list-item-title class="font-weight-bold" style="color: #FAF8F2;">
-            {{ $t('installTouriva') }}
-          </v-list-item-title>
-        </v-list-item>
 
         <v-divider class="my-3 border-dark"></v-divider>
 
@@ -241,18 +225,6 @@
 
         <!-- Right Action Dock: Language + User Profile -->
         <div class="d-flex align-center ga-1 ga-sm-2 action-dock">
-          <!-- Install Touriva Desktop / Web Button -->
-          <v-btn
-            v-if="pwaStore.showInstallButton && !pwaStore.isStandalone"
-            variant="outlined"
-            rounded="pill"
-            size="small"
-            class="text-sand border-sand-btn d-none d-md-inline-flex font-weight-bold text-capitalize install-nav-btn px-2 px-lg-3"
-            @click="pwaStore.promptInstall"
-          >
-            <v-icon start size="15" color="#D9B98C" class="me-1">mdi-arrow-down-bold-circle-outline</v-icon>
-            <span>{{ $t('installTouriva') }}</span>
-          </v-btn>
 
           <!-- Language Selector -->
           <v-menu :location="isRtl ? 'bottom start' : 'bottom end'" transition="slide-y-transition">

@@ -15,7 +15,14 @@
       />
 
       <div class="d-flex align-center cursor-pointer" @click="$router.push('/agency/dashboard')">
-        <span class="font-serif font-weight-bold text-white text-h6 mr-2">Touriva</span>
+        <v-img
+          src="/logo-dark.svg"
+          alt="Touriva"
+          width="130"
+          height="34"
+          contain
+          class="mr-2"
+        />
         <v-chip size="x-small" color="#D9B98C" variant="flat" class="text-deep-green font-weight-bold text-uppercase">
           Espace Agence
         </v-chip>
@@ -58,19 +65,6 @@
         </v-chip>
       </div>
 
-      <!-- Install Touriva PWA Button -->
-      <v-btn
-        v-if="pwaStore.showInstallButton && !pwaStore.isStandalone"
-        variant="outlined"
-        color="#D9B98C"
-        size="small"
-        rounded="pill"
-        class="text-caption font-weight-bold mr-2 text-sand"
-        @click="pwaStore.promptInstall"
-      >
-        <v-icon start size="16">mdi-arrow-down-bold-circle-outline</v-icon>
-        <span class="d-none d-sm-inline">Installer Touriva</span>
-      </v-btn>
 
       <!-- Public Site Link -->
       <v-btn
