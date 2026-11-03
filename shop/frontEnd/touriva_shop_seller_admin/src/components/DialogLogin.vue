@@ -100,7 +100,7 @@
                     email: this.email,
                     // username: this.username,
                     password: this.password,
-                    role: 'administrator',
+                    role: 'seller',
                     remeber_login: this.remeber_login
                 })
                 this.email = '';

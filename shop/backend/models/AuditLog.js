@@ -30,6 +30,14 @@ const AuditLogSchema = new mongoose.Schema({
   ipAddress: {
     type: String,
     default: ''
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

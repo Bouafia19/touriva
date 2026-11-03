@@ -85,6 +85,14 @@ const OrderSchema = new mongoose.Schema({
   description: {
     type: String,
     default: ''
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 },
 {

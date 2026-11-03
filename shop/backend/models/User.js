@@ -123,6 +123,14 @@ const UserSchema = new mongoose.Schema({
   expirationOfSubscription: {
     type: Date,
     default: Date.now
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 },
 {

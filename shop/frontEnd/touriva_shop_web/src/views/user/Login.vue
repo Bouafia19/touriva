@@ -167,7 +167,7 @@
   }
 
   const goToSellerLogin = () => {
-    window.open('http://localhost:2024/login', '_blank')
+    window.open('https://seller.market.touriva.nextchallenge.tech/login', '_blank')
   }
 </script>
 

@@ -123,7 +123,7 @@ const logIn = async () => {
     await auth.account_sign_in({
       email: email.value,
       password: password.value,
-      role: 'administrator'
+      role: 'seller'
     })
   } catch (error) {
     err.value = error.message || 'Authentication failed'

@@ -67,6 +67,14 @@ const OrderItemSchema = new mongoose.Schema({
   cancellationReason: {
     type: String,
     default: ''
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

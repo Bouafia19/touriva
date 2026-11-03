@@ -797,7 +797,7 @@
   }
 
   const getProApp = () => {
-    window.open("https://www.bildoz.com.dz/pro/", "_blank")
+    window.open("https://seller.market.touriva.nextchallenge.tech", "_blank")
   }
 
   const getAdvertising = () => {

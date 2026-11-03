@@ -82,6 +82,14 @@ const SellerApplicationSchema = new mongoose.Schema({
   reviewedAt: {
     type: Date,
     default: null
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

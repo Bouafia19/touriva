@@ -70,6 +70,14 @@ const ProductSchema = new mongoose.Schema({
   published: {
     type: Boolean,
     default: true
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 },
 {

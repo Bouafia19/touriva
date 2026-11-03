@@ -79,6 +79,14 @@ const SellerProfileSchema = new mongoose.Schema({
   rating: {
     type: Number,
     default: 5.0
+  },
+  isDemo: {
+    type: Boolean,
+    default: false
+  },
+  seedId: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true
