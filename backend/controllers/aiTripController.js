@@ -27,7 +27,7 @@ const createTripWithAI = async (req, res) => {
       return res.status(401).json({ message: 'User must be authenticated to generate and save a trip.' })
     }
 
-    const { trip: aiTrip, provider } = await generateTripAIResult({
+    const { trip: aiTrip, provider, model } = await generateTripAIResult({
       city: city.trim(),
       days: parseInt(days, 10) || 3,
       budget: budget || 'medium',
@@ -51,12 +51,14 @@ const createTripWithAI = async (req, res) => {
       .populate('creator', '_id firstName lastName companyName phone typeAccount')
       .populate('destination', '_id name nameFr nameAr')
 
-    // Set provider transparency header
+    // Set provider transparency headers
     res.setHeader('X-AI-Provider', provider)
+    if (model) res.setHeader('X-AI-Model', model)
 
     // Attach provider transparency property in response JSON without polluting DB schema
     const responseData = populatedTrip ? populatedTrip.toObject() : trip.toObject()
     responseData.aiProvider = provider
+    responseData.aiModel = model
 
     res.status(201).json(responseData)
   } catch (error) {

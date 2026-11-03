@@ -8,9 +8,10 @@ const axios = require('axios')
 class GeminiProvider {
   constructor(config = {}) {
     this.apiKey = config.apiKey || process.env.GEMINI_API_KEY
-    // Default to the modern, generally available gemini-3.8-flash model with env override support
-    this.model = config.model || process.env.GEMINI_MODEL || 'gemini-3.8-flash'
-    this.timeout = config.timeout || 45000
+    // Default to the modern, generally available gemini-3.6-flash model with env override support
+    this.model = config.model || process.env.GEMINI_MODEL || 'gemini-3.6-flash'
+    this.timeout = config.timeout || parseInt(process.env.GEMINI_TIMEOUT, 10) || 45000
+    this.lastUsedModel = null
   }
 
   isConfigured() {
@@ -80,8 +81,6 @@ Reference local assets if relevant:
 
 Return a comprehensive JSON itinerary for each day from 1 to ${days}.
 Ensure each day has at least 2 distinct stops with accurate local coordinates and specific times.`
-
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.model)}:generateContent?key=${this.apiKey}`
 
     // Official Google Gemini OpenAPI 3.0 Structured Output Schema
     const responseSchema = {
@@ -159,68 +158,94 @@ Ensure each day has at least 2 distinct stops with accurate local coordinates an
       }
     }
 
-    try {
-      let response
+    // Candidate Flash models (prioritizing configured model, with capacity-failover to available Flash versions)
+    const candidateModels = [this.model]
+    if (this.model === 'gemini-3.8-flash') {
+      candidateModels.push('gemini-3.6-flash', 'gemini-3.5-flash')
+    }
+
+    let lastError = null
+
+    for (const currentModel of candidateModels) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(currentModel)}:generateContent?key=${this.apiKey}`
+
       try {
-        response = await axios.post(endpoint, payload, {
-          headers: { 'Content-Type': 'application/json' },
-          timeout: this.timeout
-        })
-      } catch (postErr) {
-        // Safe fallback if an endpoint does not support responseSchema
-        const errMsg = postErr.response?.data?.error?.message || ''
-        if (postErr.response?.status === 400 && /response_?schema/i.test(errMsg)) {
-          const fallbackPayload = {
-            ...payload,
-            generationConfig: {
-              temperature: 0.2,
-              responseMimeType: 'application/json'
-            }
-          }
-          response = await axios.post(endpoint, fallbackPayload, {
+        let response
+        try {
+          response = await axios.post(endpoint, payload, {
             headers: { 'Content-Type': 'application/json' },
             timeout: this.timeout
           })
-        } else {
-          throw postErr
+        } catch (postErr) {
+          // Safe fallback if an endpoint does not support responseSchema
+          const errMsg = postErr.response?.data?.error?.message || ''
+          if (postErr.response?.status === 400 && /response_?schema/i.test(errMsg)) {
+            const fallbackPayload = {
+              ...payload,
+              generationConfig: {
+                temperature: 0.2,
+                responseMimeType: 'application/json'
+              }
+            }
+            response = await axios.post(endpoint, fallbackPayload, {
+              headers: { 'Content-Type': 'application/json' },
+              timeout: this.timeout
+            })
+          } else {
+            throw postErr
+          }
         }
-      }
 
-      const candidate = response.data?.candidates?.[0]
-      if (!candidate || !candidate.content?.parts?.[0]?.text) {
-        throw new Error('Google Gemini returned an empty response candidate.')
-      }
-
-      const text = candidate.content.parts[0].text.trim()
-      let parsed = null
-
-      try {
-        // Strip markdown code fences if model enclosed JSON
-        const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim()
-        parsed = JSON.parse(cleaned)
-      } catch (parseErr) {
-        // Fallback: extract first outermost JSON object
-        const match = text.match(/\{[\s\S]*\}/)
-        if (match) {
-          parsed = JSON.parse(match[0])
-        } else {
-          throw new Error(`Failed to parse Gemini response as JSON: ${parseErr.message}`)
+        const candidate = response.data?.candidates?.[0]
+        if (!candidate || !candidate.content?.parts?.[0]?.text) {
+          throw new Error('Google Gemini returned an empty response candidate.')
         }
-      }
 
-      // Pre-persistence validation
-      this.validateItineraryResponse(parsed, days)
+        const text = candidate.content.parts[0].text.trim()
+        let parsed = null
 
-      return parsed
-    } catch (err) {
-      if (err.response) {
-        const status = err.response.status
-        const msg = err.response.data?.error?.message || err.message
-        console.error(`[GeminiProvider] HTTP ${status} error:`, msg)
-        throw new Error(`Google Gemini API error (${status}): ${msg}`)
+        try {
+          // Strip markdown code fences if model enclosed JSON
+          const cleaned = text.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim()
+          parsed = JSON.parse(cleaned)
+        } catch (parseErr) {
+          // Fallback: extract first outermost JSON object
+          const match = text.match(/\{[\s\S]*\}/)
+          if (match) {
+            parsed = JSON.parse(match[0])
+          } else {
+            throw new Error(`Failed to parse Gemini response as JSON: ${parseErr.message}`)
+          }
+        }
+
+        // Pre-persistence validation
+        this.validateItineraryResponse(parsed, days)
+
+        this.lastUsedModel = currentModel
+        parsed._geminiModel = currentModel
+
+        return parsed
+      } catch (err) {
+        lastError = err
+        const status = err.response?.status
+        const msg = err.response?.data?.error?.message || err.message
+
+        // If it's a 503 temporary overload or 404 retired model, try next available Flash candidate
+        const currentIndex = candidateModels.indexOf(currentModel)
+        if ((status === 503 || status === 404) && currentIndex < candidateModels.length - 1) {
+          console.warn(`[GeminiProvider] ${currentModel} returned HTTP ${status} (${msg}). Failing over to next Flash candidate (${candidateModels[currentIndex + 1]})...`)
+          continue
+        }
+
+        if (err.response) {
+          console.error(`[GeminiProvider] HTTP ${status} error:`, msg)
+          throw new Error(`Google Gemini API error (${status}): ${msg}`)
+        }
+        throw err
       }
-      throw err
     }
+
+    throw lastError
   }
 }
 

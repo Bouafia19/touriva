@@ -85,9 +85,14 @@ class AIService {
     // Strict normalization & validation layer
     const normalizedTrip = await normalizeTripData(rawOutput, params)
 
+    const modelUsed = usedProvider === 'gemini'
+      ? (this.gemini.lastUsedModel || this.gemini.model)
+      : (usedProvider === 'ollama' ? this.ollama.model : 'touriva-engine')
+
     return {
       trip: normalizedTrip,
-      provider: usedProvider
+      provider: usedProvider,
+      model: modelUsed
     }
   }
 

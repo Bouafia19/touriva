@@ -21,9 +21,10 @@ describe('Gemini Provider & Fallback Architecture Suite', () => {
   })
 
   describe('1. Gemini Configuration & Specification', () => {
-    it('1.1: defaults to gemini-3.8-flash and timeout of 45000ms with GEMINI_MODEL env override support', () => {
+    it('1.1: defaults to gemini-3.6-flash and timeout of 45000ms with GEMINI_MODEL env override support', () => {
+      delete process.env.GEMINI_MODEL
       const provider = new GeminiProvider({ apiKey: 'mock_test_key' })
-      expect(provider.model).toBe('gemini-3.8-flash')
+      expect(provider.model).toBe('gemini-3.6-flash')
       expect(provider.timeout).toBe(45000)
       expect(provider.isConfigured()).toBe(true)
 
