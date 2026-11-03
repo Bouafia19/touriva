@@ -7,7 +7,9 @@
           <v-col cols="12" md="5" class="auth-hero-panel d-flex flex-column justify-space-between pa-8 pa-lg-10">
             <div>
               <div class="d-flex align-center gap-3 mb-6">
-                <div class="brand-monogram">T</div>
+                <div class="brand-monogram">
+                  <v-icon color="sand" size="26">mdi-compass-rose</v-icon>
+                </div>
                 <div>
                   <div class="hero-brand-name font-serif">TOU<span>RIVA</span></div>
                   <div class="hero-brand-badge">SHOP ADMIN</div>
@@ -171,11 +173,8 @@ const submit = () => {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #D9B98C, #B89564);
-  color: #102D27;
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 700;
+  background: rgba(217, 185, 140, 0.15);
+  border: 1px solid rgba(217, 185, 140, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;

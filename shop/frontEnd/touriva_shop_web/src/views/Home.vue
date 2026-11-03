@@ -183,7 +183,7 @@
             >
               <v-avatar size="72" color="sandLight" class="mb-3 border-editorial">
                 <v-img v-if="cat.img" :src="cat.img" cover />
-                <v-icon v-else size="32" color="forestGreen">mdi-compass-outline</v-icon>
+                <v-icon v-else size="32" color="forestGreen">mdi-compass-rose</v-icon>
               </v-avatar>
               <div class="text-subtitle-2 font-weight-bold text-forest text-truncate w-100">
                 {{ cat.name }}

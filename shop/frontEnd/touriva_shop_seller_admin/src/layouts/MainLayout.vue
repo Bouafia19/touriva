@@ -11,7 +11,9 @@
       <!-- Touriva Brand Header -->
       <div class="sidebar-brand-wrapper">
         <div class="sidebar-brand-inner">
-          <div class="brand-monogram">T</div>
+          <div class="brand-monogram">
+            <v-icon color="sand" size="24">mdi-compass-rose</v-icon>
+          </div>
           <div class="brand-text">
             <div class="brand-title">TOU<span>RIVA</span></div>
             <div class="brand-badge">SELLER PORTAL</div>
@@ -410,15 +412,12 @@
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #D9B98C, #B89564);
-  color: #102D27;
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  font-weight: 700;
+  background: rgba(217, 185, 140, 0.15);
+  border: 1px solid rgba(217, 185, 140, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(217, 185, 140, 0.3);
+  box-shadow: 0 4px 12px rgba(217, 185, 140, 0.15);
 }
 
 .brand-text {

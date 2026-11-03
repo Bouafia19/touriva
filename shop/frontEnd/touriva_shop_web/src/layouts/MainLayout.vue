@@ -12,8 +12,8 @@
       <div class="pa-4 drawer-header border-b-sand">
         <div class="d-flex align-center justify-space-between mb-3">
           <div class="d-flex align-center">
-            <div class="shop-logo-mark mr-2">
-              <v-icon color="sand" size="24">mdi-compass-outline</v-icon>
+            <div class="shop-logo-emblem mr-2">
+              <v-icon color="sand" size="24">mdi-compass-rose</v-icon>
             </div>
             <div>
               <span class="editorial-heading text-h6 text-white font-weight-bold">Touriva</span>

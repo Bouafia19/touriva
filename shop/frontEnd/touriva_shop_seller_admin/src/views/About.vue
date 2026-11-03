@@ -10,11 +10,7 @@
     >
       <v-card-title class="justify-center">
         <v-avatar size="60">
-          <v-img 
-              src="../assets/icons/logo.png"
-              contain
-              width="100%"
-          />
+          <v-icon class="text-sand" size="48">mdi-compass-rose</v-icon>
         </v-avatar>
         
         <h2 class="ml-3 text-uppercase" style="text-indent: 10px;">
