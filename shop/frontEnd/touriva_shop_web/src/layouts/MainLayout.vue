@@ -13,7 +13,7 @@
         <div class="d-flex align-center justify-space-between mb-3">
           <div class="d-flex align-center">
             <div class="shop-logo-emblem mr-2">
-              <v-icon icon="mdi-compass-rose" color="sand" size="24" />
+              <img src="/logo.jpg" width="28" height="28" style="border-radius: 6px;" alt="Touriva" />
             </div>
             <div>
               <span class="editorial-heading text-h6 text-white font-weight-bold">Touriva</span>
@@ -339,7 +339,7 @@
             @click="getHome"
           >
             <div class="shop-logo-emblem mr-2">
-              <v-icon icon="mdi-compass-rose" color="sand" size="26" />
+              <img src="/logo.jpg" width="28" height="28" style="border-radius: 6px;" alt="Touriva" />
             </div>
             <div class="d-flex align-center">
               <span class="editorial-heading text-h5 font-weight-bold text-white tracking-wide">
@@ -612,7 +612,7 @@
           <!-- Col 1: Brand & Editorial Mission -->
           <v-col cols="12" md="4" class="pr-md-8">
             <div class="d-flex align-center mb-3">
-              <v-icon icon="mdi-compass-rose" color="sand" size="28" class="mr-2" />
+              <img src="/logo.jpg" width="28" height="28" style="vertical-align: middle; border-radius: 6px;" class="mr-2" alt="Touriva" />
               <span class="editorial-heading text-h5 font-weight-bold text-white">Touriva Shop</span>
             </div>
             <p class="text-body-2 text-sand-light mb-4 line-height-relaxed">

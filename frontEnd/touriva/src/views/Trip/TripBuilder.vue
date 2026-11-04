@@ -5,7 +5,7 @@
       <v-container class="max-w-container">
         <div class="text-center max-w-content mx-auto">
           <div class="editorial-tag mb-1">
-            <v-icon size="14" color="#D9B98C" class="mr-1">mdi-compass-rose</v-icon>
+            <img src="/logo.jpg" width="14" height="14" style="vertical-align: middle; border-radius: 2px;" class="mr-1" alt="Touriva" />
             {{ $t('tripBuilder') || 'TOURIVA TRIP BUILDER' }}
           </div>
           <h1 class="text-h3 font-serif font-weight-bold text-forest mb-2">

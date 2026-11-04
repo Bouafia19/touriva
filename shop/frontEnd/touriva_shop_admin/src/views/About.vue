@@ -10,7 +10,7 @@
     >
       <v-card-title class="justify-center">
         <v-avatar size="60">
-          <v-icon class="text-sand" size="48">mdi-compass-rose</v-icon>
+          <v-img src="/logo.jpg" alt="Touriva" cover></v-img>
         </v-avatar>
         
         <h2 class="ml-3 text-uppercase" style="text-indent: 10px;">

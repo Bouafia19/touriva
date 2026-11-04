@@ -4,7 +4,7 @@
       <!-- Header with Emblem -->
       <div class="text-center mb-6">
         <div class="auth-logo-emblem mx-auto mb-3">
-          <v-icon icon="mdi-compass-rose" color="sand" size="32" />
+          <img src="/logo.jpg" width="40" height="40" style="border-radius: 10px;" alt="Touriva" />
         </div>
         <div class="editorial-heading text-h5 font-weight-bold text-forest mb-1">
           Touriva Shop

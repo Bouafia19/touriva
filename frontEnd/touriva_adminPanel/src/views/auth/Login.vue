@@ -5,7 +5,7 @@
         <!-- Logo & Branding Header -->
         <div class="text-center mb-5">
           <v-avatar size="56" color="deepGreen" class="elevation-2 mb-3">
-            <v-icon icon="mdi-compass-rose" color="sand" size="32"></v-icon>
+            <v-img src="/logo.jpg" alt="Touriva" cover></v-img>
           </v-avatar>
           <div class="font-serif brand-title text-h4 font-weight-bold text-forest">
             TOU<span class="text-sand-dark">RIVA</span>

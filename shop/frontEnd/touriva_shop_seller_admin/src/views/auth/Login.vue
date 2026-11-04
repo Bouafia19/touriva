@@ -8,7 +8,7 @@
             <div>
               <div class="d-flex align-center gap-3 mb-6">
                 <div class="brand-monogram">
-                  <v-icon icon="mdi-compass-rose" color="sand" size="26"></v-icon>
+                  <img src="/logo.jpg" width="34" height="34" style="border-radius: 8px;" alt="Touriva" />
                 </div>
                 <div>
                   <div class="hero-brand-name font-serif">TOU<span>RIVA</span></div>

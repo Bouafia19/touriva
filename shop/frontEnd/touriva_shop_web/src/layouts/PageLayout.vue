@@ -15,9 +15,9 @@
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
 
-      <!-- Touriva Compass Rose Brand Emblem -->
+      <!-- Touriva Official Brand Emblem -->
       <div class="shop-logo-emblem me-3 cursor-pointer" @click="$router.push('/')">
-        <v-icon icon="mdi-compass-rose" color="sand" size="24" />
+        <img src="/logo.jpg" width="28" height="28" style="border-radius: 6px;" alt="Touriva" />
       </div>
 
       <v-toolbar-title v-if="$route.meta.title" class="editorial-heading text-h6 font-weight-bold text-white">

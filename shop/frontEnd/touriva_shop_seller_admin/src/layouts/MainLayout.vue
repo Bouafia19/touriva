@@ -12,7 +12,7 @@
       <div class="sidebar-brand-wrapper">
         <div class="sidebar-brand-inner">
           <div class="brand-monogram">
-            <v-icon icon="mdi-compass-rose" color="sand" size="24"></v-icon>
+            <img src="/logo.jpg" width="32" height="32" style="border-radius: 8px;" alt="Touriva" />
           </div>
           <div class="brand-text">
             <div class="brand-title">TOU<span>RIVA</span></div>
@@ -82,7 +82,7 @@
       <!-- App Bar Brand Emblem -->
       <div class="d-flex align-center me-3">
         <div class="app-bar-brand-emblem me-2">
-          <v-icon icon="mdi-compass-rose" color="sand" size="22"></v-icon>
+          <img src="/logo.jpg" width="24" height="24" style="border-radius: 6px;" alt="Touriva" />
         </div>
         <div class="app-bar-brand-title d-none d-sm-flex flex-column">
           <span class="font-serif text-caption font-weight-bold text-forest">TOU<span class="text-sand">RIVA</span></span>

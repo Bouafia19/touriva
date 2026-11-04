@@ -3,7 +3,7 @@
     <!-- Top Editorial Header / Brand Bar (if accessed directly outside MainLayout) -->
     <header class="home-top-bar px-6 py-4 d-flex align-center justify-space-between bg-forest-green text-white">
       <div class="d-flex align-center cursor-pointer" @click="router.push('/tabs')">
-        <v-icon icon="mdi-compass-rose" color="sand" size="28" class="mr-2" />
+        <img src="/logo.jpg" width="28" height="28" style="vertical-align: middle; border-radius: 6px;" class="mr-2" alt="Touriva" />
         <span class="editorial-heading text-h5 font-weight-bold tracking-wide">Touriva</span>
         <span class="shop-badge ml-2">SHOP</span>
       </div>
@@ -183,7 +183,7 @@
             >
               <v-avatar size="72" color="sandLight" class="mb-3 border-editorial">
                 <v-img v-if="cat.img" :src="cat.img" cover />
-                <v-icon v-else size="32" color="forestGreen" icon="mdi-compass-rose" />
+                <v-img v-else src="/logo.jpg" width="36" height="36" class="rounded" cover />
               </v-avatar>
               <div class="text-subtitle-2 font-weight-bold text-forest text-truncate w-100">
                 {{ cat.name }}
@@ -351,7 +351,7 @@
     <footer class="bg-deep-green text-warm-ivory py-8 px-4 text-center border-t-sand">
       <v-container class="max-w-1200">
         <div class="d-flex align-center justify-center mb-3">
-          <v-icon icon="mdi-compass-rose" color="sand" size="24" class="mr-2" />
+          <img src="/logo.jpg" width="24" height="24" style="vertical-align: middle; border-radius: 4px;" class="mr-2" alt="Touriva" />
           <span class="editorial-heading text-h6 text-white font-weight-bold">Touriva Shop</span>
         </div>
         <p class="text-caption text-sand mb-4">
