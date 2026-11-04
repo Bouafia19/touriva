@@ -9,7 +9,7 @@
  * - Background revalidation for static icons, fonts, and brand assets
  */
 
-const CACHE_VERSION = 'touriva-pwa-v1.0.4';
+const CACHE_VERSION = 'touriva-pwa-v1.0.5';
 const STATIC_CACHE = `touriva-static-${CACHE_VERSION}`;
 const ASSETS_CACHE = `touriva-assets-${CACHE_VERSION}`;
 const IMAGES_CACHE = `touriva-images-${CACHE_VERSION}`;
@@ -25,6 +25,10 @@ const PRECACHE_URLS = [
   '/logo.png',
   '/logo.svg',
   '/logo-dark.svg',
+  '/icons/pwa-icon-192.png',
+  '/icons/pwa-icon-512.png',
+  '/icons/pwa-maskable-192.png',
+  '/icons/pwa-maskable-512.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/icon-maskable-192.png',
