@@ -9,7 +9,7 @@
  * - Background revalidation for static icons, fonts, and brand assets
  */
 
-const CACHE_VERSION = 'touriva-pwa-v1.0.5';
+const CACHE_VERSION = 'touriva-pwa-v1.0.6';
 const STATIC_CACHE = `touriva-static-${CACHE_VERSION}`;
 const ASSETS_CACHE = `touriva-assets-${CACHE_VERSION}`;
 const IMAGES_CACHE = `touriva-images-${CACHE_VERSION}`;
@@ -33,7 +33,9 @@ const PRECACHE_URLS = [
   '/icons/icon-512.png',
   '/icons/icon-maskable-192.png',
   '/icons/icon-maskable-512.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/apple-touch-icon.png',
+  '/apple-touch-icon.png',
+  '/splash/apple-splash-universal.png'
 ];
 
 // Install: Cache application shell & offline fallback page

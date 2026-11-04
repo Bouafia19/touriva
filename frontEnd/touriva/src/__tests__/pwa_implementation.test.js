@@ -72,7 +72,8 @@ describe('Touriva PWA Implementation Verification', () => {
       'icons/icon-maskable-192.png',
       'icons/icon-maskable-512.png',
       'icons/apple-touch-icon.png',
-      'apple-touch-icon.png'
+      'apple-touch-icon.png',
+      'splash/apple-splash-universal.png'
     ]
 
     requiredIcons.forEach(iconFile => {
@@ -148,6 +149,7 @@ describe('Touriva PWA Implementation Verification', () => {
       expect(html).toContain('name="apple-mobile-web-app-status-bar-style"')
       expect(html).toContain('name="apple-mobile-web-app-title"')
       expect(html).toContain('rel="apple-touch-icon"')
+      expect(html).toContain('rel="apple-touch-startup-image"')
     })
   })
 
