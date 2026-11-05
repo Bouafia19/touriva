@@ -42,14 +42,7 @@ export const useAuthStore = defineStore('auth', {
         },
         // verify phone
         async account_verify_phone (params) {
-            const response = await axios.post("api/users/verifyPhone", params, {
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache',
-                            'Expires': '0'
-                            // 'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
+            const response = await axios.post("api/users/verifyPhone", params)
             
             if(response.status === 200){
                 // router.push({ path: `/codeVerification/${response.data.phonenumber}` })
@@ -61,14 +54,7 @@ export const useAuthStore = defineStore('auth', {
     
         // verify code
         async account_verify_code (params) {
-            const response = await axios.post("api/users/verifyCode", params, {
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache',
-                            'Expires': '0'
-                            // 'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
+            const response = await axios.post("api/users/verifyCode", params)
             if(response){
                 this.router.push({ path: `/userInformation/${response.data.data.to}` })
             } else {
@@ -103,14 +89,7 @@ export const useAuthStore = defineStore('auth', {
         // login to user account 
         async account_sign_in (params) {
             try {
-                const response = await axios.post("api/users/login", params, {
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache',
-                            'Expires': '0'
-                            // 'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
+                const response = await axios.post("api/users/login", params)
                 if(response){
                     this.user = response.data
                     this.auth_login = true
@@ -131,14 +110,7 @@ export const useAuthStore = defineStore('auth', {
         // sign up new user
         async account_sign_up (params) {
             try {
-                const response = await axios.post("api/users/signup", params, {
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache',
-                            'Expires': '0'
-                            // 'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
+                const response = await axios.post("api/users/signup", params)
                 if(response){
                     this.user = response.data
                     this.auth_login = true
@@ -158,14 +130,7 @@ export const useAuthStore = defineStore('auth', {
     
         async checkPhone(params){
             try {
-                const response = await axios.post(`api/users/verifyUser`, params, {
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache',
-                            'Expires': '0'
-                            // 'Authorization': `Bearer ${ls.token}`
-                        }
-                    })
+                const response = await axios.post(`api/users/verifyUser`, params)
                    
                 if(response.status === 200){
                     this.user = response.data
