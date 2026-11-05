@@ -25,6 +25,16 @@ describe('Touriva Health & System API', () => {
     expect(res.body.timestamp).toBeDefined()
   })
 
+  it('GET /health (root alias) returns 200 and Touriva service status', async () => {
+    const res = await request(app)
+      .get('/health')
+      .expect(200)
+
+    expect(res.body.status).toBe('ok')
+    expect(res.body.service).toBe('Touriva Tourism API')
+    expect(res.body.database).toBe('connected')
+  })
+
   it('GET /api/nonexistent-route returns 404 with JSON error', async () => {
     const res = await request(app)
       .get('/api/nonexistent-route')

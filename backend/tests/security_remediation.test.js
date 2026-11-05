@@ -274,6 +274,16 @@ describe('Touriva Phase 1 — Comprehensive Security Remediation Test Suite', ()
       expect(res.headers['access-control-allow-credentials']).toBe('true')
     })
 
+    it('4.1b: Permits custom domain origin https://touriva.nextchallenge.tech with credentials', async () => {
+      const res = await request(app)
+        .get('/api/health')
+        .set('Origin', 'https://touriva.nextchallenge.tech')
+        .expect(200)
+
+      expect(res.headers['access-control-allow-origin']).toBe('https://touriva.nextchallenge.tech')
+      expect(res.headers['access-control-allow-credentials']).toBe('true')
+    })
+
     it('4.2: Denies arbitrary/malicious origin without reflecting attacker origin', async () => {
       const res = await request(app)
         .get('/api/health')
