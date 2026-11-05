@@ -44,8 +44,8 @@ setInterval(() => {
 }, 10 * 60 * 1000).unref()
 
 module.exports = {
-  apiLimiter: createRateLimiter({ windowMs: 15 * 60 * 1000, max: 200 }),
-  authLimiter: createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, message: { error: 'Too many authentication attempts, please try again in 15 minutes.' } }),
-  demoLimiter: createRateLimiter({ windowMs: 15 * 60 * 1000, max: 60, message: { error: 'Too many demo authentication attempts, please try again later.' } }),
-  checkoutLimiter: createRateLimiter({ windowMs: 10 * 60 * 1000, max: 30, message: { error: 'Too many checkout requests, please try again later.' } })
+  apiLimiter: createRateLimiter({ windowMs: 15 * 60 * 1000, max: 500 }),
+  authLimiter: createRateLimiter({ windowMs: 15 * 60 * 1000, max: 150, message: { error: 'Too many authentication attempts, please try again in 15 minutes.' } }),
+  demoLimiter: createRateLimiter({ windowMs: 15 * 60 * 1000, max: 150, message: { error: 'Too many demo authentication attempts, please try again later.' } }),
+  checkoutLimiter: createRateLimiter({ windowMs: 10 * 60 * 1000, max: 100, message: { error: 'Too many checkout requests, please try again later.' } })
 }
