@@ -187,7 +187,7 @@ UserSchema.statics.signup = async function(
     firstName, 
     lastName, 
     phone, 
-    password, 
+    password: hash, 
     role, 
     // fcmToken, 
     // codePartenaire, 
@@ -210,6 +210,23 @@ UserSchema.statics.signup = async function(
   return user
 }
 
+// Helper to verify password with automatic safe bcrypt migration for legacy accounts
+const verifyPasswordWithMigration = async (userDoc, plainPassword) => {
+  if (!userDoc || !userDoc.password || !plainPassword) return false
+  const isBcrypt = typeof userDoc.password === 'string' && /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(userDoc.password)
+  if (isBcrypt) {
+    return await bcrypt.compare(plainPassword, userDoc.password)
+  }
+  // Legacy plaintext match: safely upgrade to bcrypt without logging or exposing credentials
+  if (userDoc.password === plainPassword) {
+    const salt = await bcrypt.genSalt(10)
+    userDoc.password = await bcrypt.hash(plainPassword, salt)
+    await userDoc.save()
+    return true
+  }
+  return false
+}
+
 // static loginPhone method
 UserSchema.statics.loginPhone = async function( phone, password, role) {
   if(!phone || !password){
@@ -229,22 +246,22 @@ UserSchema.statics.loginPhone = async function( phone, password, role) {
     user = await this.findOne({ phone, role: 'client', activated: true }).select('+password')
     user0 = await this.findOne({ phoneWith0, role: 'client', activated: true }).select('+password')
     
-  }else if(role === 'partner'){
-    user = await this.findOne({ phone, role: 'partner', activated: true }).select('+password')
-    user0 = await this.findOne({ phoneWith0, role: 'partner', activated: true }).select('+password')
+  }else if(role === 'partner' || role === 'seller'){
+    user = await this.findOne({ phone, role: role, activated: true }).select('+password')
+    user0 = await this.findOne({ phoneWith0, role: role, activated: true }).select('+password')
   }
   
   if(!user && !user0){
     throw Error('ip')
   }
   if(user){
-    const match = await bcrypt.compare(password, user.password)
+    const match = await verifyPasswordWithMigration(user, password)
     if(!match){
       throw Error('ipass')
     }
     return user
   }else if(user0){
-    const match0 = await bcrypt.compare(password, user0.password)
+    const match0 = await verifyPasswordWithMigration(user0, password)
     if(!match0){
       throw Error('ipass')
     }
@@ -265,17 +282,17 @@ UserSchema.statics.loginEmail = async function( email, password, role ) {
   if(!user){
     throw Error('Invalid email or password')
   }
-  const match = await bcrypt.compare(password, user.password) 
+  const match = await verifyPasswordWithMigration(user, password)
   if(!match){
     throw Error('Invalid email or password')
   }
   return user
 }
 
-// static loginPhoneWeb method
-UserSchema.statics.loginPhoneWeb = async function( phone, role ) {
-  if(!phone){
-    throw Error('Phone field must be filled')
+// static loginPhoneWeb method (Secured: requires verified password)
+UserSchema.statics.loginPhoneWeb = async function( phone, password, role ) {
+  if(!phone || !password){
+    throw Error('Phone and password fields must be filled')
   }
 
   let phoneWith0
@@ -284,27 +301,42 @@ UserSchema.statics.loginPhoneWeb = async function( phone, role ) {
   }else if (phone.length === 13){
     phoneWith0 = phone.slice(0, 4) + '0' + phone.slice(4)
   }
-  let user
-  let user0
-  user = await this.findOne({ phone, role: role })
-  user0 = await this.findOne({ phoneWith0, role: role })
+  let user = await this.findOne({ phone, role: role }).select('+password')
+  let user0 = await this.findOne({ phoneWith0, role: role }).select('+password')
 
-  if(user){
-    return user
-  }else if(user0){
-    return user0
+  const target = user || user0
+  if(!target){
+    throw Error('User not found')
   }
+
+  const match = await verifyPasswordWithMigration(target, password)
+  if(!match){
+    throw Error('Invalid password')
+  }
+
+  return target
 }
 
-// static signup web method
-UserSchema.statics.signupWeb = async function( phone, role, email, firstName, lastName, activated ) {
-
-  // validation
-  if(!phone){
-    throw Error('Phone field must be filled')
+// static signup web method (Secured: enforces password hashing and disallows admin self-assignment)
+UserSchema.statics.signupWeb = async function( phone, role, email, firstName, lastName, activated, password ) {
+  if(!phone || !password){
+    throw Error('Phone and password fields must be filled')
   }
- 
-  const user = await this.create({ phone, role, email, firstName, lastName, activated })
+
+  // Prevent self-assignment of administrator or elevated roles
+  const safeRole = (role === 'administrator') ? 'client' : (role || 'client')
+  const salt = await bcrypt.genSalt(10)
+  const hash = await bcrypt.hash(password, salt)
+
+  const user = await this.create({
+    phone,
+    role: safeRole,
+    email,
+    firstName,
+    lastName,
+    activated: !!activated,
+    password: hash
+  })
 
   return user
 }

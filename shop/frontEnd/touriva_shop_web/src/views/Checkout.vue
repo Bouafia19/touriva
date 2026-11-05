@@ -230,9 +230,9 @@
         </p>
 
         <div v-if="confirmedOrder?.paymentMethod === 'baridimob'" class="pa-4 bg-warm-ivory rounded-lg mb-4 text-left border-editorial">
-          <div class="text-subtitle-2 font-weight-bold text-forest mb-1">Instructions de virement BaridiMob :</div>
-          <div class="text-caption text-secondary-editorial mb-2">RIP / Compte : <strong>00799999000123456789</strong></div>
-          <div class="text-caption text-secondary-editorial">Indiquez le numéro de commande <strong>{{ confirmedOrder?.orderNumber }}</strong> dans le motif du virement.</div>
+          <div class="text-subtitle-2 font-weight-bold text-forest mb-1">Règlement par BaridiMob / Virement :</div>
+          <div class="text-caption text-secondary-editorial mb-2">Les coordonnées officielles de versement postal (RIP Touriva Marketplace) vous seront transmises lors de la confirmation commerciale de votre commande.</div>
+          <div class="text-caption text-secondary-editorial">Conservez précieusement votre numéro de commande <strong>{{ confirmedOrder?.orderNumber }}</strong> comme référence de paiement.</div>
         </div>
 
         <div class="d-flex ga-3 justify-center">

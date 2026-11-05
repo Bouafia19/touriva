@@ -23,9 +23,9 @@ router.post('/noImages', getProductsNoImages)
 router.get('/getProductsByCategory/:categoryId', getProductsByCategory)
 router.get('/getProductsByCategoryNoImages/:categoryId', getProductsByCategoryNoImages)
 
-// Protected partner (seller) & administrator mutation routes
-router.post('/', requireAuth, requireRole('partner', 'administrator'), createProduct)
-router.delete('/:id', requireAuth, requireRole('partner', 'administrator'), deleteProduct)
-router.patch('/:id', requireAuth, requireRole('partner', 'administrator'), updateProduct)
+// Protected partner (seller) & administrator mutation routes (Ownership strictly enforced in controller)
+router.post('/', requireAuth, requireRole('partner', 'seller', 'administrator'), createProduct)
+router.delete('/:id', requireAuth, requireRole('partner', 'seller', 'administrator'), deleteProduct)
+router.patch('/:id', requireAuth, requireRole('partner', 'seller', 'administrator'), updateProduct)
 
 module.exports = router

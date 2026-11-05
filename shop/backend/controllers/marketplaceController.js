@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const crypto = require('crypto')
 const Product = require('../models/Product')
 const Category = require('../models/Category')
 const Brand = require('../models/Brand')
@@ -316,8 +317,9 @@ const applyForSeller = async (req, res) => {
   }
 }
 
-// POST /api/marketplace/orders - Customer checkout (multi-vendor cart)
+// POST /api/marketplace/orders - Customer checkout (multi-vendor cart with atomic inventory reservation)
 const createMarketplaceOrder = async (req, res) => {
+  const reservedItems = []
   try {
     const { items, customerInfo, paymentMethod, deliveryFeeDZD = 600 } = req.body
 
@@ -329,30 +331,39 @@ const createMarketplaceOrder = async (req, res) => {
       return res.status(400).json({ error: 'Customer name, phone, wilaya, and shipping address are mandatory.' })
     }
 
-    // Generate unique order number: TRV-MKT-YYYY-XXXXX
-    const year = new Date().getFullYear()
-    const randomHex = Math.floor(10000 + Math.random() * 90000)
-    const orderNumber = `TRV-MKT-${year}-${randomHex}`
+    // 1. Validate line item quantities
+    for (const item of items) {
+      const qty = parseInt(item.quantity, 10)
+      if (isNaN(qty) || qty <= 0) {
+        return res.status(400).json({ error: 'All item quantities must be positive integers.' })
+      }
+    }
 
-    // Fetch products from DB to ensure prices cannot be tampered with by the client
+    // 2. Fetch products from DB to ensure prices and active availability
     const productIds = items.map(i => i.productId)
     const dbProducts = await Product.find({ _id: { $in: productIds }, status: 'approved', published: true })
     const productMap = new Map(dbProducts.map(p => [p._id.toString(), p]))
 
     let subtotalDZD = 0
-    const orderItemsToCreate = []
+    const validatedOrderItems = []
 
     for (const item of items) {
       const p = productMap.get(item.productId)
       if (!p) {
-        return res.status(400).json({ error: `Product ID ${item.productId} is unavailable or no longer in stock.` })
+        return res.status(400).json({ error: `Product ID ${item.productId} is unavailable or no longer listed.` })
       }
-      const qty = Math.max(1, parseInt(item.quantity) || 1)
-      const unitPrice = p.discountPrice && p.discountPrice > 0 ? p.discountPrice : p.price
+      const qty = parseInt(item.quantity, 10)
+      if (p.stockQuantity < qty) {
+        return res.status(400).json({
+          error: `Stock insuffisant pour '${p.name}'. Quantité demandée: ${qty}, disponible: ${p.stockQuantity}.`
+        })
+      }
+      const unitPrice = (p.discountPrice && p.discountPrice > 0) ? p.discountPrice : p.price
       const totalItemPrice = unitPrice * qty
       subtotalDZD += totalItemPrice
 
-      orderItemsToCreate.push({
+      validatedOrderItems.push({
+        productDoc: p,
         productId: p._id,
         sellerId: p.sellerId || null,
         productName: p.name,
@@ -365,10 +376,63 @@ const createMarketplaceOrder = async (req, res) => {
       })
     }
 
+    // 3. Prevent duplicate order submissions within 10 seconds
+    const tenSecondsAgo = new Date(Date.now() - 10000)
+    const recentDuplicate = await Order.findOne({
+      'customerInfo.phone': customerInfo.phone.trim(),
+      subtotalDZD,
+      createdAt: { $gte: tenSecondsAgo }
+    })
+    if (recentDuplicate) {
+      return res.status(409).json({
+        error: 'Une commande identique est en cours de traitement. Veuillez patienter pour éviter les doublons.',
+        orderNumber: recentDuplicate.orderNumber
+      })
+    }
+
+    // 4. Atomic conditional inventory reservation with compensating rollback
+    for (const valItem of validatedOrderItems) {
+      const updated = await Product.findOneAndUpdate(
+        {
+          _id: valItem.productId,
+          stockQuantity: { $gte: valItem.quantity },
+          status: 'approved',
+          published: true
+        },
+        { $inc: { stockQuantity: -valItem.quantity } },
+        { new: true }
+      )
+
+      if (!updated) {
+        // Rollback all previously reserved items
+        for (const prev of reservedItems) {
+          await Product.updateOne({ _id: prev.productId }, { $inc: { stockQuantity: prev.quantity } })
+        }
+        return res.status(400).json({
+          error: `Stock insuffisant pour '${valItem.productName}'. Une commande concurrente a épuisé le stock disponible.`
+        })
+      }
+
+      reservedItems.push({ productId: valItem.productId, quantity: valItem.quantity })
+    }
+
+    // 5. Generate unique order number: TRV-MKT-YYYY-XXXXX
+    const year = new Date().getFullYear()
+    const randomHex = Math.floor(10000 + Math.random() * 90000)
+    const orderNumber = `TRV-MKT-${year}-${randomHex}`
+
     const totalAmountDZD = subtotalDZD + Number(deliveryFeeDZD)
     const userId = req.user ? req.user._id : null
 
-    // Create primary Order
+    // 6. Cryptographic guest access token (if unauthenticated)
+    let rawGuestToken = null
+    let guestAccessTokenHash = null
+    if (!req.user) {
+      rawGuestToken = crypto.randomBytes(32).toString('hex')
+      guestAccessTokenHash = crypto.createHash('sha256').update(rawGuestToken).digest('hex')
+    }
+
+    // 7. Create primary Order
     const order = await Order.create({
       orderNumber,
       userId,
@@ -388,14 +452,25 @@ const createMarketplaceOrder = async (req, res) => {
       paymentMethod: ['baridimob', 'cash_on_delivery', 'ccp'].includes(paymentMethod) ? paymentMethod : 'cash_on_delivery',
       paymentStatus: 'pending_verification',
       overallStatus: 'pending',
-      status: 'pending' // for legacy compatibility
+      status: 'pending', // for legacy compatibility
+      guestAccessTokenHash
     })
 
-    // Create OrderItem records linked to order
+    // 8. Create OrderItem records linked to order
     const createdItemIds = []
-    for (const itemData of orderItemsToCreate) {
-      itemData.orderId = order._id
-      const oi = await OrderItem.create(itemData)
+    for (const valItem of validatedOrderItems) {
+      const oi = await OrderItem.create({
+        orderId: order._id,
+        productId: valItem.productId,
+        sellerId: valItem.sellerId,
+        productName: valItem.productName,
+        productCode: valItem.productCode,
+        productImage: valItem.productImage,
+        unitPriceDZD: valItem.unitPriceDZD,
+        quantity: valItem.quantity,
+        totalItemPriceDZD: valItem.totalItemPriceDZD,
+        fulfillmentStatus: 'pending'
+      })
       createdItemIds.push(oi._id)
     }
 
@@ -411,7 +486,7 @@ const createMarketplaceOrder = async (req, res) => {
       details: { orderNumber, totalAmountDZD, itemCount: items.length }
     })
 
-    res.status(201).json({
+    const responsePayload = {
       message: 'Order created successfully.',
       order: {
         id: order._id,
@@ -425,8 +500,20 @@ const createMarketplaceOrder = async (req, res) => {
         customerInfo: order.customerInfo,
         createdAt: order.createdAt
       }
-    })
+    }
+
+    if (rawGuestToken) {
+      responsePayload.order.guestAccessToken = rawGuestToken
+    }
+
+    res.status(201).json(responsePayload)
   } catch (err) {
+    // Compensating rollback if database write fails midway
+    for (const prev of reservedItems) {
+      try {
+        await Product.updateOne({ _id: prev.productId }, { $inc: { stockQuantity: prev.quantity } })
+      } catch (rbErr) {}
+    }
     res.status(500).json({ error: err.message })
   }
 }
@@ -446,53 +533,107 @@ const getMyOrders = async (req, res) => {
   }
 }
 
-// GET /api/marketplace/orders/:id - Customer order details
+// GET /api/marketplace/orders/:id - Customer order details (Secured: requires authenticated owner/admin or guest token)
 const getOrderDetails = async (req, res) => {
   try {
     const { id } = req.params
+    const providedToken = req.query.token || req.headers['x-order-token']
+
     let order = null
     if (mongoose.Types.ObjectId.isValid(id)) {
-      order = await Order.findById(id).populate('items')
+      order = await Order.findById(id).select('+guestAccessTokenHash').populate('items')
     } else {
-      order = await Order.findOne({ orderNumber: id }).populate('items')
+      order = await Order.findOne({ orderNumber: id }).select('+guestAccessTokenHash').populate('items')
     }
 
     if (!order) {
       return res.status(404).json({ error: 'Order not found' })
     }
 
-    // If authenticated user is requesting, ensure ownership unless admin
+    // 1. Authenticated User Access Control
     if (req.user) {
       const isOwner = order.userId && order.userId.toString() === req.user._id.toString()
       const isAdmin = req.user.role === 'administrator'
-      if (!isOwner && !isAdmin) {
-        return res.status(403).json({ error: 'Unauthorized to view this order.' })
+
+      if (isAdmin || isOwner) {
+        const sanitized = order.toObject()
+        delete sanitized.guestAccessTokenHash
+        return res.status(200).json(sanitized)
       }
+
+      // If seller, only allow viewing if they have items in this order, and scope items
+      if (req.user.role === 'seller' || req.user.role === 'partner') {
+        const sellerItems = (order.items || []).filter(item =>
+          item.sellerId && item.sellerId.toString() === req.user._id.toString()
+        )
+        if (sellerItems.length > 0) {
+          const scopedOrder = order.toObject()
+          scopedOrder.items = sellerItems
+          delete scopedOrder.guestAccessTokenHash
+          return res.status(200).json(scopedOrder)
+        }
+      }
+
+      return res.status(403).json({ error: 'Access forbidden: Unauthorized to view this order.' })
     }
 
-    res.status(200).json(order)
+    // 2. Unauthenticated / Guest Access Control (Requires valid guestAccessToken)
+    if (!providedToken) {
+      return res.status(401).json({
+        error: 'Authentication token or valid guest order access token required to view order details.'
+      })
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(String(providedToken).trim()).digest('hex')
+    if (!order.guestAccessTokenHash || order.guestAccessTokenHash !== tokenHash) {
+      return res.status(403).json({ error: 'Access forbidden: Invalid or expired guest order access token.' })
+    }
+
+    const sanitized = order.toObject()
+    delete sanitized.guestAccessTokenHash
+    res.status(200).json(sanitized)
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
 }
 
-// POST /api/marketplace/orders/:id/payment-proof - Upload BaridiMob/CCP receipt
+// POST /api/marketplace/orders/:id/payment-proof - Upload BaridiMob/CCP receipt (Secured)
 const submitPaymentProof = async (req, res) => {
   try {
     const { id } = req.params
     const { transactionReference, receiptImageUrl } = req.body
+    const providedToken = req.query.token || req.headers['x-order-token']
 
-    const order = await Order.findById(id)
+    let order = null
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id).select('+guestAccessTokenHash')
+    } else {
+      order = await Order.findOne({ orderNumber: id }).select('+guestAccessTokenHash')
+    }
+
     if (!order) {
       return res.status(404).json({ error: 'Order not found' })
     }
 
-    if (req.user && order.userId && order.userId.toString() !== req.user._id.toString() && req.user.role !== 'administrator') {
-      return res.status(403).json({ error: 'Unauthorized to submit proof for this order.' })
+    // Authorization: owner, admin, or verified guest token
+    if (req.user) {
+      const isOwner = order.userId && order.userId.toString() === req.user._id.toString()
+      const isAdmin = req.user.role === 'administrator'
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: Unauthorized to submit proof for this order.' })
+      }
+    } else {
+      if (!providedToken) {
+        return res.status(401).json({ error: 'Authentication token or guest order access token required.' })
+      }
+      const tokenHash = crypto.createHash('sha256').update(String(providedToken).trim()).digest('hex')
+      if (!order.guestAccessTokenHash || order.guestAccessTokenHash !== tokenHash) {
+        return res.status(403).json({ error: 'Access forbidden: Invalid guest order access token.' })
+      }
     }
 
     order.paymentProof = {
-      transactionReference: transactionReference ? transactionReference.trim() : '',
+      transactionReference: transactionReference ? String(transactionReference).trim() : '',
       receiptImageUrl: receiptImageUrl || '',
       submittedAt: new Date()
     }

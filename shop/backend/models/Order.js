@@ -93,6 +93,12 @@ const OrderSchema = new mongoose.Schema({
   seedId: {
     type: String,
     default: ''
+  },
+  // Secure SHA-256 hash of guest access token (never exposed, protects guest order privacy)
+  guestAccessTokenHash: {
+    type: String,
+    default: null,
+    select: false
   }
 },
 {

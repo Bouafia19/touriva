@@ -169,6 +169,17 @@ const getSellerProducts = async (req, res) => {
 // POST /api/seller/products - Create product for seller
 const createSellerProduct = async (req, res) => {
   try {
+    // Enforce seller suspension check
+    if (req.user.role !== 'administrator') {
+      const profile = await SellerProfile.findOne({ userId: req.user._id })
+      if (profile && profile.isSuspended) {
+        return res.status(403).json({
+          error: 'Your seller account is currently suspended. You cannot create new products.',
+          suspensionReason: profile.suspensionReason
+        })
+      }
+    }
+
     const {
       name,
       price,
@@ -245,6 +256,17 @@ const updateSellerProduct = async (req, res) => {
     const isAdmin = req.user.role === 'administrator'
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Access forbidden: You cannot modify products belonging to another seller.' })
+    }
+
+    // Enforce seller suspension check
+    if (!isAdmin) {
+      const profile = await SellerProfile.findOne({ userId: req.user._id })
+      if (profile && profile.isSuspended) {
+        return res.status(403).json({
+          error: 'Your seller account is currently suspended. Product modifications are disabled.',
+          suspensionReason: profile.suspensionReason
+        })
+      }
     }
 
     const {
@@ -376,11 +398,17 @@ const updateFulfillmentStatus = async (req, res) => {
       return res.status(400).json({ error: 'Invalid fulfillment status.' })
     }
 
+    const previousStatus = item.fulfillmentStatus
     item.fulfillmentStatus = fulfillmentStatus
     if (shippingCarrier !== undefined) item.shippingCarrier = shippingCarrier.trim()
     if (trackingNumber !== undefined) item.trackingNumber = trackingNumber.trim()
     if (fulfillmentStatus === 'shipped' && !item.shippedAt) item.shippedAt = new Date()
     if (fulfillmentStatus === 'delivered' && !item.deliveredAt) item.deliveredAt = new Date()
+
+    // Restore stock to catalog if merchant or admin cancels this order item
+    if (fulfillmentStatus === 'cancelled' && previousStatus !== 'cancelled') {
+      await Product.updateOne({ _id: item.productId }, { $inc: { stockQuantity: item.quantity } })
+    }
 
     await item.save()
 

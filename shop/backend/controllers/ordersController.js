@@ -1,10 +1,14 @@
 const Order = require('../models/Order')
+const OrderItem = require('../models/OrderItem')
+const Product = require('../models/Product')
 const mongoose = require('mongoose')
 
-// GET all orders
+// GET all orders (Secured: Client receives only their own orders; Admin/Partner receive managed orders)
 const getOrders = async (req, res) => {
-    // If standard client, return only their own orders
-    const filter = (req.user.role === 'administrator' || req.user.role === 'partner')
+    if (!req.user) {
+        return res.status(401).json({ error: 'Authorization token required' })
+    }
+    const filter = (req.user.role === 'administrator' || req.user.role === 'partner' || req.user.role === 'seller')
         ? {}
         : { userId: req.user._id }
 
@@ -78,7 +82,7 @@ const deleteOrder = async (req, res) => {
     res.status(200).json(existingOrder)
 }
 
-// UPDATE a order
+// UPDATE a order (Secured: ownership enforced; inventory restored on cancellation)
 const updateOrder = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
@@ -94,6 +98,19 @@ const updateOrder = async (req, res) => {
     const isAdmin = req.user.role === 'administrator'
     if (!isOwner && !isAdmin) {
         return res.status(403).json({ error: 'Unauthorized: You can only update your own orders' })
+    }
+
+    // Restore inventory if order transitions to cancelled
+    if ((req.body.overallStatus === 'cancelled' || req.body.status === 'cancelled') && existingOrder.overallStatus !== 'cancelled') {
+        const itemIds = existingOrder.items || []
+        for (const itemId of itemIds) {
+            const oi = await OrderItem.findById(itemId)
+            if (oi && oi.fulfillmentStatus !== 'cancelled') {
+                oi.fulfillmentStatus = 'cancelled'
+                await oi.save()
+                await Product.updateOne({ _id: oi.productId }, { $inc: { stockQuantity: oi.quantity } })
+            }
+        }
     }
 
     const order = await Order.findOneAndUpdate({_id: id},{

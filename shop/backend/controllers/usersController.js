@@ -8,14 +8,17 @@ const bcrypt = require('bcrypt')
 const { defineRulesFor } = require('../modules/abilities')
 
 const createToken = (_id) => {
-    return jwt.sign({_id}, process.env.SECRET)
+    return jwt.sign({_id}, process.env.SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' })
 }
 
-// login user via web
+// login user via web (Secured: requires verified password and validates against DB)
 const loginUserWeb = async (req, res) => {
     try {
-        const { phone, role } = req.body
-        const item = await User.loginPhoneWeb(phone, role)
+        const { phone, password, role } = req.body
+        if (!phone || !password) {
+            return res.status(400).json({ error: 'Phone and password are required' })
+        }
+        const item = await User.loginPhoneWeb(phone, password, role)
         // create token
         const token = createToken(item._id)
         let user = {
@@ -34,11 +37,17 @@ const loginUserWeb = async (req, res) => {
     }
 }
 
-// signup user via web
+// signup user via web (Secured: requires password, hashes it, prevents admin self-assignment)
 const signupUserWeb = async (req, res) => {
-    const { phone, role, email, firstName, lastName,  activated } = req.body
+    const { phone, role, email, firstName, lastName, activated, password } = req.body
+    if (!phone || !password) {
+        return res.status(400).json({ error: 'Phone and password are required' })
+    }
+    if (role === 'administrator') {
+        return res.status(403).json({ error: 'Self-assignment of administrator privileges is strictly prohibited.' })
+    }
     try {
-        const item = await User.signupWeb( phone, role, email, firstName, lastName,  activated)
+        const item = await User.signupWeb(phone, role, email, firstName, lastName, activated, password)
         // create token
         const token = createToken(item._id)
 
@@ -164,6 +173,13 @@ const signupUser = async (req, res) => {
         sectorActivity
 
     } = req.body
+
+    // Prevent self-assignment of administrator or elevated roles via public signup
+    if (role === 'administrator') {
+        return res.status(403).json({ error: 'Self-assignment of administrator privileges is strictly prohibited.' })
+    }
+    const safeRole = role || 'client'
+
     try {
         const item = await User.signup(
             email, 
@@ -171,7 +187,7 @@ const signupUser = async (req, res) => {
             lastName, 
             phone, 
             password, 
-            role, 
+            safeRole, 
             // fcmToken, 
             // codePartenaire, 
             // code, 
@@ -499,18 +515,28 @@ const update_existing_user = async (req, res) => {
     res.status(200).json(user)
 }
 
-// upload images
+// upload images (Secured: Self or Admin only, strict document fields)
 const uploadPartnerImages = async (req, res) => {
-
     const { id } = req.params
-    
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
-   
-    const user = await User.findOneAndUpdate({_id: id},{
-        ...req.body
-    }).select('_id')
+
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot modify another partner documents' })
+    }
+
+    const allowedFields = ['nisDoc', 'commercialRegister', 'nifDoc', 'id', 'avatar', 'logo', 'cover']
+    const safeUpdates = {}
+    for (const key of allowedFields) {
+        if (req.body[key] !== undefined) {
+            safeUpdates[key] = req.body[key]
+        }
+    }
+
+    const user = await User.findOneAndUpdate({_id: id}, safeUpdates, { new: true }).select('_id')
     
     if(!user){
         return res.status(404).json({error: 'no such user'})
@@ -519,12 +545,19 @@ const uploadPartnerImages = async (req, res) => {
     res.status(200).json(user)
 }
 
-// GET partner photos
+// GET partner photos (Secured: Self or Admin only)
 const loadPartnerPhotos = async (req, res) => {
     const {id} = req.params
     if(!mongoose.Types.ObjectId.isValid(id)){
         return res.status(404).json({error: 'no such user'})
     }
+
+    const isSelf = req.user && req.user._id.toString() === id
+    const isAdmin = req.user && req.user.role === 'administrator'
+    if (!isSelf && !isAdmin) {
+        return res.status(403).json({ error: 'Access forbidden: You cannot view another partner documents' })
+    }
+
     const images = await User.findById(id).select('nisDoc commercialRegister nifDoc id')
     
     if(!images){
@@ -534,12 +567,9 @@ const loadPartnerPhotos = async (req, res) => {
     res.status(200).json(images)
 }
 
-// Whitelist of valid demo accounts for Touriva Independent Marketplace
+// Whitelist of valid demo accounts for Touriva Independent Marketplace (Non-production only)
+// NOTE: Platform Administrator accounts are strictly excluded from demo authentication.
 const APPROVED_DEMO_ACCOUNTS = {
-    // Administrator
-    'admin': { email: 'demo.admin@touriva.example', role: 'administrator', type: 'admin', name: 'Touriva Demo Administrator' },
-    'administrator': { email: 'demo.admin@touriva.example', role: 'administrator', type: 'admin', name: 'Touriva Demo Administrator' },
-
     // Sellers
     'seller1': { email: 'demo.seller1@touriva.example', role: 'seller', type: 'seller', storeName: 'Atlas Electronics DZ' },
     'atlas': { email: 'demo.seller1@touriva.example', role: 'seller', type: 'seller', storeName: 'Atlas Electronics DZ' },
@@ -574,11 +604,23 @@ const APPROVED_DEMO_ACCOUNTS = {
     'nour': { email: 'demo.buyer5@touriva.example', role: 'client', type: 'buyer', name: 'Nour El Houda Belkacem', phone: '+213550000005' }
 }
 
-// 1-Click Demo Authentication for Touriva Independent Marketplace
+// 1-Click Demo Authentication for Touriva Independent Marketplace (Non-production only)
 const demoLogin = async (req, res) => {
+    // Strictly disable demo login in production environments
+    if (process.env.NODE_ENV === 'production' || process.env.ENABLE_DEMO_LOGIN !== 'true') {
+        return res.status(404).json({ error: 'Endpoint not found' })
+    }
+
     try {
         const { demoType, role: requestedRole } = req.body
         const key = String(demoType || '').toLowerCase().trim()
+
+        // Explicitly block any administrator demo authentication
+        if (key === 'admin' || key === 'administrator' || requestedRole === 'administrator') {
+            return res.status(403).json({
+                error: 'Administrator demo authentication is strictly prohibited.'
+            })
+        }
 
         // Match against whitelist by key or email
         let account = APPROVED_DEMO_ACCOUNTS[key]
@@ -588,7 +630,7 @@ const demoLogin = async (req, res) => {
 
         if (!account) {
             return res.status(400).json({
-                error: 'Invalid demoType. Permitted options: admin, seller1, seller2, seller3, seller4, buyer1, buyer2, buyer3, buyer4, buyer5.'
+                error: 'Invalid demoType. Permitted options: seller1, seller2, seller3, seller4, buyer1, buyer2, buyer3, buyer4, buyer5.'
             })
         }
 
@@ -596,6 +638,13 @@ const demoLogin = async (req, res) => {
         if (requestedRole && requestedRole !== account.role) {
             return res.status(403).json({
                 error: `Role mismatch: demo account '${key}' has role '${account.role}', cannot authenticate as '${requestedRole}'.`
+            })
+        }
+
+        // Prohibit administrator role under all circumstances
+        if (account.role === 'administrator') {
+            return res.status(403).json({
+                error: 'Administrator demo authentication is strictly prohibited.'
             })
         }
 
