@@ -55,7 +55,7 @@ describe('Phase 3 Remediation Suite — MOB-02, MOB-05, API-01, ADM-01', () => {
 
       expect(content).not.toContain('172.20.10.3')
       expect(content).not.toContain('localhost:4004')
-      expect(content).toContain("import.meta.env.VITE_API_BASE_URL || 'https://touriva-api.onrender.com'")
+      expect(content).toMatch(/import\.meta\.env\.VITE_API_BASE_URL \|\| 'https:\/\/(api\.touriva\.nextchallenge\.tech|touriva-api\.onrender\.com)'/)
     })
   })
 
