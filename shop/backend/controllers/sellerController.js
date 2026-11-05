@@ -6,6 +6,14 @@ const SellerProfile = require('../models/SellerProfile')
 const Commission = require('../models/Commission')
 const AuditLog = require('../models/AuditLog')
 
+// Helper to resolve all permitted seller identifiers (User ID & SellerProfile ID)
+const getSellerIds = async (userId) => {
+  const ids = [userId]
+  const profile = await SellerProfile.findOne({ userId })
+  if (profile) ids.push(profile._id)
+  return ids
+}
+
 // GET /api/seller/profile - Get current seller profile
 const getSellerProfile = async (req, res) => {
   try {
@@ -58,40 +66,41 @@ const updateSellerProfile = async (req, res) => {
 // GET /api/seller/dashboard - Real metrics from DB
 const getSellerDashboard = async (req, res) => {
   try {
-    const sellerId = req.user._id
+    const sellerIds = await getSellerIds(req.user._id)
+    const sellerFilter = { sellerId: { $in: sellerIds } }
 
     // Product counts
-    const totalProducts = await Product.countDocuments({ sellerId })
-    const publishedProducts = await Product.countDocuments({ sellerId, status: 'approved', published: true })
-    const pendingProducts = await Product.countDocuments({ sellerId, status: 'pending_review' })
-    const rejectedProducts = await Product.countDocuments({ sellerId, status: 'rejected' })
-    const draftProducts = await Product.countDocuments({ sellerId, status: 'draft' })
+    const totalProducts = await Product.countDocuments(sellerFilter)
+    const publishedProducts = await Product.countDocuments({ ...sellerFilter, status: 'approved', published: true })
+    const pendingProducts = await Product.countDocuments({ ...sellerFilter, status: 'pending_review' })
+    const rejectedProducts = await Product.countDocuments({ ...sellerFilter, status: 'rejected' })
+    const draftProducts = await Product.countDocuments({ ...sellerFilter, status: 'draft' })
 
     // Order item counts
-    const totalOrderItems = await OrderItem.countDocuments({ sellerId })
-    const pendingOrderItems = await OrderItem.countDocuments({ sellerId, fulfillmentStatus: 'pending' })
-    const preparingOrderItems = await OrderItem.countDocuments({ sellerId, fulfillmentStatus: 'preparing' })
-    const shippedOrderItems = await OrderItem.countDocuments({ sellerId, fulfillmentStatus: 'shipped' })
-    const deliveredOrderItems = await OrderItem.countDocuments({ sellerId, fulfillmentStatus: 'delivered' })
+    const totalOrderItems = await OrderItem.countDocuments(sellerFilter)
+    const pendingOrderItems = await OrderItem.countDocuments({ ...sellerFilter, fulfillmentStatus: 'pending' })
+    const preparingOrderItems = await OrderItem.countDocuments({ ...sellerFilter, fulfillmentStatus: 'preparing' })
+    const shippedOrderItems = await OrderItem.countDocuments({ ...sellerFilter, fulfillmentStatus: 'shipped' })
+    const deliveredOrderItems = await OrderItem.countDocuments({ ...sellerFilter, fulfillmentStatus: 'delivered' })
 
     // Revenue calculations from delivered or confirmed order items
-    const deliveredItems = await OrderItem.find({ sellerId, fulfillmentStatus: { $in: ['shipped', 'delivered'] } })
+    const deliveredItems = await OrderItem.find({ ...sellerFilter, fulfillmentStatus: { $in: ['shipped', 'delivered'] } })
     const grossRevenueDZD = deliveredItems.reduce((acc, item) => acc + (item.totalItemPriceDZD || 0), 0)
 
     // Commissions accrued
-    const commissions = await Commission.find({ sellerId })
+    const commissions = await Commission.find(sellerFilter)
     const totalCommissionsDZD = commissions.reduce((acc, c) => acc + (c.commissionAmountDZD || 0), 0)
     const netEarningsDZD = grossRevenueDZD - totalCommissionsDZD
 
     // Recent orders (last 5)
-    const recentItems = await OrderItem.find({ sellerId })
+    const recentItems = await OrderItem.find(sellerFilter)
       .populate('orderId', 'orderNumber customerInfo paymentMethod paymentStatus createdAt')
       .populate('productId', 'name code img')
       .sort({ createdAt: -1 })
       .limit(5)
 
     // Low stock alerts (stock < 5)
-    const lowStockAlerts = await Product.find({ sellerId, stockQuantity: { $lte: 5 } })
+    const lowStockAlerts = await Product.find({ ...sellerFilter, stockQuantity: { $lte: 5 } })
       .select('name code stockQuantity price')
       .limit(5)
 
@@ -130,7 +139,8 @@ const getSellerDashboard = async (req, res) => {
 const getSellerProducts = async (req, res) => {
   try {
     const { status, search, page = 1, limit = 20 } = req.query
-    const query = { sellerId: req.user._id }
+    const sellerIds = await getSellerIds(req.user._id)
+    const query = { sellerId: { $in: sellerIds } }
 
     if (status && status !== 'all') {
       query.status = status
@@ -252,7 +262,9 @@ const updateSellerProduct = async (req, res) => {
     }
 
     // Strict ownership verification (prevent IDOR)
-    const isOwner = product.sellerId && product.sellerId.toString() === req.user._id.toString()
+    const sellerIds = await getSellerIds(req.user._id)
+    const sellerIdStrings = sellerIds.map(s => s.toString())
+    const isOwner = product.sellerId && sellerIdStrings.includes(product.sellerId.toString())
     const isAdmin = req.user.role === 'administrator'
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Access forbidden: You cannot modify products belonging to another seller.' })
@@ -322,7 +334,9 @@ const deleteSellerProduct = async (req, res) => {
       return res.status(404).json({ error: 'Product not found.' })
     }
 
-    const isOwner = product.sellerId && product.sellerId.toString() === req.user._id.toString()
+    const sellerIds = await getSellerIds(req.user._id)
+    const sellerIdStrings = sellerIds.map(s => s.toString())
+    const isOwner = product.sellerId && sellerIdStrings.includes(product.sellerId.toString())
     const isAdmin = req.user.role === 'administrator'
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Access forbidden: You cannot delete products belonging to another seller.' })
@@ -342,10 +356,10 @@ const deleteSellerProduct = async (req, res) => {
 // GET /api/seller/orders - Get order items for this seller
 const getSellerOrders = async (req, res) => {
   try {
-    const sellerId = req.user._id
+    const sellerIds = await getSellerIds(req.user._id)
     const { fulfillmentStatus, page = 1, limit = 20 } = req.query
 
-    const query = { sellerId }
+    const query = { sellerId: { $in: sellerIds } }
     if (fulfillmentStatus && fulfillmentStatus !== 'all') {
       query.fulfillmentStatus = fulfillmentStatus
     }
@@ -388,7 +402,9 @@ const updateFulfillmentStatus = async (req, res) => {
     }
 
     // Ownership check
-    const isOwner = item.sellerId && item.sellerId.toString() === req.user._id.toString()
+    const sellerIds = await getSellerIds(req.user._id)
+    const sellerIdStrings = sellerIds.map(s => s.toString())
+    const isOwner = item.sellerId && sellerIdStrings.includes(item.sellerId.toString())
     const isAdmin = req.user.role === 'administrator'
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'Access forbidden: You cannot update order items for another seller.' })
@@ -440,8 +456,8 @@ const updateFulfillmentStatus = async (req, res) => {
 // GET /api/seller/finances - Commissions & net payouts
 const getSellerFinances = async (req, res) => {
   try {
-    const sellerId = req.user._id
-    const commissions = await Commission.find({ sellerId })
+    const sellerIds = await getSellerIds(req.user._id)
+    const commissions = await Commission.find({ sellerId: { $in: sellerIds } })
       .populate('orderId', 'orderNumber paymentStatus createdAt')
       .populate('orderItemId', 'productName unitPriceDZD quantity totalItemPriceDZD fulfillmentStatus')
       .sort({ createdAt: -1 })

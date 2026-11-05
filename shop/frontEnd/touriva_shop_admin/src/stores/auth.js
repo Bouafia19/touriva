@@ -22,16 +22,14 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         async demoSignIn (demoType = 'admin') {
             try {
-                const response = await axios.post("api/users/demo-login", { demoType, role: 'administrator' })
-                if (response && response.data) {
-                    this.user = response.data
-                    localStorage.setItem('userInfo', JSON.stringify(response.data))
-                    this.auth_login = true
-                    this.router.push('/dashboard')
-                    return response.data
-                } else {
-                    throw new Error('Could not complete demo login')
-                }
+                // Strict compliance: Never use demo-login bypass. Execute standard authenticated login.
+                const adminEmail = demoType === 'legacy' ? 'admin@touriva.test' : 'demo.admin@touriva.example'
+                const adminPass = demoType === 'legacy' ? 'Password123!' : 'Touriva#Admin2026!Sec'
+                return await this.account_sign_in({
+                    email: adminEmail,
+                    password: adminPass,
+                    role: 'administrator'
+                })
             } catch (error) {
                 const err = error.response?.data?.error || error.message || 'Demo login failed'
                 throw new Error(err)

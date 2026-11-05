@@ -56,7 +56,7 @@
             elevation="0"
             :loading="demoLoadingKey === b.key"
             :disabled="loading || (demoLoadingKey !== null && demoLoadingKey !== b.key)"
-            @click="quickDemoSignIn(b.key)"
+            @click="quickDemoSignIn(b)"
           >
             <v-avatar size="28" :color="b.avatarColor" class="me-2 text-caption font-weight-bold text-white">
               {{ b.initials }}
@@ -78,7 +78,7 @@
       <div class="d-flex align-center my-5">
         <v-divider class="border-subtle"></v-divider>
         <span class="mx-3 text-caption text-secondary-editorial font-weight-medium text-center text-uppercase">
-          Or sign in with phone
+          Or sign in with email or phone
         </span>
         <v-divider class="border-subtle"></v-divider>
       </div>
@@ -86,19 +86,14 @@
       <!-- Login Form -->
       <form @submit.prevent="submit">
         <div class="mb-4">
-          <label class="editorial-tag text-sand-dark d-block mb-1">{{ $t('phoneNumber') }}</label>
+          <label class="editorial-tag text-sand-dark d-block mb-1">Email or Phone Number</label>
           <v-text-field
-            v-model="phone.value.value"
-            placeholder="07 70 00 00 00"
+            v-model="accountIdentifier"
+            placeholder="e.g. customer@touriva.test or 0550000010"
             required
             variant="outlined"
             density="comfortable"
             color="forestGreen"
-            append-inner-icon="mdi-backspace-outline"
-            @click:append-inner="phone.value.value = null"
-            :error-messages="phone.errorMessage.value"
-            prefix="+213"
-            type="number"
             rounded="lg"
             hide-details="auto"
           />
@@ -135,7 +130,7 @@
           density="comfortable"
           class="my-4 text-caption"
         >
-          {{ $t(err) }}
+          {{ err }}
         </v-alert>
 
         <!-- Submit Button -->
@@ -183,24 +178,10 @@
 <script setup>
   import { ref } from 'vue'
   import { useAuthStore } from '@/stores/auth'
-  import { useField, useForm } from 'vee-validate'
-  import { useI18n } from 'vue-i18n'
 
-  const { t } = useI18n()
-
-  const { handleSubmit } = useForm({
-    validationSchema: {
-      phone (value) {
-        if (/^[0-9-]{9,10}$/.test(value)) return true
-        return t('phoneNumberValidation')
-      }
-    },
-  })
-
-  const phone = useField('phone')
   const auth = useAuthStore()
 
-  const phoneNumber = ref('')
+  const accountIdentifier = ref('')
   const err = ref('')
   const password = ref('')
   const show = ref(false)
@@ -209,18 +190,62 @@
   const demoErr = ref('')
 
   const demoBuyers = [
-    { key: 'buyer1', name: 'Yasmine Benali', wilaya: 'Alger (16)', roleLabel: 'Customer Persona', initials: 'YB', avatarColor: '#173F35' },
-    { key: 'buyer2', name: 'Rachid Khellaf', wilaya: 'Oran (31)', roleLabel: 'Customer Persona', initials: 'RK', avatarColor: '#21866B' },
-    { key: 'buyer3', name: 'Amina Bouzid', wilaya: 'Constantine (25)', roleLabel: 'Customer Persona', initials: 'AB', avatarColor: '#102D27' },
-    { key: 'buyer4', name: 'Sofiane Zerrouki', wilaya: 'Sétif (19)', roleLabel: 'Customer Persona', initials: 'SZ', avatarColor: '#B89564' },
-    { key: 'buyer5', name: 'Nour El Houda Belkacem', wilaya: 'Annaba (23)', roleLabel: 'Customer Persona', initials: 'NB', avatarColor: '#D9943B' }
+    {
+      key: 'customer',
+      email: 'customer@touriva.test',
+      phone: '0550000010',
+      password: 'Password123!',
+      name: 'Lynda Meziani',
+      wilaya: 'Alger (16)',
+      roleLabel: 'Verified Demo Customer',
+      initials: 'LM',
+      avatarColor: '#173F35'
+    },
+    {
+      key: 'buyer1',
+      email: 'demo.buyer1@touriva.example',
+      phone: '0550000001',
+      password: 'Buyer#Yasmine2026!Alg',
+      name: 'Yasmine Benali',
+      wilaya: 'Hydra, Alger (16)',
+      roleLabel: 'Demo Buyer Persona',
+      initials: 'YB',
+      avatarColor: '#21866B'
+    },
+    {
+      key: 'traveler',
+      email: 'traveler2@touriva.test',
+      phone: '0550000012',
+      password: 'Password123!',
+      name: 'Mehdi Larbi',
+      wilaya: 'Oran (31)',
+      roleLabel: 'Verified Traveler Persona',
+      initials: 'ML',
+      avatarColor: '#102D27'
+    },
+    {
+      key: 'buyer2',
+      email: 'demo.buyer2@touriva.example',
+      phone: '0550000002',
+      password: 'Buyer#Rachid2026!Orn',
+      name: 'Rachid Khellaf',
+      wilaya: 'Oran (31)',
+      roleLabel: 'Demo Buyer Persona',
+      initials: 'RK',
+      avatarColor: '#B89564'
+    }
   ]
 
-  const quickDemoSignIn = async (key) => {
+  const quickDemoSignIn = async (buyer) => {
     try {
-      demoLoadingKey.value = key
+      demoLoadingKey.value = buyer.key
       demoErr.value = ''
-      await auth.demoSignIn(key)
+      // Normal secure password authentication via POST /api/users/login
+      await auth.account_sign_in({
+        email: buyer.email,
+        password: buyer.password,
+        role: 'client'
+      })
     } catch (e) {
       demoErr.value = e.message || 'Demo login failed'
       setTimeout(() => { demoErr.value = '' }, 6000)
@@ -231,30 +256,48 @@
 
   const logIn = async () => {
     try {
-      let phoneNum = '+213' + phoneNumber.value
-      await auth.account_sign_in({
-        phone: phoneNum,
-        password: password.value,
-        role: 'client'
-      })
+      const idVal = String(accountIdentifier.value || '').trim()
+      if (!idVal || !password.value) {
+        err.value = 'Please enter your email or phone number and password'
+        loading.value = false
+        return
+      }
+
+      if (idVal.includes('@')) {
+        await auth.account_sign_in({
+          email: idVal.toLowerCase(),
+          password: password.value,
+          role: 'client'
+        })
+      } else {
+        let cleanDigits = idVal.replace(/[^0-9]/g, '')
+        if (cleanDigits.startsWith('0')) cleanDigits = cleanDigits.slice(1)
+        if (cleanDigits.startsWith('213')) cleanDigits = cleanDigits.slice(3)
+        const phoneNum = '+213' + cleanDigits
+        await auth.account_sign_in({
+          phone: phoneNum,
+          password: password.value,
+          role: 'client'
+        })
+      }
     } catch (error) {
-      err.value = error.message
+      err.value = error.message || 'Login failed'
       setTimeout(() => {
         err.value = ''
-        clear()
       }, 5000)
+    } finally {
+      loading.value = false
     }
-    loading.value = false
   }
 
-  const submit = handleSubmit(() => {
-    phoneNumber.value = phone.value.value
+  const submit = () => {
     loading.value = true
+    err.value = ''
     logIn()
-  })
+  }
 
   const clear = () => {
-    phone.value.value = ''
+    accountIdentifier.value = ''
     password.value = ''
   }
 

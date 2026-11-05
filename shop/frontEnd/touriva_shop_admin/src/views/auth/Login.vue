@@ -189,7 +189,13 @@ const quickDemoSignIn = async () => {
   try {
     demoLoading.value = true
     demoErr.value = ''
-    await auth.demoSignIn('admin')
+    email.value = 'demo.admin@touriva.example'
+    password.value = 'Touriva#Admin2026!Sec'
+    await auth.account_sign_in({
+      email: email.value,
+      password: password.value,
+      role: 'administrator'
+    })
   } catch (error) {
     demoErr.value = error.message || 'Demo admin authentication failed'
     setTimeout(() => { demoErr.value = '' }, 6000)

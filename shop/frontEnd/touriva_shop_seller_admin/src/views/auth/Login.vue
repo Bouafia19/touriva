@@ -75,7 +75,7 @@
                   elevation="0"
                   :loading="demoLoadingKey === s.key"
                   :disabled="loading || (demoLoadingKey !== null && demoLoadingKey !== s.key)"
-                  @click="quickDemoSignIn(s.key)"
+                  @click="quickDemoSignIn(s)"
                 >
                   <v-avatar size="32" :color="s.avatarColor" class="me-2 text-white">
                     <v-icon size="18">{{ s.icon }}</v-icon>
@@ -192,6 +192,8 @@ const demoErr = ref('')
 const demoSellers = [
   {
     key: 'seller1',
+    email: 'demo.seller1@touriva.example',
+    password: 'Atlas#Seller2026!Elc',
     name: 'Atlas Electronics DZ',
     location: 'Alger (16)',
     category: 'High-Tech & Electronics',
@@ -200,35 +202,56 @@ const demoSellers = [
   },
   {
     key: 'seller2',
+    email: 'demo.seller2@touriva.example',
+    password: 'Artisan#Seller2026!Trad',
     name: 'Artisan DZ & Traditions',
-    location: 'Tlemcen (13)',
-    category: 'Handicrafts & Rugs',
+    location: 'Tizi Ouzou (15)',
+    category: 'Handicrafts & Jewelry',
     icon: 'mdi-palette-swatch-outline',
     avatarColor: '#21866B'
   },
   {
     key: 'seller3',
+    email: 'demo.seller3@touriva.example',
+    password: 'Bahdja#Seller2026!Deco',
     name: 'Maison El Bahdja Déco',
-    location: 'Alger (16)',
-    category: 'Ceramics & Home Decor',
+    location: 'Ghardaïa (47)',
+    category: 'Ceramics & Terroir',
     icon: 'mdi-home-heart',
     avatarColor: '#102D27'
   },
   {
     key: 'seller4',
+    email: 'demo.seller4@touriva.example',
+    password: 'Sahara#Seller2026!Exp',
     name: 'Sahara Outdoor Expeditions',
-    location: 'Tamanrasset (11)',
+    location: 'Djanet (56)',
     category: 'Desert Trekking & Gear',
     icon: 'mdi-compass-outline',
     avatarColor: '#B89564'
+  },
+  {
+    key: 'legacy_seller1',
+    email: 'seller1@touriva.test',
+    password: 'Password123!',
+    name: 'Sahara Expedition Outfitters DZ',
+    location: 'Djanet (56)',
+    category: 'Primary Verified Seller',
+    icon: 'mdi-tent',
+    avatarColor: '#21866B'
   }
 ]
 
-const quickDemoSignIn = async (key) => {
+const quickDemoSignIn = async (seller) => {
   try {
-    demoLoadingKey.value = key
+    demoLoadingKey.value = seller.key
     demoErr.value = ''
-    await auth.demoSignIn(key)
+    // Normal secure password authentication via POST /api/users/login
+    await auth.account_sign_in({
+      email: seller.email,
+      password: seller.password,
+      role: 'seller'
+    })
   } catch (error) {
     demoErr.value = error.message || 'Demo login failed'
     setTimeout(() => { demoErr.value = '' }, 6000)

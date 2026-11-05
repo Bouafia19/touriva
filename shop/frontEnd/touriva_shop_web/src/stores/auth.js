@@ -76,28 +76,24 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         
-        // 1-Click Demo Sign In for Marketplace Buyers
+        // 1-Click Demo Sign In for Marketplace Buyers (via standard password authentication)
         async demoSignIn (demoType) {
             try {
-                const response = await axios.post("api/users/demo-login", { demoType, role: 'client' }, {
-                    headers: {
-                        'Cache-Control': 'no-cache',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                })
-                if (response && response.data) {
-                    this.user = response.data
-                    this.auth_login = true
-                    try {
-                        localStorage.setItem('userInfo', JSON.stringify(response.data))
-                    } catch (e) {}
-                    await this.setLSUserInfo(response.data)
-                    this.router.push('/tabs')
-                    return response.data
-                } else {
-                    throw new Error('Could not complete demo login')
+                const buyerCreds = {
+                    customer: { email: 'customer@touriva.test', password: 'Password123!' },
+                    traveler: { email: 'traveler2@touriva.test', password: 'Password123!' },
+                    buyer1: { email: 'demo.buyer1@touriva.example', password: 'Buyer#Yasmine2026!Alg' },
+                    buyer2: { email: 'demo.buyer2@touriva.example', password: 'Buyer#Rachid2026!Orn' },
+                    buyer3: { email: 'demo.buyer3@touriva.example', password: 'Buyer#Amina2026!Cst' },
+                    buyer4: { email: 'demo.buyer4@touriva.example', password: 'Buyer#Sofiane2026!Set' },
+                    buyer5: { email: 'demo.buyer5@touriva.example', password: 'Buyer#Nour2026!Ann' }
                 }
+                const cred = buyerCreds[demoType] || buyerCreds.buyer1
+                return await this.account_sign_in({
+                    email: cred.email,
+                    password: cred.password,
+                    role: 'client'
+                })
             } catch (error) {
                 const err = error.response?.data?.error || error.message || 'Demo login failed'
                 throw new Error(err)

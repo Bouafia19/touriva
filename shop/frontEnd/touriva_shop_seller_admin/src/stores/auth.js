@@ -22,16 +22,19 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         async demoSignIn (demoType) {
             try {
-                const response = await axios.post("api/users/demo-login", { demoType, role: 'seller' })
-                if (response && response.data) {
-                    this.user = response.data
-                    localStorage.setItem('userInfo', JSON.stringify(response.data))
-                    this.auth_login = true
-                    this.router.push('/dashboard')
-                    return response.data
-                } else {
-                    throw new Error('Could not complete demo login')
+                const sellerCreds = {
+                    seller1: { email: 'demo.seller1@touriva.example', password: 'Atlas#Seller2026!Elc' },
+                    seller2: { email: 'demo.seller2@touriva.example', password: 'Artisan#Seller2026!Trad' },
+                    seller3: { email: 'demo.seller3@touriva.example', password: 'Bahdja#Seller2026!Deco' },
+                    seller4: { email: 'demo.seller4@touriva.example', password: 'Sahara#Seller2026!Exp' },
+                    legacy_seller1: { email: 'seller1@touriva.test', password: 'Password123!' }
                 }
+                const cred = sellerCreds[demoType] || sellerCreds.seller1
+                return await this.account_sign_in({
+                    email: cred.email,
+                    password: cred.password,
+                    role: 'seller'
+                })
             } catch (error) {
                 const err = error.response?.data?.error || error.message || 'Demo login failed'
                 throw new Error(err)
