@@ -122,3 +122,31 @@ The Touriva Tourism Platform and the Touriva Multi-Vendor Marketplace have satis
 Operating costs remain **$0.00 / month**.
 
 **RELEASE VERDICT: GO — FREE-TIER PILOT READY.**
+
+---
+
+## 7. 10-USER CAPACITY VALIDATION ADDENDUM (NOVEMBER 6, 2026)
+
+Following the initial 5-user certification, a dedicated 4-stage 10-user concurrent capacity validation suite was executed directly against production under platform owner authorization:
+
+### 7.1 Multi-Stage Scorecard
+- **Stage A (5 users / 3 min baseline):** 368 requests, 100% 200 OK, 0 5xx, p95 = 466 ms
+- **Stage B (7 users / 3 min ramp-up):** 523 requests, 100% 200 OK, 0 5xx, p95 = 386 ms
+- **Stage C (10 users / 5 min full concurrency):** 1,254 requests, 0 5xx, 0 drops, p95 = 365 ms (2xx ops)
+- **Stage D (10 users / 15 min endurance benchmark):** 3,749 requests, 0 5xx, 0 drops, p95 = 398 ms (2xx ops)
+- **Total Requests Dispatched:** **5,894 requests** across 26.2 minutes.
+- **HTTP 5xx Server Errors:** **0 (0.00%)**
+- **Socket Connection Resets:** **0 (0.00%)**
+- **MongoDB Atlas M0 Connections:** **22 active / 500 ceiling (4.4% utilization)**
+- **MongoDB Atlas Storage Footprint:** **1.703 MB / 512 MB (0.33% utilization)**
+
+### 7.2 Updated 10-User Capacity Decision
+**10-USER CAPACITY VERDICT: CONDITIONAL GO — 10 USERS**
+
+Both platforms successfully support **10 simultaneous active users** on the existing zero-cost infrastructure ($0.00/mo), provided the following operational limitations are observed:
+1. **Distributed IP Topology:** Real users must connect from distinct network IP addresses (mobile data or separate home Wi-Fi). Sharing a single NAT IP across 3+ users will trip the 500 req / 15 min defensive rate limiter.
+2. **Read-Dominant Workload:** Optimized for browsing, catalog exploration, searches, and authenticated dashboard reads. High-concurrency checkout bursts (simultaneous transactions) are constrained by Atlas M0 shared resources.
+3. **Cold-Start Awareness:** Containers spin down after 15 minutes of inactivity (5.8s–8.2s wakeup latency). Pre-warming via ping script or a free 10-minute keep-warm cron job is recommended.
+
+For detailed analysis, telemetry charts, and persona traces, refer to [`TEN_USER_CONCURRENT_LOAD_TEST_REPORT.md`](file:///home/next/next%20projects/touriva/TEN_USER_CONCURRENT_LOAD_TEST_REPORT.md).
+
